@@ -51,7 +51,7 @@ Welcome to join our community on
 
 - [🚀 Quick Start](#-quick-start)
 - [📚 Cookbook](#-cookbook)
-- [🔌Agent Framework Integration](#-agent-framework-integration)
+- [🔌 Agent Framework Integration](#-agent-framework-integration)
 - [🏗️ Deployment](#️-deployment)
 - [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
