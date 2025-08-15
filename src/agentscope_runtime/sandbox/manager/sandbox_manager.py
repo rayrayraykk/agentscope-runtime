@@ -685,10 +685,3 @@ class SandboxManager:
             server_configs=server_configs,
             overwrite=overwrite,
         )
-
-
-if __name__ == "__main__":
-    with SandboxManager() as manager:
-        name = manager.create("12345")
-        if name:
-            print(f"Created container: {name}")
