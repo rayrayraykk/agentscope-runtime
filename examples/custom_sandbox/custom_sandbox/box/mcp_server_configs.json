@@ -35,7 +35,7 @@
     "markdownify": {
       "command": "node",
       "args": [
-        "/agent_runtime/mcp_project/markdownify-mcp/dist/index.js"
+        "/agentscope_runtime/mcp_project/markdownify-mcp/dist/index.js"
       ]
     },
     "amap-maps": {
@@ -51,7 +51,7 @@
         "-y",
         "@playwright/mcp@0.0.29",
         "--config",
-        "/agent_runtime/playwright_mcp_config.json"
+        "/agentscope_runtime/playwright_mcp_config.json"
       ]
     }
   }
