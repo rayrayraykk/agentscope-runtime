@@ -124,7 +124,7 @@ def build_image(build_type, dockerfile_path=None):
             f"{free_port}:80",
             "-e",
             f"SECRET_TOKEN={secret_token}",
-            f"{image_name}",
+            f"{image_name}dev",
         ],
         capture_output=True,
         text=True,
