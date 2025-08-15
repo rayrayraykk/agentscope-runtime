@@ -7,7 +7,7 @@
 
 This demo showcases how to use browser automation capabilities within the AgentScope Runtime framework. It provides both backend services and a frontend interface to demonstrate browser-based agent interactions. The real-time visualization of browser interactions is powered by [Steel-Browser](https://github.com/steel-dev/steel-browser).
 
-<img src="assets/browseruse.gif" alt="video of browser-use demo" width="800">
+<img src="https://img.alicdn.com/imgextra/i3/O1CN01hTTRvK1MxxyT0lCNm_!!6000000001502-1-tps-656-480.gif" alt="video of browser-use demo" width="800">
 
 ## 🌳 Project Structure
 
