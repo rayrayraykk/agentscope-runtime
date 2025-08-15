@@ -144,6 +144,10 @@ asyncio.run(main())
 
 This example demonstrates how to create sandboxed and execute tool within the sandbox.
 
+> [!NOTE]
+>
+> Current version requires Docker to be installed and running on your system. In the future, we will provide Kubernetes deployment and public cloud deployment options. Please refer to [this tutorial](https://runtime.agentscope.io/en/sandbox.html) for more details.
+
 ```python
 from agentscope_runtime.sandbox import BaseSandbox
 
