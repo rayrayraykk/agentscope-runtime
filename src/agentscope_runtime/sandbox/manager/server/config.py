@@ -2,7 +2,7 @@
 import os
 from typing import Optional, Tuple, Literal
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
+from pydantic import field_validator, ConfigDict
 from dotenv import load_dotenv
 
 env_file = ".env"
@@ -53,9 +53,11 @@ class Settings(BaseSettings):
     OSS_ACCESS_KEY_SECRET: str = "your-access-key-secret"
     OSS_BUCKET_NAME: str = "your-bucket-name"
 
-    class Config:
-        env_file = env_file if os.path.exists(env_file) else env_example_file
-        case_sensitive = True
+    model_config = ConfigDict(
+        env_file=env_file if os.path.exists(env_file) else env_example_file,
+        case_sensitive=True,
+        extra="allow",
+    )
 
     @field_validator("WORKERS", mode="before")
     @classmethod
@@ -65,4 +67,18 @@ class Settings(BaseSettings):
         return value
 
 
-settings = Settings()
+_settings: Optional[Settings] = None
+
+
+def get_settings(config_file: Optional[str] = None) -> Settings:
+    global _settings
+
+    if _settings is None:
+        if config_file and os.path.exists(config_file):
+            load_dotenv(config_file, override=True)
+        elif os.path.exists(".env"):
+            load_dotenv(".env")
+        elif os.path.exists(".env.example"):
+            load_dotenv(".env.example")
+        _settings = Settings()
+    return _settings

@@ -4,12 +4,14 @@ import inspect
 import logging
 import traceback
 
+from typing import Optional
+
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from ...manager.server.config import settings
+from ...manager.server.config import get_settings
 from ...manager.server.models import (
     ErrorResponse,
     HealthResponse,
@@ -42,34 +44,45 @@ app.add_middleware(
 security = HTTPBearer(auto_error=False)
 
 # Global SandboxManager instance
-_runtime_manager = None
-_config = SandboxManagerEnvConfig(
-    container_prefix_key=settings.CONTAINER_PREFIX_KEY,
-    file_system=settings.FILE_SYSTEM,
-    redis_enabled=settings.REDIS_ENABLED,
-    container_deployment=settings.CONTAINER_DEPLOYMENT,
-    default_mount_dir=settings.DEFAULT_MOUNT_DIR,
-    storage_folder=settings.STORAGE_FOLDER,
-    port_range=settings.PORT_RANGE,
-    pool_size=settings.POOL_SIZE,
-    oss_endpoint=settings.OSS_ENDPOINT,
-    oss_access_key_id=settings.OSS_ACCESS_KEY_ID,
-    oss_access_key_secret=settings.OSS_ACCESS_KEY_SECRET,
-    oss_bucket_name=settings.OSS_BUCKET_NAME,
-    redis_server=settings.REDIS_SERVER,
-    redis_port=settings.REDIS_PORT,
-    redis_db=settings.REDIS_DB,
-    redis_user=settings.REDIS_USER,
-    redis_password=settings.REDIS_PASSWORD,
-    redis_port_key=settings.REDIS_PORT_KEY,
-    redis_container_pool_key=settings.REDIS_CONTAINER_POOL_KEY,
-)
+_runtime_manager: Optional[SandboxManager] = None
+_config: Optional[SandboxManagerEnvConfig] = None
+
+
+def get_config() -> SandboxManagerEnvConfig:
+    """获取配置实例"""
+    global _config
+    if _config is None:
+        settings = get_settings()
+        _config = SandboxManagerEnvConfig(
+            container_prefix_key=settings.CONTAINER_PREFIX_KEY,
+            file_system=settings.FILE_SYSTEM,
+            redis_enabled=settings.REDIS_ENABLED,
+            container_deployment=settings.CONTAINER_DEPLOYMENT,
+            default_mount_dir=settings.DEFAULT_MOUNT_DIR,
+            storage_folder=settings.STORAGE_FOLDER,
+            port_range=settings.PORT_RANGE,
+            pool_size=settings.POOL_SIZE,
+            oss_endpoint=settings.OSS_ENDPOINT,
+            oss_access_key_id=settings.OSS_ACCESS_KEY_ID,
+            oss_access_key_secret=settings.OSS_ACCESS_KEY_SECRET,
+            oss_bucket_name=settings.OSS_BUCKET_NAME,
+            redis_server=settings.REDIS_SERVER,
+            redis_port=settings.REDIS_PORT,
+            redis_db=settings.REDIS_DB,
+            redis_user=settings.REDIS_USER,
+            redis_password=settings.REDIS_PASSWORD,
+            redis_port_key=settings.REDIS_PORT_KEY,
+            redis_container_pool_key=settings.REDIS_CONTAINER_POOL_KEY,
+        )
+    return _config
 
 
 def verify_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ):
     """Verify Bearer token"""
+    settings = get_settings()
+
     if not hasattr(settings, "BEARER_TOKEN") or not settings.BEARER_TOKEN:
         logger.warning("BEARER_TOKEN not configured, skipping authentication")
         return credentials
@@ -98,8 +111,10 @@ def get_runtime_manager():
     """Get or create the global SandboxManager instance"""
     global _runtime_manager
     if _runtime_manager is None:
+        settings = get_settings()
+        config = get_config()
         _runtime_manager = SandboxManager(
-            config=_config,
+            config=config,
             default_type=settings.DEFAULT_SANDBOX_TYPE,
         )
     return _runtime_manager
@@ -159,6 +174,7 @@ async def startup_event():
 async def shutdown_event():
     """Cleanup resources on shutdown"""
     global _runtime_manager
+    settings = get_settings()
     if _runtime_manager and settings.AUTO_CLEANUP:
         _runtime_manager.cleanup()
         _runtime_manager = None
@@ -179,7 +195,20 @@ async def health_check():
 
 def main():
     """Main entry point for the Runtime Manager Service"""
+    import argparse
+    import os
     import uvicorn
+
+    parser = argparse.ArgumentParser(description="Runtime Manager Service")
+    parser.add_argument("--config", type=str, help="Path to config file")
+    args = parser.parse_args()
+
+    if args.config and not os.path.exists(args.config):
+        raise FileNotFoundError(
+            f"Error: Config file {args.config} does not exist",
+        )
+
+    settings = get_settings(args.config)
 
     uvicorn.run(
         "agentscope_runtime.sandbox.manager.server.app:app",

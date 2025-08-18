@@ -32,8 +32,6 @@ repos:
           | \.html$
           )
         args: [
-#          --disallow-untyped-defs,
-#          --disallow-incomplete-defs,
           --ignore-missing-imports,
           --disable-error-code=var-annotated,
           --disable-error-code=union-attr,
