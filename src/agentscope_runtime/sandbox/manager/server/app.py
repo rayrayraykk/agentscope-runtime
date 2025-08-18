@@ -49,7 +49,7 @@ _config: Optional[SandboxManagerEnvConfig] = None
 
 
 def get_config() -> SandboxManagerEnvConfig:
-    """获取配置实例"""
+    """Return config"""
     global _config
     if _config is None:
         settings = get_settings()
