@@ -12,7 +12,6 @@ SANDBOX_TYPE = "example"
 @SandboxRegistry.register(
     f"agentscope/runtime-sandbox-{SANDBOX_TYPE}:{IMAGE_TAG}",
     sandbox_type=SANDBOX_TYPE,
-    resource_limits={"memory": "16Gi", "cpu": "4"},
     security_level="medium",
     timeout=60,
     description="Example sandbox",

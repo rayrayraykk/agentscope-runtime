@@ -42,7 +42,6 @@ SANDBOXTYPE = "custom_sandbox"
 @SandboxRegistry.register(
     f"agentscope/runtime-sandbox-{SANDBOXTYPE}:{__version__}",
     sandbox_type=SANDBOXTYPE,
-    resource_limits={"memory": "16Gi", "cpu": "4"},
     security_level="medium",
     timeout=60,
     description="my sandbox",
