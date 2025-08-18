@@ -5,15 +5,6 @@ from pydantic_settings import BaseSettings
 from pydantic import field_validator, ConfigDict
 from dotenv import load_dotenv
 
-env_file = ".env"
-env_example_file = ".env.example"
-
-# Load the appropriate .env file
-if os.path.exists(env_file):
-    load_dotenv(env_file)
-elif os.path.exists(env_example_file):
-    load_dotenv(env_example_file)
-
 
 class Settings(BaseSettings):
     """Runtime Manager Service Settings"""
@@ -54,7 +45,6 @@ class Settings(BaseSettings):
     OSS_BUCKET_NAME: str = "your-bucket-name"
 
     model_config = ConfigDict(
-        env_file=env_file if os.path.exists(env_file) else env_example_file,
         case_sensitive=True,
         extra="allow",
     )
@@ -73,12 +63,15 @@ _settings: Optional[Settings] = None
 def get_settings(config_file: Optional[str] = None) -> Settings:
     global _settings
 
+    env_file = ".env"
+    env_example_file = ".env.example"
+
     if _settings is None:
         if config_file and os.path.exists(config_file):
             load_dotenv(config_file, override=True)
-        elif os.path.exists(".env"):
-            load_dotenv(".env")
-        elif os.path.exists(".env.example"):
-            load_dotenv(".env.example")
+        elif os.path.exists(env_file):
+            load_dotenv(env_file)
+        elif os.path.exists(env_example_file):
+            load_dotenv(env_example_file)
         _settings = Settings()
     return _settings
