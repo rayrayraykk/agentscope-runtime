@@ -42,6 +42,7 @@ sandbox = [
     "requests>=2.32.4",
     "pydantic-settings>=2.9.1",
     "dotenv>=0.9.9",
+    "kubernetes>=33.1.0",
 ]
 
 agentscope = [
