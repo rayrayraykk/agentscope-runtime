@@ -40,6 +40,37 @@ class KubernetesClient(BaseClient):
                 "• For in-cluster: ensure proper RBAC permissions",
             ) from e
 
+    def _parse_port_spec(self, port_spec):
+        """
+        Parse port specification.
+        - "80/tcp" -> {"port": 80, "protocol": "TCP"}
+        - "80" -> {"port": 80, "protocol": "TCP"}
+        - 80 -> {"port": 80, "protocol": "TCP"}
+        """
+        try:
+            if isinstance(port_spec, int):
+                return {"port": port_spec, "protocol": "TCP"}
+
+            if isinstance(port_spec, str):
+                if "/" in port_spec:
+                    port_str, protocol = port_spec.split("/", 1)
+                else:
+                    port_str = port_spec
+                    protocol = "TCP"
+
+                port = int(port_str)
+                protocol = protocol.upper()
+
+                return {"port": port, "protocol": protocol}
+
+            # Log a warning if the port_spec is neither int nor str
+            logger.warning(f"Unsupported port specification: {port_spec}")
+            return None
+
+        except ValueError as e:
+            logger.error(f"Failed to parse port spec '{port_spec}': {e}")
+            return None
+
     def _create_pod_spec(
         self,
         image,
@@ -68,27 +99,17 @@ class KubernetesClient(BaseClient):
         # Configure ports
         if ports:
             container_ports = []
-            for host_port, container_port_info in ports.items():
-                if isinstance(container_port_info, dict):
-                    container_port = container_port_info.get(
-                        "container_port",
-                        int(host_port),
+            for port_spec in ports:
+                port_info = self._parse_port_spec(port_spec)
+                if port_info:
+                    container_ports.append(
+                        client.V1ContainerPort(
+                            container_port=port_info["port"],
+                            protocol=port_info["protocol"],
+                        ),
                     )
-                    protocol = container_port_info.get("protocol", "TCP")
-                else:
-                    container_port = (
-                        int(container_port_info)
-                        if isinstance(container_port_info, str)
-                        else container_port_info
-                    )
-                    protocol = "TCP"
-                container_ports.append(
-                    client.V1ContainerPort(
-                        container_port=container_port,
-                        protocol=protocol.upper(),
-                    ),
-                )
-            container.ports = container_ports
+            if container_ports:
+                container.ports = container_ports
 
         # Configure environment variables
         if environment:
@@ -217,15 +238,35 @@ class KubernetesClient(BaseClient):
                 f"Pod '{name}' created successfully in namespace "
                 f"'{self.namespace}'",
             )
-            return True
-        except ApiException as e:
-            logger.error(f"Failed to create pod '{name}': {e.reason}")
-            if e.status == 409:
-                logger.error(f"Pod '{name}' already exists")
-            return False
+
+            if not self.wait_for_pod_ready(name, timeout=60):
+                logger.error(f"Pod '{name}' failed to become ready")
+                return None, None
+
+            exposed_ports = []
+            # Auto-create services for exposed ports (like Docker's port
+            # mapping)
+            if ports:
+                parsed_ports = []
+                for port_spec in ports:
+                    port_info = self._parse_port_spec(port_spec)
+                    if port_info:
+                        parsed_ports.append(port_info)
+
+                if parsed_ports:
+                    service_created = self._create_multi_port_service(
+                        name,
+                        parsed_ports,
+                    )
+                    if service_created:
+                        exposed_ports = self._get_service_node_ports(name)
+            logger.debug(
+                f"Pod '{name}' created with exposed ports: {exposed_ports}",
+            )
+            return name, exposed_ports
         except Exception as e:
             logger.error(f"An error occurred: {e}, {traceback.format_exc()}")
-            return False
+            return None, None
 
     def start(self, container_id):
         """
@@ -295,6 +336,9 @@ class KubernetesClient(BaseClient):
     def remove(self, container_id, force=False):
         """Remove a Kubernetes Pod."""
         try:
+            # Remove all associated services first
+            self._remove_pod_services(container_id)
+
             delete_options = client.V1DeleteOptions()
 
             if force:
@@ -319,6 +363,25 @@ class KubernetesClient(BaseClient):
         except Exception as e:
             logger.error(f"An error occurred: {e}, {traceback.format_exc()}")
             return False
+
+    def _remove_pod_services(self, pod_name):
+        """Remove the service associated with a pod"""
+        service_name = f"{pod_name}-service"
+        try:
+            self.v1.delete_namespaced_service(
+                name=service_name,
+                namespace=self.namespace,
+            )
+            logger.debug(f"Removed service {service_name}")
+        except client.ApiException as e:
+            if e.status == 404:
+                logger.debug(
+                    f"Service {service_name} not found (already removed)",
+                )
+            else:
+                logger.warning(f"Failed to remove service {service_name}: {e}")
+        except Exception as e:
+            logger.error(f"Failed to remove service for pod {pod_name}: {e}")
 
     def inspect(self, container_id):
         """Inspect a Kubernetes Pod."""
@@ -414,74 +477,69 @@ class KubernetesClient(BaseClient):
                 time.sleep(2)
         return False
 
-    def create_service(
-        self,
-        container_id,
-        port,
-        target_port=None,
-        service_type="NodePort",
-    ):
-        """Create service to expose node"""
+    def _create_multi_port_service(self, pod_name, port_list):
+        """Create a single service with multiple ports for the pod."""
         try:
-            if target_port is None:
-                target_port = port
-            selector = {"app": container_id}
+            service_name = f"{pod_name}-service"
+            selector = {"app": pod_name}
+
+            # Construct multi-port configuration
+            service_ports = []
+            for port_info in port_list:
+                port = port_info["port"]
+                protocol = port_info["protocol"]
+                service_ports.append(
+                    client.V1ServicePort(
+                        name=f"port-{port}",  # Each port needs a unique name
+                        port=port,
+                        target_port=port,
+                        protocol=protocol,
+                    ),
+                )
 
             service_spec = client.V1ServiceSpec(
                 selector=selector,
-                ports=[
-                    client.V1ServicePort(
-                        port=port,
-                        target_port=target_port,
-                        protocol="TCP",
-                    ),
-                ],
-                type=service_type,
+                ports=service_ports,
+                type="NodePort",
             )
+
             service = client.V1Service(
                 api_version="v1",
                 kind="Service",
-                metadata=client.V1ObjectMeta(name=f"{container_id}-service"),
+                metadata=client.V1ObjectMeta(name=service_name),
                 spec=service_spec,
             )
 
+            # Create the service in the specified namespace
             self.v1.create_namespaced_service(
                 namespace=self.namespace,
                 body=service,
             )
 
-            logger.info(
-                f"Service '{container_id}-service' created successfully.",
-            )
-
-            # Wait a second
+            # Wait for service to be ready
             time.sleep(1)
-            service_info = self.v1.read_namespaced_service(
-                name=f"{container_id}-service",
-                namespace=self.namespace,
-            )
-
-            if service_type == "NodePort":
-                node_port = service_info.spec.ports[0].node_port
-                print(f"Service exposed on NodePort: {node_port}")
             return True
         except Exception as e:
-            logger.error(f"Failed to create service: {e}")
+            logger.error(
+                f"Failed to create multi-port service for pod {pod_name}: {e}",
+            )
             return False
 
-    def get_service_url(self, container_id):
-        """Get the node port"""
+    def _get_service_node_ports(self, pod_name):
+        """Get the NodePort for a service"""
         try:
+            service_name = f"{pod_name}-service"
             service_info = self.v1.read_namespaced_service(
-                name=f"{container_id}-service",
+                name=service_name,
                 namespace=self.namespace,
             )
-            if service_info.spec.type == "NodePort":
-                node_port = service_info.spec.ports[0].node_port
-                return f"http://localhost:{node_port}"
 
-            return None
+            node_ports = []
+            for port in service_info.spec.ports:
+                if port.node_port:
+                    node_ports.append(port.node_port)
 
+            return node_ports
         except Exception as e:
-            logger.error(f"Failed to get service URL: {e}")
+            logger.error(f"Failed to get node port: {e}")
             return None
