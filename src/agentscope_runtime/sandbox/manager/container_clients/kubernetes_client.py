@@ -243,10 +243,6 @@ class KubernetesClient(BaseClient):
                 f"'{self.namespace}'",
             )
 
-            if not self.wait_for_pod_ready(name, timeout=60):
-                logger.error(f"Pod '{name}' failed to become ready")
-                return None, None
-
             exposed_ports = []
             # Auto-create services for exposed ports (like Docker's port
             # mapping)
@@ -267,6 +263,11 @@ class KubernetesClient(BaseClient):
             logger.debug(
                 f"Pod '{name}' created with exposed ports: {exposed_ports}",
             )
+
+            if not self.wait_for_pod_ready(name, timeout=60):
+                logger.error(f"Pod '{name}' failed to become ready")
+                return None, None
+
             return name, exposed_ports
         except Exception as e:
             logger.error(f"An error occurred: {e}, {traceback.format_exc()}")
@@ -462,7 +463,6 @@ class KubernetesClient(BaseClient):
                     name=container_id,
                     namespace=self.namespace,
                 )
-                print(pod.status.phase)
                 if pod.status.phase == "Running":
                     # Check if all containers are ready
                     if pod.status.container_statuses:
