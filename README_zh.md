@@ -152,7 +152,7 @@ with BaseSandbox() as box:
 
 > [!NOTE]
 >
-> 当前版本需要安装并运行Docker，未来我们将提供Kubernetes部署和公有云部署选项。请参考[此教程](https://runtime.agentscope.io/zh/sandbox.html)了解更多详情。
+> 当前版本需要安装并运行Docker或者Kubernetes，未来我们将提供更多公有云部署选项。请参考[此教程](https://runtime.agentscope.io/zh/sandbox.html)了解更多详情。
 
 ---
 
