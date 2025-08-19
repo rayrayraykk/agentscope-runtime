@@ -5,10 +5,14 @@ from typing import Optional, Literal, Tuple
 from pydantic import BaseModel, Field, model_validator
 
 
+UUID_LENGTH = 25
+
+
 class SandboxManagerEnvConfig(BaseModel):
     container_prefix_key: str = Field(
         "runtime_sandbox_container_",
         description="Prefix for keys related to Container models.",
+        max_length=63 - UUID_LENGTH,  # Max length for k8s pod name
     )
 
     file_system: Literal["local", "oss"] = Field(
