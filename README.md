@@ -16,6 +16,7 @@
 [![Discord](https://img.shields.io/badge/Discord-Join_Us-blueviolet.svg?logo=discord)](https://discord.gg/eYMpfnkG8h)
 [![DingTalk](https://img.shields.io/badge/DingTalk-Join_Us-orange.svg)](https://qr.dingtalk.com/action/joingroup?code=v1,k1,OmDlBXpjW+I2vWjKDsjvI9dhcXjGZi3bQiojOq3dlDw=&_dt_no_comment=1&origin=11)
 
+[[Cookbook]](https://runtime.agentscope.io/)
 [[中文README]](README_zh.md)
 
 **A Production-Ready Runtime Framework for Intelligent Agent Applications**
@@ -154,7 +155,7 @@ with BaseSandbox() as box:
 
 > [!NOTE]
 >
-> Current version requires Docker to be installed and running on your system. In the future, we will provide Kubernetes deployment and public cloud deployment options. Please refer to [this tutorial](https://runtime.agentscope.io/en/sandbox.html) for more details.
+> Current version requires Docker or Kubernetes to be installed and running on your system. Please refer to [this tutorial](https://runtime.agentscope.io/en/sandbox.html) for more details.
 
 ---
 

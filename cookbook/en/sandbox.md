@@ -19,7 +19,7 @@ AgentScope Runtime's Sandbox is a versatile tool that provides a **secure** and 
 ## Prerequisites
 
 ```{note}
-The current sandbox environment uses Docker for isolation by default. We plan to expand support for Kubernetes (K8s) and third-party hosting solutions in future releases.
+The current sandbox environment utilizes Docker for default isolation. In addition, we offer support for Kubernetes (K8s) as a remote service backend. Looking ahead, we plan to incorporate more third-party hosting solutions in future releases.
 ```
 
 
@@ -30,6 +30,7 @@ For **Apple Silicon devices** (such as M1/M2), we recommend the following option
 ````
 
 - Docker
+- (Optional,  remote mode only) Kubernetes
 
 ## Setup
 
@@ -349,6 +350,7 @@ Remote deployment is beneficial for:
 * Separating comput-intensive tasks to dedicated servers
 * Multiple clients sharing the same sandbox environment
 * Developing on resource-constrained local machines while executing on high-performance servers
+* Deploy sandbox server with K8S
 
 For more advanced usage of sandbox-server, please refer to {doc}`sandbox_advanced` for detailed instructions.
 ```

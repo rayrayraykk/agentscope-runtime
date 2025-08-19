@@ -39,6 +39,13 @@ The above command will start the server with default settings:
 - Local file system storage
 - No Redis caching
 
+For advanced configurations, you can use the `--config` option to specify a different environment setup. For instance, you can use:
+
+```bash
+# This command will load the settings defined in the `custom.env` file
+runtime-sandbox-server --config custom.env
+```
+
 ### Custom Configuration
 
 For custom deployments or specific requirements, you can customize the server configuration by creating a `.env` file in your working directory:
@@ -78,6 +85,10 @@ OSS_ENDPOINT=http://oss-cn-hangzhou.aliyuncs.com
 OSS_ACCESS_KEY_ID=your-access-key-id
 OSS_ACCESS_KEY_SECRET=your-access-key-secret
 OSS_BUCKET_NAME=your-bucket-name
+
+# K8S settings
+K8S_NAMESPACE=default
+KUBECONFIG_PATH=
 ```
 
 ### Configuration Reference
@@ -100,7 +111,7 @@ OSS_BUCKET_NAME=your-bucket-name
 | `POOL_SIZE` | Pre-warmed container pool size | `1`                        | Cached containers for faster startup. The `POOL_SIZE` parameter controls how many containers are pre-created and cached in a ready-to-use state. When users request a new sandbox, the system will first try to allocate from this pre-warmed pool, significantly reducing startup time compared to creating containers from scratch. For example, with `POOL_SIZE=10`, the system maintains 10 ready containers that can be instantly assigned to new requests. |
 | `AUTO_CLEANUP` | Automatic container cleanup | `True`                     | All sandboxes will be released after the server is closed if set to `True`. |
 | `CONTAINER_PREFIX_KEY` | Container name prefix | `agent-runtime-container-` | For identification |
-| `CONTAINER_DEPLOYMENT` | Container runtime | `docker`                   | Currently, only Docker is supported |
+| `CONTAINER_DEPLOYMENT` | Container runtime | `docker`                   | Currently, `docker` and `k8s` are supported |
 | `DEFAULT_MOUNT_DIR` | Default mount directory | `sessions_mount_dir`       | For persistent storage path where the `/workspace` file is stored |
 | `PORT_RANGE` | Available port range | `[49152,59152]`            | For service port allocation |
 
@@ -136,6 +147,15 @@ For distributed file storage using [Alibaba Cloud Object Storage Service](https:
 | `OSS_ACCESS_KEY_ID` | OSS access key ID | Empty | From the OSS console |
 | `OSS_ACCESS_KEY_SECRET` | OSS access key secret | Empty | Keep secure |
 | `OSS_BUCKET_NAME` | OSS bucket name | Empty | Pre-created bucket |
+
+### (Optional) K8S Settings
+
+To configure settings specific to Kubernetes in your sandbox server, ensure you set `CONTAINER_DEPLOYMENT=k8s` to activate this feature. Consider adjusting the following parameters:
+
+| Parameter         | Description                     | Default   | Notes                                                |
+| ----------------- | ------------------------------- | --------- | ---------------------------------------------------- |
+| `K8S_NAMESPACE`   | Kubernetes namespace to be used | `default` | Set the namespace for resource deployment            |
+| `KUBECONFIG_PATH` | Path to the kubeconfig file     | `None`    | Specifies the kubeconfig location for cluster access |
 
 ### Starting the Server
 

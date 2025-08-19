@@ -19,7 +19,7 @@ AgentScope Runtime的Sandbox提供了一个**安全**且**隔离**的环境，�
 ## 前提条件
 
 ```{note}
-当前沙箱环境默认使用Docker进行隔离。我们计划在未来版本中扩展对Kubernetes (K8s) 和第三方托管解决方案的支持。
+当前的沙箱环境默认使用 Docker 进行隔离。此外，我们还支持 Kubernetes (K8s) 作为远程服务后端。未来，我们计划在即将发布的版本中加入更多第三方托管解决方案。
 ```
 
 
@@ -30,6 +30,7 @@ AgentScope Runtime的Sandbox提供了一个**安全**且**隔离**的环境，�
 ````
 
 - Docker
+- （可选，仅支持远程模式）Kubernetes
 
 ## 安装
 
@@ -351,6 +352,7 @@ with BaseSandbox() as sandbox:
 * 将计算密集型任务分离到专用服务器
 * 多个客户端共享同一沙箱环境
 * 在资源受限的本地机器上开发，同时在高性能服务器上执行
+* K8S集群部署沙盒服务
 
 有关sandbox-server的更高级用法，请参阅{doc}`sandbox_advanced`了解详细说明。
 ```

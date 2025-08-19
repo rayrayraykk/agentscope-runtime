@@ -39,6 +39,13 @@ runtime-sandbox-server
 - 本地文件系统存储
 - 无Redis缓存
 
+对于高级配置，您可以使用` --config` 选项指定不同的环境设置。例如，要将服务器配置修改为指定的文件，可以使用：
+
+```bash
+# 此命令将加载 `custom.env` 文件中定义的设置
+runtime-sandbox-server --config custom.env
+```
+
 ### 自定义配置
 
 对于自定义部署或特定需求，您可以通过在工作目录中创建 `.env` 文件来自定义服务器配置：
@@ -78,6 +85,10 @@ OSS_ENDPOINT=http://oss-cn-hangzhou.aliyuncs.com
 OSS_ACCESS_KEY_ID=your-access-key-id
 OSS_ACCESS_KEY_SECRET=your-access-key-secret
 OSS_BUCKET_NAME=your-bucket-name
+
+# K8S 设置
+K8S_NAMESPACE=default
+KUBECONFIG_PATH=
 ```
 
 ### Configuration Reference
@@ -95,13 +106,13 @@ OSS_BUCKET_NAME=your-bucket-name
 #### Runtime Manager Settings
 
 | Parameter              | Description    | Default                    | Notes                                                        |
-| ---------------------- | -------------- |----------------------------| ------------------------------------------------------------ |
+| ---------------------- | -------------- | -------------------------- | ------------------------------------------------------------ |
 | `DEFAULT_SANDBOX_TYPE` | 默认沙箱类型   | `base`                     | `base`, `filesystem`, `browser`                              |
 | `WORKDIR`              | 容器工作目录   | `/workspace`               | 必须是绝对路径                                               |
 | `POOL_SIZE`            | 预热容器池大小 | `1`                        | 缓存的容器以实现更快启动。`POOL_SIZE` 参数控制预创建并缓存在就绪状态的容器数量。当用户请求新沙箱时，系统将首先尝试从这个预热池中分配，相比从零开始创建容器显著减少启动时间。例如，使用 `POOL_SIZE=10`，系统维护 10 个就绪容器，可以立即分配给新请求 |
 | `AUTO_CLEANUP`         | 自动容器清理   | `True`                     | 如果设置为 `True`，服务器关闭后将释放所有沙箱。              |
 | `CONTAINER_PREFIX_KEY` | 容器名称前缀   | `agent-runtime-container-` | 用于标识                                                     |
-| `CONTAINER_DEPLOYMENT` | 容器运行时     | `docker`                   | 目前只支持 Docker                                            |
+| `CONTAINER_DEPLOYMENT` | 容器运行时     | `docker`                   | 目前支持`docker`和`k8s`                                      |
 | `DEFAULT_MOUNT_DIR`    | 默认挂载目录   | `sessions_mount_dir`       | 用于持久存储路径，存储`/workspace` 文件                      |
 | `PORT_RANGE`           | 可用端口范围   | `[49152,59152]`            | 用于服务端口分配                                             |
 
@@ -137,6 +148,15 @@ Redis 为沙箱状态和状态管理提供缓存。如果只有一个工作进�
 | `OSS_ACCESS_KEY_ID`     | OSS 访问密钥 ID  | 空      | 来自 OSS 控制台 |
 | `OSS_ACCESS_KEY_SECRET` | OSS 访问密钥秘钥 | 空      | 保持安全        |
 | `OSS_BUCKET_NAME`       | OSS 存储桶名称   | 空      | 预创建的存储桶  |
+
+### （可选）K8S 设置
+
+要在沙盒服务器中配置特定于 Kubernetes 的设置，请确保设置 `CONTAINER_DEPLOYMENT=k8s` 。可以考虑调整以下参数：
+
+| Parameter         | Description                  | Default   | Notes                              |
+| ----------------- | ---------------------------- | --------- | ---------------------------------- |
+| `K8S_NAMESPACE`   | 要使用的 Kubernetes 命名空间 | `default` | 设置资源部署的命名空间             |
+| `KUBECONFIG_PATH` | kubeconfig 文件的路径        | `None`    | 指定用于访问集群的 kubeconfig 位置 |
 
 ### 启动服务器
 
