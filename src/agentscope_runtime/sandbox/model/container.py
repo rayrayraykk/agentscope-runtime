@@ -4,7 +4,6 @@ from typing import List
 from pydantic import BaseModel, Field
 
 
-# TODO: support k8s version
 class ContainerModel(BaseModel):
     session_id: str = Field(
         ...,
@@ -70,3 +69,6 @@ class ContainerModel(BaseModel):
         None,
         description="Image version of the container",
     )
+
+    class Config:
+        extra = "allow"

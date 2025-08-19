@@ -4,7 +4,6 @@ import logging
 import os
 import secrets
 import inspect
-import socket
 import traceback
 
 from functools import wraps
@@ -22,14 +21,11 @@ from ..enums import SandboxType
 from ..registry import SandboxRegistry
 from ..client import SandboxHttpClient, TrainingSandboxClient
 
-from ..manager.utils import is_port_available, sweep_port
 from ..manager.collections import (
     RedisMapping,
-    RedisSetCollection,
     RedisQueue,
     InMemoryMapping,
     InMemoryQueue,
-    InMemorySetCollection,
 )
 from ..manager.storage import (
     LocalStorage,
@@ -136,31 +132,24 @@ class SandboxManager:
                 ) from e
 
             self.container_mapping = RedisMapping(redis_client)
-            self.port_set = RedisSetCollection(
-                redis_client,
-                set_name=self.config.redis_port_key,
-            )
             self.pool_queue = RedisQueue(
                 redis_client,
                 self.config.redis_container_pool_key,
             )
         else:
             self.container_mapping = InMemoryMapping()
-            self.port_set = InMemorySetCollection()
             self.pool_queue = InMemoryQueue()
 
         self.container_deployment = self.config.container_deployment
 
         if base_url is None:
             if self.container_deployment == "docker":
-                self.client = DockerClient()
+                self.client = DockerClient(config=self.config)
             else:
                 # TODO: support k8s deployment
                 raise NotImplementedError("Not implemented")
         else:
             self.client = None
-
-        self.port_range = range(*self.config.port_range)
 
         self.file_system = self.config.file_system
         if self.file_system == "oss":
@@ -234,34 +223,6 @@ class SandboxManager:
             except Exception as e:
                 logger.error(f"Error initializing runtime pool: {e}")
                 break
-
-    def _find_free_ports(self, n):
-        free_ports = []
-
-        for port in self.port_range:
-            if len(free_ports) >= n:
-                break  # We have found enough ports
-
-            if not self.port_set.add(port):
-                continue
-
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                try:
-                    s.bind(("", port))
-                    free_ports.append(port)  # Port is available
-
-                except OSError:
-                    # Bind failed, port is in use
-                    self.port_set.remove(port)
-                    # Try the next one
-                    continue
-
-        if len(free_ports) < n:
-            raise RuntimeError(
-                "Not enough free ports available in the specified range.",
-            )
-
-        return free_ports
 
     @remote_wrapper()
     def cleanup(self):
@@ -439,12 +400,6 @@ class SandboxManager:
                     f"Container with name {container_name} already exists.",
                 )
 
-            free_ports = self._find_free_ports(1)
-
-            ports = {
-                "80/tcp": free_ports[0],  # nginx
-            }
-
             # Generate a random secret token
             runtime_token = secrets.token_hex(16)
 
@@ -456,17 +411,19 @@ class SandboxManager:
                 },
             }
 
-            if not self.client.create(
+            _id, ports = self.client.create(
                 image,
                 name=container_name,
-                ports=ports,
+                ports=["80/tcp"],  # Nginx
                 volumes=volume_bindings,
                 environment={
                     "SECRET_TOKEN": runtime_token,
                     **environment,
                 },
                 runtime_config=config.runtime_config,
-            ):
+            )
+
+            if _id is None:
                 return None
 
             # Check the container status
@@ -478,24 +435,22 @@ class SandboxManager:
                 )
                 return None
 
-            # Build the ContainerModel
-            container_attrs = self.client.inspect(container_name)
-
+            # TODO: update ContainerModel according to images & backend
             container_model = ContainerModel(
                 session_id=session_id,
-                container_id=container_attrs["Id"],  # Docker id pattern
+                container_id=_id,
                 container_name=container_name,
-                base_url=f"http://localhost:{ports['80/tcp']}/fastapi",
-                browser_url=f"http://localhost:{ports['80/tcp']}/steel-api"
+                base_url=f"http://localhost:{ports[0]}/fastapi",
+                browser_url=f"http://localhost:{ports[0]}/steel-api"
                 f"/{runtime_token}",
                 front_browser_ws=f"ws://localhost:"
-                f"{ports['80/tcp']}/steel-api/"
+                f"{ports[0]}/steel-api/"
                 f"{runtime_token}/v1/sessions/cast",
                 client_browser_ws=f"ws://localhost:"
-                f"{ports['80/tcp']}/steel-api/{runtime_token}/&sessionId"
+                f"{ports[0]}/steel-api/{runtime_token}/&sessionId"
                 f"={BROWSER_SESSION_ID}",
-                artifacts_sio=f"http://localhost" f":{ports['80/tcp']}/v1",
-                ports=free_ports,
+                artifacts_sio=f"http://localhost:{ports[0]}/v1",
+                ports=[ports[0]],
                 mount_dir=str(mount_dir),
                 storage_path=storage_path,
                 runtime_token=runtime_token,
@@ -537,10 +492,6 @@ class SandboxManager:
             self.client.stop(container_info.container_id, timeout=1)
             self.client.remove(container_info.container_id, force=True)
 
-            # Release ports after the container is removed
-            for port in container_info.ports:
-                self.port_set.remove(port)
-
             logger.debug(f"Container for {identity} destroyed.")
 
             # Upload to storage
@@ -569,14 +520,6 @@ class SandboxManager:
                 return False
 
             container_info = ContainerModel(**container_json)
-
-            # Check whether the ports are occupied by other processes
-            for port in container_info.ports:
-                if is_port_available(port):
-                    continue
-
-                # If the port is occupied, sweep it
-                sweep_port(port)
 
             self.client.start(container_info.container_id)
             status = self.client.get_status(container_info.container_id)
