@@ -73,6 +73,8 @@ def get_config() -> SandboxManagerEnvConfig:
             redis_password=settings.REDIS_PASSWORD,
             redis_port_key=settings.REDIS_PORT_KEY,
             redis_container_pool_key=settings.REDIS_CONTAINER_POOL_KEY,
+            k8s_namespace=settings.K8S_NAMESPACE,
+            kubeconfig_path=settings.KUBECONFIG_PATH,
         )
     return _config
 

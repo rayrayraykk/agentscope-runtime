@@ -8,8 +8,8 @@ import traceback
 
 from functools import wraps
 from typing import Optional, Dict
-from uuid import uuid4
 
+import shortuuid
 import requests
 
 from ..model import (
@@ -31,7 +31,7 @@ from ..manager.storage import (
     LocalStorage,
     OSSStorage,
 )
-from ..manager.container_clients import DockerClient
+from ..manager.container_clients import DockerClient, KubernetesClient
 from ..constant import BROWSER_SESSION_ID
 
 logging.basicConfig(level=logging.INFO)
@@ -145,8 +145,9 @@ class SandboxManager:
         if base_url is None:
             if self.container_deployment == "docker":
                 self.client = DockerClient(config=self.config)
+            elif self.container_deployment == "k8s":
+                self.client = KubernetesClient(config=self.config)
             else:
-                # TODO: support k8s deployment
                 raise NotImplementedError("Not implemented")
         else:
             self.client = None
@@ -375,7 +376,9 @@ class SandboxManager:
                 )
                 return None
 
-        session_id = str(uuid4())
+        alphabet = "0123456789abcdefghijklmnopqrstuvwxyz"
+        short_uuid = shortuuid.ShortUUID(alphabet=alphabet).uuid()
+        session_id = str(short_uuid)
 
         if mount_dir is None:
             mount_dir = os.path.join(self.default_mount_dir, session_id)

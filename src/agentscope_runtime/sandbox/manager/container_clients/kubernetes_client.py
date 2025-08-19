@@ -5,7 +5,8 @@ import hashlib
 import traceback
 import logging
 
-from kubernetes import client, config
+from kubernetes import client
+from kubernetes import config as k8s_config
 from kubernetes.client.rest import ApiException
 
 from .base_client import BaseClient
@@ -14,17 +15,20 @@ logger = logging.getLogger(__name__)
 
 
 class KubernetesClient(BaseClient):
-    def __init__(self, namespace="default", kubeconfig=None):
+    def __init__(self, config=None):
+        self.config = config
+        namespace = self.config.k8s_namespace
+        kubeconfig = self.config.kubeconfig_path
         try:
             if kubeconfig:
-                config.load_kube_config(config_file=kubeconfig)
+                k8s_config.load_kube_config(config_file=kubeconfig)
             else:
                 # Try to load in-cluster config first, then fall back to
                 # kubeconfig
                 try:
-                    config.load_incluster_config()
-                except config.ConfigException:
-                    config.load_kube_config()
+                    k8s_config.load_incluster_config()
+                except k8s_config.ConfigException:
+                    k8s_config.load_kube_config()
             self.v1 = client.CoreV1Api()
             self.namespace = namespace
             # Test connection
@@ -405,7 +409,7 @@ class KubernetesClient(BaseClient):
         """Get the current status of the specified pod."""
         pod_info = self.inspect(container_id)
         if pod_info and "status" in pod_info:
-            return pod_info["status"]["phase"]
+            return pod_info["status"]["phase"].lower()
         return None
 
     def get_logs(
@@ -521,7 +525,8 @@ class KubernetesClient(BaseClient):
             return True
         except Exception as e:
             logger.error(
-                f"Failed to create multi-port service for pod {pod_name}: {e}",
+                f"Failed to create multi-port service for pod {pod_name}: "
+                f"{e}, {traceback.format_exc()}",
             )
             return False
 

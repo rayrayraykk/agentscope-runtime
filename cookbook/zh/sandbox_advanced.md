@@ -57,7 +57,7 @@ DEFAULT_SANDBOX_TYPE=base
 WORKDIR=/workspace
 POOL_SIZE=10
 AUTO_CLEANUP=True
-CONTAINER_PREFIX_KEY=agent_runtime_container_
+CONTAINER_PREFIX_KEY=agent-runtime-container-
 CONTAINER_DEPLOYMENT=docker
 DEFAULT_MOUNT_DIR=sessions_mount_dir
 PORT_RANGE=[49152,59152]
@@ -95,12 +95,12 @@ OSS_BUCKET_NAME=your-bucket-name
 #### Runtime Manager Settings
 
 | Parameter              | Description    | Default                    | Notes                                                        |
-| ---------------------- | -------------- | -------------------------- | ------------------------------------------------------------ |
+| ---------------------- | -------------- |----------------------------| ------------------------------------------------------------ |
 | `DEFAULT_SANDBOX_TYPE` | 默认沙箱类型   | `base`                     | `base`, `filesystem`, `browser`                              |
 | `WORKDIR`              | 容器工作目录   | `/workspace`               | 必须是绝对路径                                               |
 | `POOL_SIZE`            | 预热容器池大小 | `1`                        | 缓存的容器以实现更快启动。`POOL_SIZE` 参数控制预创建并缓存在就绪状态的容器数量。当用户请求新沙箱时，系统将首先尝试从这个预热池中分配，相比从零开始创建容器显著减少启动时间。例如，使用 `POOL_SIZE=10`，系统维护 10 个就绪容器，可以立即分配给新请求 |
 | `AUTO_CLEANUP`         | 自动容器清理   | `True`                     | 如果设置为 `True`，服务器关闭后将释放所有沙箱。              |
-| `CONTAINER_PREFIX_KEY` | 容器名称前缀   | `agent_runtime_container_` | 用于标识                                                     |
+| `CONTAINER_PREFIX_KEY` | 容器名称前缀   | `agent-runtime-container-` | 用于标识                                                     |
 | `CONTAINER_DEPLOYMENT` | 容器运行时     | `docker`                   | 目前只支持 Docker                                            |
 | `DEFAULT_MOUNT_DIR`    | 默认挂载目录   | `sessions_mount_dir`       | 用于持久存储路径，存储`/workspace` 文件                      |
 | `PORT_RANGE`           | 可用端口范围   | `[49152,59152]`            | 用于服务端口分配                                             |

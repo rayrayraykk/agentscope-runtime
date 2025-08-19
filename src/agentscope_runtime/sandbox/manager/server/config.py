@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     POOL_SIZE: int = 1
     AUTO_CLEANUP: bool = True
     CONTAINER_PREFIX_KEY: str = "runtime_sandbox_container_"
-    CONTAINER_DEPLOYMENT: Literal["docker", "cloud"] = "docker"
+    CONTAINER_DEPLOYMENT: Literal["docker", "cloud", "k8s"] = "docker"
     DEFAULT_MOUNT_DIR: str = "sessions_mount_dir"
     STORAGE_FOLDER: str = "runtime_sandbox_storage"
     PORT_RANGE: Tuple[int, int] = (49152, 59152)
@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     OSS_ACCESS_KEY_ID: str = "your-access-key-id"
     OSS_ACCESS_KEY_SECRET: str = "your-access-key-secret"
     OSS_BUCKET_NAME: str = "your-bucket-name"
+
+    # K8S settings
+    K8S_NAMESPACE: str = "default"
+    KUBECONFIG_PATH: Optional[str] = None
 
     model_config = ConfigDict(
         case_sensitive=True,
