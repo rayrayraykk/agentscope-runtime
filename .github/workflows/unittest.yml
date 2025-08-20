@@ -4,16 +4,12 @@ name: Unit Tests
 on:
   push:
     branches:
-      - '**'
-  pull_request:
-    branches:
-      - '**'
+      - 'main'
 
 
 jobs:
   test:
     runs-on: ${{ matrix.os }}
-    environment: unittest
     strategy:
       matrix:
         os: [ ubuntu-latest ]
@@ -56,7 +52,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
         run: |
-          coverage run -m pytest tests -x
+          coverage run -m pytest tests
 
       - name: Generate coverage report
         run: |
