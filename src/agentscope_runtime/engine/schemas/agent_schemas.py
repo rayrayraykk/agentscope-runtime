@@ -210,7 +210,7 @@ class Content(Event):
     delta: Optional[bool] = False
     """Whether this content is a delta."""
 
-    msg_id: str = None
+    msg_id: Optional[str] = None
     """message unique id"""
 
 
