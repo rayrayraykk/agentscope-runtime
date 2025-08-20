@@ -1,11 +1,3 @@
----
-name: Pull Request
-about: Create a pull request for AgentScope Runtime
-title: '[Component] Brief description'
-labels: ''
-assignees: ''
----
-
 ## Description
 [Describe what this PR does and why]
 
