@@ -80,7 +80,7 @@ print("✅ LLM Agent created successfully")
 ```
 
 ```{note}
-For utilizing other LLM and agent implementations from other framework, please refer to {ref}`AgentScope Agent <agentscope-agent>`, {ref}`Agno Agent <agno-agent>` and {ref}`LangGraph Agent <langgraph-agent>`.
+For utilizing other LLM and agent implementations from other framework, please refer to {ref}`AgentScope Agent <agentscope-agent>`, {ref}`Agno Agent <agno-agent>`, {ref}`AutoGen Agent <autogen-agent>`, and {ref}`LangGraph Agent <langgraph-agent>`.
 ```
 
 (agentscope-agent)=
@@ -142,6 +142,36 @@ agent = AgnoAgent(
 )
 
 print("✅ Agno agent created successfully")
+```
+
+(autogen-agent)=
+
+#### (Optional) With AutoGen Agent
+
+````{note}
+If you want to use Agent from AutoGen, you should install AutoGen via:
+```bash
+pip install "agentscope-runtime[autogen]"
+```
+````
+
+```{code-cell}
+from autogen_agentchat.agents import AssistantAgent
+from autogen_ext.models.openai import OpenAIChatCompletionClient
+from agentscope_runtime.engine.agents.autogen_agent import AutogenAgent
+
+agent = AutogenAgent(
+    name="Friday",
+    model=OpenAIChatCompletionClient(
+        model="gpt-4",
+    ),
+    agent_config={
+        "system_message": "You're a helpful assistant",
+    },
+    agent_builder=AssistantAgent,
+)
+
+print("✅ AutoGen agent created successfully")
 ```
 
 (langgraph-agent)=

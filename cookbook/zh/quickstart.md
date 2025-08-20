@@ -80,7 +80,7 @@ print("✅ LLM智能体创建成功")
 ```
 
 ```{note}
-要使用来自其他框架的其他LLM和智能体实现，请参考 {ref}`AgentScope智能体 <agentscope-agent-zh>`、{ref}`Agno智能体<agno-agent-zh>` 和 {ref}`LangGraph智能体 <langgraph-agent-zh>`。
+要使用来自其他框架的其他LLM和智能体实现，请参考 {ref}`AgentScope智能体 <agentscope-agent-zh>`、{ref}`Agno智能体<agno-agent-zh>`、{ref}`AutoGen智能体 <autogen-agent-zh>`和{ref}`LangGraph智能体 <langgraph-agent-zh>`。
 ```
 
 (agentscope-agent-zh)=
@@ -141,6 +141,34 @@ agent = AgnoAgent(
 )
 
 print("✅ Agno agent created successfully")
+```
+
+#### （可选）使用AutoGen Agent
+
+````{note}
+如果您想要使用AutoGen的智能体，您应该通过以下命令安装AutoGen：
+```bash
+pip install "agentscope-runtime[autogen]"
+```
+````
+
+```{code-cell}
+from autogen_agentchat.agents import AssistantAgent
+from autogen_ext.models.openai import OpenAIChatCompletionClient
+from agentscope_runtime.engine.agents.autogen_agent import AutogenAgent
+
+agent = AutogenAgent(
+    name="Friday",
+    model=OpenAIChatCompletionClient(
+        model="gpt-4",
+    ),
+    agent_config={
+        "system_message": "You're a helpful assistant",
+    },
+    agent_builder=AssistantAgent,
+)
+
+print("✅ AutoGen agent created successfully")
 ```
 
 (langgraph-agent-zh)=

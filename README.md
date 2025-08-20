@@ -173,6 +173,7 @@ with BaseSandbox() as box:
 ### AgentScope Integration
 
 ```python
+# pip install "agentscope-runtime[agentscope]"
 import os
 
 from agentscope.agent import ReActAgent
@@ -195,6 +196,7 @@ agent = AgentScopeAgent(
 ### Agno Integration
 
 ```python
+# pip install "agentscope-runtime[agno]"
 from agno.agent import Agent
 from agno.models.openai import OpenAIChat
 from agentscope_runtime.engine.agents.agno_agent import AgnoAgent
@@ -211,9 +213,30 @@ agent = AgnoAgent(
 )
 ```
 
+### AutoGen Integration
+
+```python
+# pip install "agentscope-runtime[autogen]"
+from autogen_agentchat.agents import AssistantAgent
+from autogen_ext.models.openai import OpenAIChatCompletionClient
+from agentscope_runtime.engine.agents.autogen_agent import AutogenAgent
+
+agent = AutogenAgent(
+    name="Friday",
+    model=OpenAIChatCompletionClient(
+        model="gpt-4",
+    ),
+    agent_config={
+        "system_message": "You're a helpful assistant",
+    },
+    agent_builder=AssistantAgent,
+)
+```
+
 ### LangGraph Integration
 
 ```python
+# pip install "agentscope-runtime[langgraph]"
 from typing import TypedDict
 from langgraph import graph, types
 from agentscope_runtime.engine.agents.langgraph_agent import LangGraphAgent
