@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
-# pylint:disable=too-many-nested-blocks, too-many-branches, too-many-statements
-import json
 from typing import Optional, Type
 
-from agno.agent import Agent as AgAgent
-from agno.models.base import Model
-from agno.run.response import (
-    RunResponseContentEvent,
-    ToolCallStartedEvent,
-    ToolCallCompletedEvent,
+from autogen_core.models import ChatCompletionClient
+from autogen_core.tools import FunctionTool
+from autogen_agentchat.agents import AssistantAgent
+from autogen_agentchat.messages import (
+    TextMessage,
+    ToolCallExecutionEvent,
+    ToolCallRequestEvent,
+    ModelClientStreamingChunkEvent,
 )
-from agno.tools.function import Function
 
 from ..agents import Agent
 from ..schemas.context import Context
@@ -25,7 +24,7 @@ from ..schemas.agent_schemas import (
 )
 
 
-class AgnoContextAdapter:
+class AutogenContextAdapter:
     def __init__(self, context: Context, attr: dict):
         self.context = context
         self.attr = attr
@@ -47,18 +46,25 @@ class AgnoContextAdapter:
 
         # Build context
         for msg in self.context.session.messages[:-1]:  # Exclude the last one
-            messages.append(AgnoContextAdapter.converter(msg))
+            messages.append(AutogenContextAdapter.converter(msg))
 
         return messages
 
     @staticmethod
     def converter(message: Message):
         # TODO: support more message type
-        return dict(message)
+        return TextMessage.load(
+            {
+                "id": message.id,
+                "source": message.role,
+                "content": message.content[0].text if message.content else "",
+            },
+        )
 
     async def adapt_new_message(self):
         last_message = self.context.session.messages[-1]
-        return AgnoContextAdapter.converter(last_message)
+
+        return AutogenContextAdapter.converter(last_message)
 
     async def adapt_model(self):
         return self.attr["model"]
@@ -86,41 +92,40 @@ class AgnoContextAdapter:
             )
 
         for tool in activated_tools:
-            func = Function(
-                name=tool.name,
+            func = FunctionTool(
+                func=tool.make_function(),
                 description=tool.schema["function"]["description"],
-                parameters=tool.schema["function"]["parameters"],
-                entrypoint=tool.__call__,
+                name=tool.name,
             )
             toolkit.append(func)
 
         return toolkit
 
 
-class AgnoAgent(Agent):
+class AutogenAgent(Agent):
     def __init__(
         self,
         name: str,
-        model: Model,
+        model: ChatCompletionClient,
         tools=None,
         agent_config=None,
-        agent_builder: Optional[Type[AgAgent]] = AgAgent,
+        agent_builder: Optional[Type[AssistantAgent]] = AssistantAgent,
     ):
         super().__init__(name=name, agent_config=agent_config)
 
         assert isinstance(
             model,
-            Model,
-        ), "model must be a subclass of Model in Agno"
+            ChatCompletionClient,
+        ), "model must be a subclass of ChatCompletionClient in autogen"
 
         # Set default agent_builder
         if agent_builder is None:
-            agent_builder = Agent
+            agent_builder = AssistantAgent
 
         assert issubclass(
             agent_builder,
-            AgAgent,
-        ), "agent_builder must be a subclass of Agent in Agno"
+            AssistantAgent,
+        ), "agent_builder must be a subclass of AssistantAgent in autogen"
 
         # Replace name if not exists
         self.agent_config["name"] = self.agent_config.get("name") or name
@@ -134,30 +139,28 @@ class AgnoAgent(Agent):
         self._agent = None
         self.tools = tools
 
-    def copy(self) -> "AgnoAgent":
-        return AgnoAgent(**self._attr)
+    def copy(self) -> "AutogenAgent":
+        return AutogenAgent(**self._attr)
 
     def build(self, as_context):
         self._agent = self._attr["agent_builder"](
             **self._attr["agent_config"],
-            model=as_context.model,
+            model_client=as_context.model,
             tools=as_context.toolkit,
         )
 
         return self._agent
 
     async def run(self, context):
-        ag_context = AgnoContextAdapter(context=context, attr=self._attr)
+        ag_context = AutogenContextAdapter(context=context, attr=self._attr)
         await ag_context.initialize()
 
         # We should always build a new agent since the state is manage outside
         # the agent
         self._agent = self.build(ag_context)
 
-        resp = await self._agent.arun(
-            ag_context.new_message,
-            messages=ag_context.memory,
-            stream=True,
+        resp = self._agent.run_stream(
+            task=ag_context.memory + [ag_context.new_message],
         )
 
         text_message = Message(
@@ -169,21 +172,34 @@ class AgnoAgent(Agent):
 
         text_delta_content = TextContent(delta=True)
         is_text_delta = False
+        stream_mode = False
         async for event in resp:
-            if isinstance(event, RunResponseContentEvent):
+            if getattr(event, "source", "user") == "user":
+                continue
+
+            if isinstance(event, TextMessage):
+                if stream_mode:
+                    continue
                 is_text_delta = True
                 text_delta_content.text = event.content
                 text_delta_content = text_message.add_delta_content(
                     new_content=text_delta_content,
                 )
                 yield text_delta_content
-            elif isinstance(event, ToolCallStartedEvent):
-                json_str = json.dumps(event.tool.tool_args)
+            elif isinstance(event, ModelClientStreamingChunkEvent):
+                stream_mode = True
+                is_text_delta = True
+                text_delta_content.text = event.content
+                text_delta_content = text_message.add_delta_content(
+                    new_content=text_delta_content,
+                )
+                yield text_delta_content
+            elif isinstance(event, ToolCallRequestEvent):
                 data = DataContent(
                     data=FunctionCall(
-                        call_id=event.tool.tool_call_id,
-                        name=event.tool.tool_name,
-                        arguments=json_str,
+                        call_id=event.id,
+                        name=event.content[0].name,
+                        arguments=event.content[0].arguments,
                     ).model_dump(),
                 )
                 message = Message(
@@ -193,11 +209,11 @@ class AgnoAgent(Agent):
                     content=[data],
                 )
                 yield message
-            elif isinstance(event, ToolCallCompletedEvent):
+            elif isinstance(event, ToolCallExecutionEvent):
                 data = DataContent(
                     data=FunctionCallOutput(
-                        call_id=event.tool.tool_call_id,
-                        output=str(event.tool.result),
+                        call_id=event.id,
+                        output=event.content[0].content,
                     ).model_dump(),
                 )
                 message = Message(
@@ -207,6 +223,14 @@ class AgnoAgent(Agent):
                     content=[data],
                 )
                 yield message
+
+                # Add to message
+                is_text_delta = True
+                text_delta_content.text = event.content[0].content
+                text_delta_content = text_message.add_delta_content(
+                    new_content=text_delta_content,
+                )
+                yield text_delta_content
 
         if is_text_delta:
             yield text_message.content_completed(text_delta_content.index)

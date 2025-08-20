@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unused-argument
+import inspect
+
 from abc import ABC, abstractmethod
 from typing import Optional, Any, Dict
 from ..enums import SandboxType
@@ -121,3 +123,106 @@ class Tool(ABC):
             f"sandbox_type='{self.sandbox_type}'"
             f")"
         )
+
+    def make_function(self):
+        """Create a function with proper type signatures from schema."""
+        tool_call = self.__call__
+        parameters = self.schema["function"]["parameters"]
+
+        # Extract properties and required parameters from the schema
+        properties = parameters.get("properties", {})
+        required = parameters.get("required", [])
+
+        # Type mapping from JSON schema types to Python types
+        type_mapping = {
+            "string": str,
+            "integer": int,
+            "number": float,
+            "boolean": bool,
+            "array": list,
+            "object": dict,
+        }
+
+        # Build parameter signature
+        sig_params = []
+        for param_name, param_info in properties.items():
+            param_type = type_mapping.get(
+                param_info.get("type", "string"),
+                str,
+            )
+
+            if param_name in required:
+                # Required parameter
+                param = inspect.Parameter(
+                    param_name,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=param_type,
+                )
+            else:
+                # Optional parameter with default None
+                param = inspect.Parameter(
+                    param_name,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    default=None,
+                    annotation=Optional[param_type],
+                )
+
+            sig_params.append(param)
+
+        # Create the function signature
+        new_signature = inspect.Signature(sig_params, return_annotation=Any)
+
+        def generated_function(*args, **kwargs):
+            """Generated function from tool schema."""
+            # Bind arguments to signature
+            bound = new_signature.bind(*args, **kwargs)
+            bound.apply_defaults()
+
+            # Validate required parameters
+            missing_required = [
+                param_name
+                for param_name in required
+                if param_name not in bound.arguments
+                or bound.arguments[param_name] is None
+            ]
+
+            if missing_required:
+                raise TypeError(
+                    f"Missing required arguments: {set(missing_required)}",
+                )
+
+            # Filter kwargs based on defined properties and remove None
+            # values for optional params
+            filtered_kwargs = {
+                k: v
+                for k, v in bound.arguments.items()
+                if k in properties and (k in required or v is not None)
+            }
+
+            return tool_call(**filtered_kwargs)
+
+        # Set the correct signature and metadata
+        generated_function.__signature__ = new_signature
+        generated_function.__name__ = self.name
+
+        # Build docstring with parameter information
+        doc_parts = []
+        for name, info in properties.items():
+            required_str = " (required)" if name in required else " (optional)"
+            doc_parts.append(
+                f"    {name}: {info.get('type', 'string')}{required_str} -"
+                f" {info.get('description', '')}",
+            )
+
+        generated_function.__doc__ = (
+            self.schema["function"]["description"]
+            + "\n\nParameters:\n"
+            + "\n".join(doc_parts)
+        )
+
+        # Set type annotations for compatibility with typing inspection
+        annotations = {param.name: param.annotation for param in sig_params}
+        annotations["return"] = Any
+        generated_function.__annotations__ = annotations
+
+        return generated_function

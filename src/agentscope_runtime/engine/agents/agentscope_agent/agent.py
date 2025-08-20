@@ -85,6 +85,7 @@ class AgentScopeContextAdapter:
 
     @staticmethod
     def converter(message: Message):
+        # TODO: support more message type
         if message.role not in ["user", "system", "assistant"]:
             role_label = "user"
         else:
