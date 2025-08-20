@@ -10,12 +10,20 @@ from ..schemas.agent_schemas import Message
 
 
 class RedisSessionHistoryService(SessionHistoryService):
-    def __init__(self, redis_url: str = "redis://localhost:6379/0"):
+    def __init__(
+        self,
+        redis_url: str = "redis://localhost:6379/0",
+        redis_client=None,
+    ):
         self._redis_url = redis_url
-        self._redis = None
+        self._redis = redis_client
 
     async def start(self):
-        self._redis = aioredis.from_url(self._redis_url, decode_responses=True)
+        if self._redis is None:
+            self._redis = aioredis.from_url(
+                self._redis_url,
+                decode_responses=True,
+            )
 
     async def stop(self):
         if self._redis:

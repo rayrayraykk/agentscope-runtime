@@ -33,6 +33,7 @@ dev = [
     "jupyter-book>=1.0.4.post1",
     "furo>=2025.7.19",
     "pytest-cov>=6.2.1",
+    "fakeredis>=2.31.0",
 ]
 
 sandbox = [

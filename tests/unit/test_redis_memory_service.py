@@ -2,6 +2,7 @@
 # pylint: disable=redefined-outer-name, protected-access
 import pytest
 import pytest_asyncio
+import fakeredis.aioredis
 from agentscope_runtime.engine.services.redis_memory_service import (
     RedisMemoryService,
 )
@@ -25,7 +26,8 @@ def create_message(role: str, content: str) -> Message:
 
 @pytest_asyncio.fixture
 async def memory_service():
-    service = RedisMemoryService()
+    fake_redis = fakeredis.aioredis.FakeRedis(decode_responses=True)
+    service = RedisMemoryService(redis_client=fake_redis)
     await service.start()
     # check redis
     healthy = await service.health()

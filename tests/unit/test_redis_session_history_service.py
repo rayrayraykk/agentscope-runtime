@@ -2,7 +2,7 @@
 # pylint: disable=redefined-outer-name
 import pytest
 import pytest_asyncio
-
+import fakeredis.aioredis
 from agentscope_runtime.engine.schemas.agent_schemas import TextContent
 from agentscope_runtime.engine.services.session_history_service import (
     Session,
@@ -15,7 +15,8 @@ from agentscope_runtime.engine.services.redis_session_history_service import (
 @pytest_asyncio.fixture
 async def session_history_service() -> RedisSessionHistoryService:
     """Provides an instance of RedisSessionHistoryService for testing."""
-    service = RedisSessionHistoryService()
+    fake_redis = fakeredis.aioredis.FakeRedis(decode_responses=True)
+    service = RedisSessionHistoryService(redis_client=fake_redis)
     await service.start()
     # check redis
     healthy = await service.health()

@@ -13,14 +13,22 @@ class RedisMemoryService(MemoryService):
     A Redis-based implementation of the memory service.
     """
 
-    def __init__(self, redis_url: str = "redis://localhost:6379/0"):
+    def __init__(
+        self,
+        redis_url: str = "redis://localhost:6379/0",
+        redis_client=None,
+    ):
         self._redis_url = redis_url
-        self._redis = None
+        self._redis = redis_client
         self._DEFAULT_SESSION_ID = "default"
 
     async def start(self) -> None:
         """Starts the Redis connection."""
-        self._redis = aioredis.from_url(self._redis_url, decode_responses=True)
+        if self._redis is None:
+            self._redis = aioredis.from_url(
+                self._redis_url,
+                decode_responses=True,
+            )
 
     async def stop(self) -> None:
         """Closes the Redis connection."""
