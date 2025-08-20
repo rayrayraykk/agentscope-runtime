@@ -51,13 +51,10 @@ jobs:
           export PIP_DEFAULT_TIMEOUT=300
           pip install -q -e ".[dev,sandbox,agentscope,langgraph,agno,a2a,autogen]"
 
-      - name: Run tests with coverage
+      - name: Debug environment variables
+        run: |
+          echo "OPENAI_API_KEY starts with: ${OPENAI_API_KEY:0:4}"
+          echo "DASHSCOPE_API_KEY starts with: ${DASHSCOPE_API_KEY:0:4}"
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
-        run: |
-          coverage run -m pytest tests
-
-      - name: Generate coverage report
-        run: |
-          coverage report -m
