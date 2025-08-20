@@ -173,7 +173,13 @@ class Tool(ABC):
         new_signature = inspect.Signature(sig_params, return_annotation=Any)
 
         def generated_function(*args, **kwargs):
-            """Generated function from tool schema."""
+            """
+            Dynamically generated function wrapper for the tool schema.
+
+            This function is created at runtime to match the tool's parameter
+            signature as defined in the schema. It validates arguments and
+            forwards them to the tool's call interface.
+            """
             # Bind arguments to signature
             bound = new_signature.bind(*args, **kwargs)
             bound.apply_defaults()

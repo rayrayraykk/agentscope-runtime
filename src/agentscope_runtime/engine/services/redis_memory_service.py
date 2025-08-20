@@ -16,7 +16,7 @@ class RedisMemoryService(MemoryService):
     def __init__(
         self,
         redis_url: str = "redis://localhost:6379/0",
-        redis_client=None,
+        redis_client: Optional[aioredis.Redis] = None,
     ):
         self._redis_url = redis_url
         self._redis = redis_client
