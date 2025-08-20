@@ -60,3 +60,7 @@ agno = [
 a2a = [
     "a2a-sdk>=0.3.0",
 ]
+autogen = [
+    "autogen-agentchat>=0.7.4",
+    "autogen-ext[openai]>=0.7.4",
+]
