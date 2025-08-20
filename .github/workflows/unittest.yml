@@ -29,6 +29,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Update setuptools
         run: |
@@ -36,7 +43,7 @@ jobs:
           pip install setuptools==78.1.1 wheel==0.45.1
 
       - name: Set PYTHONPATH
-        run:
+        run: |
           echo "PYTHONPATH=$PYTHONPATH:${{ github.workspace }}/src" >> $GITHUB_ENV
 
       - name: Install dependencies
