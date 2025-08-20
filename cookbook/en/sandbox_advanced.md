@@ -61,7 +61,6 @@ BEARER_TOKEN=your-secret-token
 
 # Sandbox Manager settings
 DEFAULT_SANDBOX_TYPE=base
-WORKDIR=/workspace
 POOL_SIZE=10
 AUTO_CLEANUP=True
 CONTAINER_PREFIX_KEY=agent-runtime-container-
@@ -107,7 +106,6 @@ KUBECONFIG_PATH=
 | Parameter | Description | Default                    | Notes |
 | --- | --- |----------------------------| --- |
 | `DEFAULT_SANDBOX_TYPE` | Default sandbox type | `base`                     | `base`, `filesystem`, `browser` |
-| `WORKDIR` | Container working directory | `/workspace`               | Must be an absolute path |
 | `POOL_SIZE` | Pre-warmed container pool size | `1`                        | Cached containers for faster startup. The `POOL_SIZE` parameter controls how many containers are pre-created and cached in a ready-to-use state. When users request a new sandbox, the system will first try to allocate from this pre-warmed pool, significantly reducing startup time compared to creating containers from scratch. For example, with `POOL_SIZE=10`, the system maintains 10 ready containers that can be instantly assigned to new requests. |
 | `AUTO_CLEANUP` | Automatic container cleanup | `True`                     | All sandboxes will be released after the server is closed if set to `True`. |
 | `CONTAINER_PREFIX_KEY` | Container name prefix | `agent-runtime-container-` | For identification |
