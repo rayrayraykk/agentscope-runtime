@@ -1,7 +1,7 @@
 format: jb-book
 root: en/intro
 parts:
-- caption: English
+- caption: Tutorial
   numbered: 1
   chapters:
   - file: en/install.md
@@ -40,7 +40,7 @@ parts:
     - file: zh/intro.md
       title: "0. 介绍"
 
-- caption: 中文
+- caption: 教程
   numbered: 1
   chapters:
   - file: zh/install.md
