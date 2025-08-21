@@ -34,6 +34,7 @@ dev = [
     "furo>=2025.7.19",
     "pytest-cov>=6.2.1",
     "fakeredis>=2.31.0",
+    "sphinx-autoapi>=3.6.0",
 ]
 
 sandbox = [
