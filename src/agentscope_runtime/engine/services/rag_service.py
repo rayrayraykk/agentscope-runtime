@@ -45,7 +45,9 @@ class LangChainRAGService(RAGService):
         docs: Optional[list[str]] = None,
     ):
         from langchain_community.embeddings import DashScopeEmbeddings
+        from langchain_milvus import Milvus
 
+        self.Milvus = Milvus
         self.embeddings = DashScopeEmbeddings()
         self.vectorstore = None
 
@@ -64,9 +66,7 @@ class LangChainRAGService(RAGService):
         if docs is None:
             docs = []
 
-        from langchain_milvus import Milvus
-
-        self.vectorstore = Milvus.from_documents(
+        self.vectorstore = self.Milvus.from_documents(
             documents=docs,
             embedding=self.embeddings,
             connection_args={
@@ -76,9 +76,7 @@ class LangChainRAGService(RAGService):
         )
 
     def from_db(self):
-        from langchain_milvus import Milvus
-
-        self.vectorstore = Milvus(
+        self.vectorstore = self.Milvus(
             embedding_function=self.embeddings,
             connection_args={"uri": self.uri},
             index_params={"index_type": "FLAT", "metric_type": "L2"},
