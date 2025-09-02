@@ -2,6 +2,7 @@
 # pylint: disable=redefined-outer-name, protected-access, too-many-branches
 import logging
 import os
+import json
 import secrets
 import inspect
 import traceback
@@ -197,8 +198,35 @@ class SandboxManager:
         try:
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:
-            logger.error(f"Error making request: {e}")
-            return {"data": f"Error: {e}"}
+            error_components = [
+                f"HTTP {response.status_code} Error: {str(e)}",
+            ]
+
+            try:
+                server_response = response.json()
+                if "detail" in server_response:
+                    error_components.append(
+                        f"Server Detail: {server_response['detail']}",
+                    )
+                elif "error" in server_response:
+                    error_components.append(
+                        f"Server Error: {server_response['error']}",
+                    )
+                else:
+                    error_components.append(
+                        f"Server Response: {server_response}",
+                    )
+            except (ValueError, json.JSONDecodeError):
+                if response.text:
+                    error_components.append(
+                        f"Server Response: {response.text}",
+                    )
+
+            error = " | ".join(error_components)
+
+            logger.error(f"Error making request: {error}")
+
+            return {"data": f"Error: {error}"}
 
         return response.json()
 
