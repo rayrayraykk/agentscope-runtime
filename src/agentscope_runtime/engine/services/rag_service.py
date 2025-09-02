@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 from typing import Optional
 
-from langchain_community.embeddings import DashScopeEmbeddings
-from langchain_milvus import Milvus
-
 from .base import ServiceWithLifecycleManager
 from ..schemas.agent_schemas import Message, MessageType
 
@@ -47,6 +44,8 @@ class LangChainRAGService(RAGService):
         uri: Optional[str] = None,
         docs: Optional[list[str]] = None,
     ):
+        from langchain_community.embeddings import DashScopeEmbeddings
+
         self.embeddings = DashScopeEmbeddings()
         self.vectorstore = None
 
@@ -65,6 +64,8 @@ class LangChainRAGService(RAGService):
         if docs is None:
             docs = []
 
+        from langchain_milvus import Milvus
+
         self.vectorstore = Milvus.from_documents(
             documents=docs,
             embedding=self.embeddings,
@@ -75,6 +76,8 @@ class LangChainRAGService(RAGService):
         )
 
     def from_db(self):
+        from langchain_milvus import Milvus
+
         self.vectorstore = Milvus(
             embedding_function=self.embeddings,
             connection_args={"uri": self.uri},
