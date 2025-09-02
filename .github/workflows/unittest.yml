@@ -36,7 +36,7 @@ jobs:
             echo "Pulling image: $img"
             docker pull "$img"
           done
-          echo "All Docker images pulled and saved successfully."
+          echo "All Docker images pulled successfully."
 
       - name: Cache pip dependencies
         uses: actions/cache@v4
