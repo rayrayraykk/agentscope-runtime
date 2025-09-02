@@ -2,7 +2,6 @@
 # pylint: disable=protected-access, unused-argument
 import inspect
 import logging
-import traceback
 
 from typing import Optional
 
@@ -139,7 +138,7 @@ def create_endpoint(method):
         except Exception as e:
             error = (
                 f"Error in {method.__name__}: {str(e)},"
-                f" {traceback.format_exc()}"
+                # f" {traceback.format_exc()}"
             )
             logger.error(error)
             raise HTTPException(status_code=500, detail=error) from e
