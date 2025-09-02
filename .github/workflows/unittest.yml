@@ -22,6 +22,48 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Cache Docker images
+        id: docker-cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/docker-images
+          key: docker-images-${{ hashFiles('.github/docker-images.txt') }}-v1
+          restore-keys: |
+            docker-images-
+
+      - name: Load cached Docker images
+        if: steps.docker-cache.outputs.cache-hit == 'true'
+        run: |
+          if [ -d "/tmp/docker-images" ]; then
+            for img in /tmp/docker-images/*.tar; do
+              if [ -f "$img" ]; then
+                echo "Loading cached image: $(basename $img)"
+                docker load -i "$img"
+              fi
+            done
+          fi
+
+      - name: Pull and save Docker images
+        if: steps.docker-cache.outputs.cache-hit != 'true'
+        run: |
+          DOCKER_IMAGES=(
+            "agentscope/runtime-sandbox-bfcl:latest"
+            "agentscope/runtime-sandbox-appworld:latest"
+            "agentscope/runtime-sandbox-base:latest"
+            "agentscope/runtime-sandbox-browser:latest"
+            "agentscope/runtime-sandbox-filesystem:latest"
+          )
+
+          mkdir -p /tmp/docker-images
+
+          for img in "${DOCKER_IMAGES[@]}"; do
+            echo "Pulling image: $img"
+            docker pull "$img"
+            img_file=$(echo "$img" | sed 's/[\/:]/_/g')
+            docker save "$img" -o "/tmp/docker-images/${img_file}.tar"
+          done
+          echo "All Docker images pulled and saved successfully."
+
       - name: Cache pip dependencies
         uses: actions/cache@v4
         with:

@@ -1,0 +1,5 @@
+agentscope/runtime-sandbox-base:latest
+agentscope/runtime-sandbox-browser:latest
+agentscope/runtime-sandbox-filesystem:latest
+agentscope/runtime-sandbox-appworld:latest
+agentscope/runtime-sandbox-bfcl:latest
