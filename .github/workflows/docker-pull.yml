@@ -1,0 +1,29 @@
+name: Pull Docker Image
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  pull-docker-image:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Pull Docker image
+      run: |
+        echo "Pulling agentscope/runtime-sandbox-bfcl:latest..."
+        docker pull agentscope/runtime-sandbox-bfcl:latest
+
+    - name: Verify image
+      run: |
+        echo "Verifying pulled image..."
+        docker images agentscope/runtime-sandbox-bfcl:latest
+        docker inspect agentscope/runtime-sandbox-bfcl:latest
