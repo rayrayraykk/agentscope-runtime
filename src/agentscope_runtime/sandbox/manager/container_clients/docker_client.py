@@ -218,7 +218,15 @@ class DockerClient(BaseClient):
             acr_image = f"{acr_registry}/{image}"
 
             logger.debug(f"Attempting to pull from ACR: {acr_image}")
-            self.client.images.pull(acr_image)
+
+            if ":" in acr_image:
+                image_name, tag = acr_image.rsplit(":", 1)
+            else:
+                image_name = acr_image
+                tag = None
+
+            self.client.images.pull(image_name, tag=tag)
+
             logger.debug(f"Successfully pulled image from ACR: {acr_image}")
 
             # Retag the image
@@ -270,7 +278,13 @@ class DockerClient(BaseClient):
                     f"Attempting to pull it...",
                 )
                 try:
-                    self.client.images.pull(image)
+                    if ":" in image:
+                        image_name, tag = image.rsplit(":", 1)
+                    else:
+                        image_name = image
+                        tag = None
+
+                    self.client.images.pull(image_name, tag=tag)
                     logger.debug(
                         f"Image '{image}' successfully pulled from default "
                         f"registry.",
