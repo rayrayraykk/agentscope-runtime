@@ -70,5 +70,6 @@ autogen = [
 langchain_rag=[
     "langchain>=0.3.25",
     "pymilvus>=2.6.0",
-    "langchain_milvus"
+    "langchain-community>=0.3.27",
+    "langchain-milvus>=0.2.1",
 ]
