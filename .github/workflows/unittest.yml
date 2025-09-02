@@ -1,10 +1,7 @@
 name: Unit Tests
 
 
-on:
-  push:
-    branches:
-      - 'main'
+on: [push, pull_request]
 
 
 jobs:
@@ -47,7 +44,7 @@ jobs:
           export PIP_DEFAULT_TIMEOUT=300
           pip install -q -e ".[dev,sandbox,agentscope,langgraph,agno,a2a,autogen,langchain_rag]"
 
-      - name: Run tests with coverage
+      - name: Run tests with coverage --log-cli-level=DEBUG
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
