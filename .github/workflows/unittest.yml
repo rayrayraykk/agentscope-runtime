@@ -44,12 +44,12 @@ jobs:
           export PIP_DEFAULT_TIMEOUT=300
           pip install -q -e ".[dev,sandbox,agentscope,langgraph,agno,a2a,autogen,langchain_rag]"
 
-      - name: Run tests with coverage --log-cli-level=DEBUG
+      - name: Run tests with coverage
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
         run: |
-          coverage run -m pytest tests
+          coverage run -m pytest tests --log-cli-level=DEBUG
 
       - name: Generate coverage report
         run: |
