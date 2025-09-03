@@ -426,12 +426,13 @@ class SandboxManager:
                 mount_dir = os.path.abspath(mount_dir)
 
         if storage_path is None:
-            storage_path = self.storage.path_join(
-                self.storage_folder,
-                session_id,
-            )
+            if self.storage_folder:
+                storage_path = self.storage.path_join(
+                    self.storage_folder,
+                    session_id,
+                )
 
-        if mount_dir:
+        if mount_dir and storage_path:
             self.storage.download_folder(storage_path, mount_dir)
 
         try:
@@ -540,7 +541,7 @@ class SandboxManager:
             logger.debug(f"Container for {identity} destroyed.")
 
             # Upload to storage
-            if container_info.mount_dir:
+            if container_info.mount_dir and container_info.storage_path:
                 self.storage.upload_folder(
                     container_info.mount_dir,
                     container_info.storage_path,
