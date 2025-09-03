@@ -9,6 +9,7 @@ import traceback
 
 from functools import wraps
 from typing import Optional, Dict
+from urllib.parse import urlparse, urlunparse
 
 import shortuuid
 import requests
@@ -457,7 +458,7 @@ class SandboxManager:
             else:
                 volume_bindings = {}
 
-            _id, ports = self.client.create(
+            _id, ports, ip = self.client.create(
                 image,
                 name=container_name,
                 ports=["80/tcp"],  # Nginx
@@ -486,16 +487,16 @@ class SandboxManager:
                 session_id=session_id,
                 container_id=_id,
                 container_name=container_name,
-                base_url=f"http://localhost:{ports[0]}/fastapi",
-                browser_url=f"http://localhost:{ports[0]}/steel-api"
+                base_url=f"http://{ip}:{ports[0]}/fastapi",
+                browser_url=f"http://{ip}:{ports[0]}/steel-api"
                 f"/{runtime_token}",
-                front_browser_ws=f"ws://localhost:"
+                front_browser_ws=f"ws://{ip}:"
                 f"{ports[0]}/steel-api/"
                 f"{runtime_token}/v1/sessions/cast",
-                client_browser_ws=f"ws://localhost:"
+                client_browser_ws=f"ws://{ip}:"
                 f"{ports[0]}/steel-api/{runtime_token}/&sessionId"
                 f"={BROWSER_SESSION_ID}",
-                artifacts_sio=f"http://localhost:{ports[0]}/v1",
+                artifacts_sio=f"http://{ip}:{ports[0]}/v1",
                 ports=[ports[0]],
                 mount_dir=str(mount_dir),
                 storage_path=storage_path,
@@ -647,8 +648,20 @@ class SandboxManager:
             "sandbox-appworld" in container_model.version
             or "sandbox-bfcl" in container_model.version
         ):
+            parsed = urlparse(container_model.base_url)
+            base_url = urlunparse(
+                (
+                    parsed.scheme,
+                    parsed.netloc,
+                    "",
+                    "",
+                    "",
+                    "",
+                ),
+            )
+
             return TrainingSandboxClient(
-                base_url=f"http://localhost:{container_model.ports[0]}",
+                base_url=base_url,
             ).__enter__()
 
         return SandboxHttpClient(

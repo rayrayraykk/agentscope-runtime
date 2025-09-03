@@ -289,11 +289,11 @@ class DockerClient(BaseClient):
                         f"Failed to pull image '{image}' from both "
                         f"default and ACR",
                     )
-                    return False
+                    return None, None, None
 
             except docker.errors.APIError as e:
                 logger.error(f"Error occurred while checking the image: {e}")
-                return False
+                return None, None, None
 
             # Create and run the container
             container = self.client.containers.run(
@@ -307,10 +307,10 @@ class DockerClient(BaseClient):
             )
             container.reload()
             _id = container.id
-            return _id, list(port_mapping.values())
+            return _id, list(port_mapping.values()), "localhost"
         except Exception as e:
             logger.error(f"An error occurred: {e}, {traceback.format_exc()}")
-            return None, None
+            return None, None, None
 
     def start(self, container_id):
         """Start a Docker container."""
