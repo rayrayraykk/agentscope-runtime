@@ -510,7 +510,10 @@ class KubernetesClient(BaseClient):
             service = client.V1Service(
                 api_version="v1",
                 kind="Service",
-                metadata=client.V1ObjectMeta(name=service_name),
+                metadata=client.V1ObjectMeta(
+                    name=service_name,
+                    namespace=self.namespace,
+                ),
                 spec=service_spec,
             )
 
