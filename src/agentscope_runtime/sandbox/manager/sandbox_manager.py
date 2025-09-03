@@ -15,7 +15,6 @@ import requests
 from ..model import (
     ContainerModel,
     SandboxManagerEnvConfig,
-    DEFAULT_LOCAL_MANAGER_CONFIG,
 )
 from ..enums import SandboxType
 from ..registry import SandboxRegistry
@@ -81,7 +80,7 @@ def remote_wrapper(
 class SandboxManager:
     def __init__(
         self,
-        config: SandboxManagerEnvConfig = DEFAULT_LOCAL_MANAGER_CONFIG,
+        config: Optional[SandboxManagerEnvConfig] = None,
         base_url=None,
         bearer_token=None,
         default_type: SandboxType | str = SandboxType.BASE,
@@ -96,9 +95,20 @@ class SandboxManager:
                 self.http_session.headers.update(
                     {"Authorization": f"Bearer {bearer_token}"},
                 )
+            # Remote mode, return directly
+            return
         else:
             self.http_session = None
             self.base_url = None
+
+        if not config:
+            config = SandboxManagerEnvConfig(
+                file_system="local",
+                redis_enabled=False,
+                container_deployment="docker",
+                pool_size=0,
+                default_mount_dir="sessions_mount_dir",
+            )
 
         self.default_type = SandboxType(default_type)
         self.workdir = "/workspace"
@@ -106,9 +116,7 @@ class SandboxManager:
         self.config = config
         self.pool_size = self.config.pool_size
         self.prefix = self.config.container_prefix_key
-        self.default_mount_dir = (
-            self.config.default_mount_dir or "sessions_mount_dir"
-        )
+        self.default_mount_dir = self.config.default_mount_dir
         self.storage_folder = (
             self.config.storage_folder or self.default_mount_dir
         )
@@ -380,12 +388,14 @@ class SandboxManager:
         short_uuid = shortuuid.ShortUUID(alphabet=alphabet).uuid()
         session_id = str(short_uuid)
 
-        if mount_dir is None:
-            mount_dir = os.path.join(self.default_mount_dir, session_id)
-            os.makedirs(mount_dir, exist_ok=True)
+        if not mount_dir:
+            if self.default_mount_dir:
+                mount_dir = os.path.join(self.default_mount_dir, session_id)
+                os.makedirs(mount_dir, exist_ok=True)
 
-        if not os.path.isabs(mount_dir):
-            mount_dir = os.path.abspath(mount_dir)
+        if mount_dir:
+            if not os.path.isabs(mount_dir):
+                mount_dir = os.path.abspath(mount_dir)
 
         if storage_path is None:
             storage_path = self.storage.path_join(
@@ -393,7 +403,8 @@ class SandboxManager:
                 session_id,
             )
 
-        self.storage.download_folder(storage_path, mount_dir)
+        if mount_dir:
+            self.storage.download_folder(storage_path, mount_dir)
 
         try:
             # Check for an existing container with the same name
@@ -407,12 +418,15 @@ class SandboxManager:
             runtime_token = secrets.token_hex(16)
 
             # Prepare volume bindings if a mount directory is provided
-            volume_bindings = {
-                mount_dir: {
-                    "bind": self.workdir,
-                    "mode": "rw",
-                },
-            }
+            if mount_dir:
+                volume_bindings = {
+                    mount_dir: {
+                        "bind": self.workdir,
+                        "mode": "rw",
+                    },
+                }
+            else:
+                volume_bindings = {}
 
             _id, ports = self.client.create(
                 image,
@@ -498,10 +512,11 @@ class SandboxManager:
             logger.debug(f"Container for {identity} destroyed.")
 
             # Upload to storage
-            self.storage.upload_folder(
-                container_info.mount_dir,
-                container_info.storage_path,
-            )
+            if container_info.mount_dir:
+                self.storage.upload_folder(
+                    container_info.mount_dir,
+                    container_info.storage_path,
+                )
 
             return True
         except Exception as e:
