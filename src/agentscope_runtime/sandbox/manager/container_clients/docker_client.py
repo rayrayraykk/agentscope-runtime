@@ -217,9 +217,12 @@ class DockerClient(BaseClient):
             acr_registry = "agentscope-registry.ap-southeast-1.cr.aliyuncs.com"
             acr_image = f"{acr_registry}/{image}"
 
-            logger.debug(f"Attempting to pull from ACR: {acr_image}")
+            logger.info(
+                f"Attempting to pull from ACR: {acr_image}, it might take "
+                f"several minutes.",
+            )
             self.client.images.pull(acr_image)
-            logger.debug(f"Successfully pulled image from ACR: {acr_image}")
+            logger.info(f"Successfully pulled image from ACR: {acr_image}")
 
             # Retag the image
             acr_img_obj = self.client.images.get(acr_image)
@@ -265,11 +268,15 @@ class DockerClient(BaseClient):
                 self.client.images.get(image)
                 logger.debug(f"Image '{image}' found locally.")
             except docker.errors.ImageNotFound:
-                logger.debug(
+                logger.info(
                     f"Image '{image}' not found locally. "
                     f"Attempting to pull it...",
                 )
                 try:
+                    logger.info(
+                        f"Attempting to pull: {image}, "
+                        f"it might take several minutes.",
+                    )
                     self.client.images.pull(image)
                     logger.debug(
                         f"Image '{image}' successfully pulled from default "
@@ -280,7 +287,7 @@ class DockerClient(BaseClient):
                     logger.warning(
                         f"Failed to pull from default registry: {e}",
                     )
-                    logger.debug("Trying to pull from ACR fallback...")
+                    logger.warning("Trying to pull from ACR fallback...")
 
                     pull_success = self._try_pull_from_acr(image)
 
