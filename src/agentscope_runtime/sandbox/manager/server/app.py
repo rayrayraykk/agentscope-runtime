@@ -2,7 +2,6 @@
 # pylint: disable=protected-access, unused-argument
 import inspect
 import logging
-import traceback
 
 from typing import Optional
 
@@ -137,11 +136,12 @@ def create_endpoint(method):
                 return JSONResponse(content={"data": result.model_dump_json()})
             return JSONResponse(content={"data": result})
         except Exception as e:
-            logger.error(
+            error = (
                 f"Error in {method.__name__}: {str(e)},"
-                f" {traceback.format_exc()}",
+                # f" {traceback.format_exc()}"
             )
-            raise HTTPException(status_code=500, detail=str(e)) from e
+            logger.error(error)
+            raise HTTPException(status_code=500, detail=error) from e
 
     return endpoint
 

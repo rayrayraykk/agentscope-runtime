@@ -25,6 +25,22 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Pull Docker images
+        run: |
+          DOCKER_IMAGES=(
+            "agentscope/runtime-sandbox-bfcl:latest"
+            "agentscope/runtime-sandbox-appworld:latest"
+            "agentscope/runtime-sandbox-base:latest"
+            "agentscope/runtime-sandbox-browser:latest"
+            "agentscope/runtime-sandbox-filesystem:latest"
+          )
+
+          for img in "${DOCKER_IMAGES[@]}"; do
+            echo "Pulling image: $img"
+            docker pull "$img"
+          done
+          echo "All Docker images pulled successfully."
+
       - name: Cache pip dependencies
         uses: actions/cache@v4
         with:

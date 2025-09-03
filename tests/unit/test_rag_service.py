@@ -62,7 +62,9 @@ async def test_from_docs():
 
 @pytest.mark.asyncio
 async def test_from_db():
-    rag_service = LangChainRAGService(uri="./assets/milvus_demo.db")
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(current_dir, "assets", "milvus_demo.db")
+    rag_service = LangChainRAGService(uri=db_path)
     ret_docs = await rag_service.retrieve(
         "What is self-reflection of an AI Agent?",
     )
@@ -72,7 +74,9 @@ async def test_from_db():
 
 @pytest.mark.asyncio
 async def test_rag():
-    rag_service = LangChainRAGService(uri="./assets/milvus_demo.db")
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(current_dir, "assets", "milvus_demo.db")
+    rag_service = LangChainRAGService(uri=db_path)
     USER_ID = "user2"
     SESSION_ID = "session1"
     query = "What is self-reflection of an AI Agent?"

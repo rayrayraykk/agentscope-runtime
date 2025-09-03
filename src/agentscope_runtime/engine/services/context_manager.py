@@ -90,7 +90,8 @@ class ContextManager(ServiceManager):
 
         self.register_service("session", self._session_history_service)
         self.register_service("memory", self._memory_service)
-        self.register_service("rag", self._rag_service)
+        if self._rag_service:
+            self.register_service("rag", self._rag_service)
 
     async def compose_context(
         self,
