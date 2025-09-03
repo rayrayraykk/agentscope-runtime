@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=too-many-branches
+import os
 import time
 import hashlib
 import traceback
@@ -89,7 +90,9 @@ class KubernetesClient(BaseClient):
             runtime_config = {}
 
         container_name = name or "main-container"
+
         # Container specification
+        # TODO: use image from docker registry first
         container = client.V1Container(
             name=container_name,
             image=f"agentscope-registry.ap-southeast-1.cr.aliyuncs.com"
@@ -560,6 +563,12 @@ class KubernetesClient(BaseClient):
 
     def _get_pod_node_ip(self, pod_name):
         """Get the IP of the node where the pod is running"""
+
+        # Check if we are running in Colima, where pod runs in VM
+        docker_host = os.getenv("DOCKER_HOST", "")
+        if "colima" in docker_host.lower():
+            return "localhost"
+
         try:
             pod = self.v1.read_namespaced_pod(
                 name=pod_name,
@@ -584,7 +593,12 @@ class KubernetesClient(BaseClient):
                 elif address.type == "InternalIP":
                     internal_ip = address.address
 
-            return external_ip or internal_ip
+            result_ip = external_ip or internal_ip
+            logger.debug(
+                f"Using IP: {result_ip} (external: {external_ip}, internal:"
+                f" {internal_ip})",
+            )
+            return result_ip
 
         except Exception as e:
             logger.error(f"Failed to get pod node IP: {e}")
