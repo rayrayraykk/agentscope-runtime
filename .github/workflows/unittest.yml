@@ -28,11 +28,11 @@ jobs:
       - name: Pull Docker images
         run: |
           DOCKER_IMAGES=(
+            "agentscope/runtime-sandbox-base:latest"
+            "agentscope/runtime-sandbox-filesystem:latest"
+            "agentscope/runtime-sandbox-browser:latest"
             "agentscope/runtime-sandbox-bfcl:latest"
             "agentscope/runtime-sandbox-appworld:latest"
-            "agentscope/runtime-sandbox-base:latest"
-            "agentscope/runtime-sandbox-browser:latest"
-            "agentscope/runtime-sandbox-filesystem:latest"
           )
 
           for img in "${DOCKER_IMAGES[@]}"; do
