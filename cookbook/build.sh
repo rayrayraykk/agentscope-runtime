@@ -96,6 +96,7 @@ for version in "${VERSIONS[@]}"; do
             print_success "Switched to $version"
         else
             print_error "Failed to checkout $version"
+            git checkout "$INITIAL_BRANCH" 2>/dev/null
             exit 1
         fi
     fi
@@ -109,11 +110,13 @@ for version in "${VERSIONS[@]}"; do
                 print_success "Successfully moved $version to latest/$version"
           else
               print_error "Failed to move $version to latest"
+              git checkout "$INITIAL_BRANCH" 2>/dev/null
               exit 1
           fi
       fi
     else
       print_error "Failed to build Jupyter Book"
+      git checkout "$INITIAL_BRANCH" 2>/dev/null
       exit 1
     fi
 done
