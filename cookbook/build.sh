@@ -106,8 +106,8 @@ for version in "${VERSIONS[@]}"; do
       if [ "$version" != "latest" ]; then
           print_step "Moving $version HTML to latest directory"
 
-          if mv $OUTPUT_DIR/$version/_build/html $OUTPUT_DIR/latest/$version; then
-                print_success "Successfully moved $version to latest/$version"
+          if mv $OUTPUT_DIR/$version/_build/html $OUTPUT_DIR/latest/$version/_build/html; then
+                print_success "Successfully moved $version to latest dir"
           else
               print_error "Failed to move $version to latest"
               git checkout "$INITIAL_BRANCH" 2>/dev/null
