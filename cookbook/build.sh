@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Multiple versions to build
+VERSIONS=("latest" "v0.1.0" "v0.1.1" "v0.1.2")
+OUTPUT_DIR="_build"
+
 # ANSI color codes for better display
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -80,14 +84,47 @@ else
   exit 1
 fi
 
+INITIAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+print_step "Current branch: $INITIAL_BRANCH"
+
 # Build the Jupyter Book
-print_step "Building the Jupyter Book"
-echo -e "${YELLOW}Building...${NC}"
-if jupyter-book build .; then
-  print_success "Jupyter Book built successfully"
+for version in "${VERSIONS[@]}"; do
+    print_step "Building version: $version"
+
+    if [ "$version" != "latest" ]; then
+        if git checkout "$version"; then
+            print_success "Switched to $version"
+        else
+            print_error "Failed to checkout $version"
+            exit 1
+        fi
+    fi
+
+    if jupyter-book build . --path-output $OUTPUT_DIR/$version; then
+      print_success "Jupyter Book built successfully"
+      if [ "$version" != "latest" ]; then
+          print_step "Moving $version HTML to latest directory"
+
+          if mv $OUTPUT_DIR/$version/_build/html $OUTPUT_DIR/latest/$version; then
+                print_success "Successfully moved $version to latest/$version"
+          else
+              print_error "Failed to move $version to latest"
+              exit 1
+          fi
+      fi
+    else
+      print_error "Failed to build Jupyter Book"
+      exit 1
+    fi
+done
+
+# Switch back to initial branch
+print_step "Switching back to initial branch: $INITIAL_BRANCH"
+if git checkout "$INITIAL_BRANCH"; then
+    print_success "Successfully switched back to $INITIAL_BRANCH"
 else
-  print_error "Failed to build Jupyter Book"
-  exit 1
+    print_error "Failed to switch back to $INITIAL_BRANCH"
+    exit 1
 fi
 
 # Check if preview is requested

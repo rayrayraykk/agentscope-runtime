@@ -35,5 +35,5 @@ jobs:
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: cookbook/_build/html
+        publish_dir: cookbook/_build/latest/_build/html
         cname: runtime.agentscope.io
