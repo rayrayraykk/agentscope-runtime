@@ -139,7 +139,7 @@ for version in "${VERSIONS[@]}"; do
       if [ "$version" != "latest" ]; then
           print_step "Moving $version HTML to latest directory"
 
-          if mv $OUTPUT_DIR/$version/_build/html $OUTPUT_DIR/latest/$version/_build/html; then
+          if mv $OUTPUT_DIR/$version/_build/html $OUTPUT_DIR/latest/_build/html/$version; then
                 print_success "Successfully moved $version to latest dir"
           else
               print_error "Failed to move $version to latest"
