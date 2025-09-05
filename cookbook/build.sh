@@ -166,8 +166,8 @@ fi
 # Check if preview is requested
 if [ "$PREVIEW" = true ]; then
   print_step "Starting preview server"
-  # Check if _build/html directory exists
-  if [ ! -d "_build/html" ]; then
+  # Check if $OUTPUT_DIR/latest/_build/html directory exists
+  if [ ! -d "$OUTPUT_DIR/latest/_build/html" ]; then
     print_error "Build directory not found. Please ensure the build completed successfully."
     exit 1
   fi
@@ -189,16 +189,16 @@ if [ "$PREVIEW" = true ]; then
   print_info "Open your browser and visit: ${GREEN}http://localhost:$PORT${NC}"
   print_info "Press ${RED}Ctrl+C${NC} to stop the server"
   echo -e "${CYAN}─────────────────────────────────────────────────────────────────────────────────${NC}\n"
-  # Start a simple HTTP server in the _build/html directory
+  # Start a simple HTTP server in the $OUTPUT_DIR/latest/_build/html directory
   python -m http.server --directory $OUTPUT_DIR/latest/_build/html $PORT
 else
   print_step "Build Summary"
   print_success "Build completed successfully!"
   print_info "To build and preview the book, run: ${GREEN}$0 -p${NC}"
-  print_info "Build output available in: ${BLUE}_build/html/${NC}"
+  print_info "Build output available in: ${BLUE}$OUTPUT_DIR/latest/_build/html/${NC}"
   # Show file size if possible
   if command -v du >/dev/null 2>&1; then
-    BUILD_SIZE=$(du -sh _build/html 2>/dev/null | cut -f1)
+    BUILD_SIZE=$(du -sh $OUTPUT_DIR/latest/_build/html 2>/dev/null | cut -f1)
     [ -n "$BUILD_SIZE" ] && print_info "Total build size: $BUILD_SIZE"
   fi
   echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
