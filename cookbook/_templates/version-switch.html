@@ -1,16 +1,5 @@
-<div class="language-switch">
-    <div class="language-selector">
-        <button class="language-button" onclick="toggleVersionMenu()">
-            <span id="current-version">loading...</span>
-            <span class="dropdown-arrow"></span>
-        </button>
-        <div class="language-menu" id="version-menu">
-        </div>
-    </div>
-</div>
-
 <script>
-    const VERSIONS = ["latest", "v0.1.0", "v0.1.1", "v0.1.2"];
+    const VERSIONS = ["latest", "v0.1.2", "v0.1.1", "v0.1.0"];
     const VERSION_PATTERN = /^\/(v\d+\.\d+\.\d+)\//;
 
     function populateVersionMenu() {
