@@ -69,6 +69,39 @@ echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━�
 echo -e "${CYAN}                           JUPYTER BOOK BUILDER${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
+# Check for uncommitted changes
+print_step "Checking for uncommitted changes"
+if ! git diff-index --quiet HEAD -- || ! git diff --staged --quiet; then
+  print_error "Uncommitted changes detected!"
+  echo -e "${CYAN}─────────────────────────────────────────────────────────────────────────────────${NC}"
+  print_warning "This script needs to switch between git branches to build multiple versions."
+  print_warning "Please commit or stash your changes before running this script."
+  echo
+  print_info "You can use one of the following commands:"
+  echo -e "  ${GREEN}git add . && git commit -m \"your commit message\"${NC}  # To commit changes"
+  echo -e "  ${GREEN}git stash${NC}                                          # To temporarily save changes"
+  echo -e "${CYAN}─────────────────────────────────────────────────────────────────────────────────${NC}"
+
+  # Show uncommitted files
+  echo
+  print_info "Uncommitted files:"
+  git status --porcelain | while IFS= read -r line; do
+    status="${line:0:2}"
+    file="${line:3}"
+    case "$status" in
+      "??") echo -e "  ${RED}[untracked]${NC} $file" ;;
+      " M"|"M ") echo -e "  ${YELLOW}[modified]${NC}  $file" ;;
+      "A ") echo -e "  ${GREEN}[added]${NC}     $file" ;;
+      " D"|"D ") echo -e "  ${RED}[deleted]${NC}   $file" ;;
+      *) echo -e "  ${BLUE}[$status]${NC}      $file" ;;
+    esac
+  done
+  echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  exit 1
+else
+  print_success "Working directory is clean"
+fi
+
 # Check if we're in a Jupyter Book directory
 if [ ! -f "_config.yml" ] && [ ! -f "_toc.yml" ]; then
   print_warning "This doesn't appear to be a Jupyter Book directory"
