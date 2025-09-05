@@ -28,8 +28,6 @@
         const currentPath = window.location.pathname;
         let newPath = currentPath;
 
-        localStorage.setItem("preferred-version", targetVersion);
-
         document.getElementById("version-menu").style.display = "none";
 
         const langMatch = currentPath.match(/\/(en|zh)\//);
@@ -63,7 +61,6 @@
         populateVersionMenu();
 
         const currentPath = window.location.pathname;
-        const savedVersion = localStorage.getItem("preferred-version");
         let detectedVersion = "preview";
 
         const match = currentPath.match(VERSION_PATTERN);
@@ -71,13 +68,9 @@
             detectedVersion = match[1];
         }
 
-        const displayVersion = (detectedVersion !== "preview")
-            ? detectedVersion
-            : (savedVersion && VERSIONS.includes(savedVersion) ? savedVersion : "preview");
-
         const versionSpan = document.getElementById("current-version");
         if (versionSpan) {
-            versionSpan.textContent = displayVersion;
+            versionSpan.textContent = detectedVersion;
         }
     });
 </script>
