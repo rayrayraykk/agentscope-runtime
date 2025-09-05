@@ -190,7 +190,7 @@ if [ "$PREVIEW" = true ]; then
   print_info "Press ${RED}Ctrl+C${NC} to stop the server"
   echo -e "${CYAN}─────────────────────────────────────────────────────────────────────────────────${NC}\n"
   # Start a simple HTTP server in the _build/html directory
-  python -m http.server --directory _build/html $PORT
+  python -m http.server --directory $OUTPUT_DIR/latest/_build/html $PORT
 else
   print_step "Build Summary"
   print_success "Build completed successfully!"
