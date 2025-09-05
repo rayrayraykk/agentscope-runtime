@@ -1,5 +1,5 @@
 <script>
-    const VERSIONS = ["latest", "v0.1.2", "v0.1.1", "v0.1.0"];
+    const VERSIONS = ["preview", "v0.1.2", "v0.1.1", "v0.1.0"];
     const VERSION_PATTERN = /^\/(v\d+\.\d+\.\d+)\//;
 
     function populateVersionMenu() {
@@ -35,7 +35,7 @@
         const langMatch = currentPath.match(/\/(en|zh)\//);
         const lang = langMatch ? `/${langMatch[1]}/` : "/en/";
 
-        if (targetVersion === "latest") {
+        if (targetVersion === "preview") {
             if (VERSION_PATTERN.test(currentPath)) {
                 newPath = currentPath.replace(VERSION_PATTERN, "/");
             } else {
@@ -64,16 +64,16 @@
 
         const currentPath = window.location.pathname;
         const savedVersion = localStorage.getItem("preferred-version");
-        let detectedVersion = "latest";
+        let detectedVersion = "preview";
 
         const match = currentPath.match(VERSION_PATTERN);
         if (match) {
             detectedVersion = match[1];
         }
 
-        const displayVersion = (detectedVersion !== "latest")
+        const displayVersion = (detectedVersion !== "preview")
             ? detectedVersion
-            : (savedVersion && VERSIONS.includes(savedVersion) ? savedVersion : "latest");
+            : (savedVersion && VERSIONS.includes(savedVersion) ? savedVersion : "preview");
 
         const versionSpan = document.getElementById("current-version");
         if (versionSpan) {

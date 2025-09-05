@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Multiple versions to build
-VERSIONS=("latest" "v0.1.0" "v0.1.1" "v0.1.2")
+VERSIONS=("preview" "v0.1.0" "v0.1.1" "v0.1.2")
 OUTPUT_DIR="_build"
 
 # ANSI color codes for better display
@@ -124,7 +124,7 @@ print_step "Current branch: $INITIAL_BRANCH"
 for version in "${VERSIONS[@]}"; do
     print_step "Building version: $version"
 
-    if [ "$version" != "latest" ]; then
+    if [ "$version" != "preview" ]; then
         if git checkout "$version"; then
             print_success "Switched to $version"
         else
@@ -136,13 +136,13 @@ for version in "${VERSIONS[@]}"; do
 
     if jupyter-book build . --path-output $OUTPUT_DIR/$version; then
       print_success "Jupyter Book built successfully"
-      if [ "$version" != "latest" ]; then
-          print_step "Moving $version HTML to latest directory"
+      if [ "$version" != "preview" ]; then
+          print_step "Moving $version HTML to preview directory"
 
-          if mv $OUTPUT_DIR/$version/_build/html $OUTPUT_DIR/latest/_build/html/$version; then
-                print_success "Successfully moved $version to latest dir"
+          if mv $OUTPUT_DIR/$version/_build/html $OUTPUT_DIR/preview/_build/html/$version; then
+                print_success "Successfully moved $version to preview dir"
           else
-              print_error "Failed to move $version to latest"
+              print_error "Failed to move $version to preview"
               git checkout "$INITIAL_BRANCH" 2>/dev/null
               exit 1
           fi
@@ -166,8 +166,8 @@ fi
 # Check if preview is requested
 if [ "$PREVIEW" = true ]; then
   print_step "Starting preview server"
-  # Check if $OUTPUT_DIR/latest/_build/html directory exists
-  if [ ! -d "$OUTPUT_DIR/latest/_build/html" ]; then
+  # Check if $OUTPUT_DIR/preview/_build/html directory exists
+  if [ ! -d "$OUTPUT_DIR/preview/_build/html" ]; then
     print_error "Build directory not found. Please ensure the build completed successfully."
     exit 1
   fi
@@ -189,16 +189,16 @@ if [ "$PREVIEW" = true ]; then
   print_info "Open your browser and visit: ${GREEN}http://localhost:$PORT${NC}"
   print_info "Press ${RED}Ctrl+C${NC} to stop the server"
   echo -e "${CYAN}─────────────────────────────────────────────────────────────────────────────────${NC}\n"
-  # Start a simple HTTP server in the $OUTPUT_DIR/latest/_build/html directory
-  python -m http.server --directory $OUTPUT_DIR/latest/_build/html $PORT
+  # Start a simple HTTP server in the $OUTPUT_DIR/preview/_build/html directory
+  python -m http.server --directory $OUTPUT_DIR/preview/_build/html $PORT
 else
   print_step "Build Summary"
   print_success "Build completed successfully!"
   print_info "To build and preview the book, run: ${GREEN}$0 -p${NC}"
-  print_info "Build output available in: ${BLUE}$OUTPUT_DIR/latest/_build/html/${NC}"
+  print_info "Build output available in: ${BLUE}$OUTPUT_DIR/preview/_build/html/${NC}"
   # Show file size if possible
   if command -v du >/dev/null 2>&1; then
-    BUILD_SIZE=$(du -sh $OUTPUT_DIR/latest/_build/html 2>/dev/null | cut -f1)
+    BUILD_SIZE=$(du -sh $OUTPUT_DIR/preview/_build/html 2>/dev/null | cut -f1)
     [ -n "$BUILD_SIZE" ] && print_info "Total build size: $BUILD_SIZE"
   fi
   echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
