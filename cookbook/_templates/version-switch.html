@@ -1,0 +1,94 @@
+<div class="language-switch">
+    <div class="language-selector">
+        <button class="language-button" onclick="toggleVersionMenu()">
+            <span id="current-version">loading...</span>
+            <span class="dropdown-arrow"></span>
+        </button>
+        <div class="language-menu" id="version-menu">
+        </div>
+    </div>
+</div>
+
+<script>
+    const VERSIONS = ["latest", "v0.1.0", "v0.1.1", "v0.1.2"];
+    const VERSION_PATTERN = /^\/(v\d+\.\d+\.\d+)\//;
+
+    function populateVersionMenu() {
+        const menu = document.getElementById("version-menu");
+        menu.innerHTML = "";
+
+        VERSIONS.forEach(version => {
+            const anchor = document.createElement("a");
+            anchor.href = "#";
+            anchor.className = "language-option";
+            anchor.textContent = version;
+            anchor.onclick = (e) => {
+                e.preventDefault();
+                switchVersion(version);
+            };
+            menu.appendChild(anchor);
+        });
+    }
+
+    function toggleVersionMenu() {
+        const menu = document.getElementById("version-menu");
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+
+    function switchVersion(targetVersion) {
+        const currentPath = window.location.pathname;
+        let newPath = currentPath;
+
+        localStorage.setItem("preferred-version", targetVersion);
+
+        document.getElementById("version-menu").style.display = "none";
+
+        const langMatch = currentPath.match(/\/(en|zh)\//);
+        const lang = langMatch ? `/${langMatch[1]}/` : "/en/";
+
+        if (targetVersion === "latest") {
+            if (VERSION_PATTERN.test(currentPath)) {
+                newPath = currentPath.replace(VERSION_PATTERN, "/");
+            } else {
+                newPath = currentPath;
+            }
+        } else {
+            if (VERSION_PATTERN.test(currentPath)) {
+                newPath = currentPath.replace(VERSION_PATTERN, `/${targetVersion}/`);
+            } else {
+                newPath = currentPath.replace(/\/(en|zh)\//, `/${targetVersion}/$1/`);
+            }
+        }
+
+        const newUrl = newPath + window.location.search + window.location.hash;
+        window.location.href = newUrl;
+    }
+
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest(".language-selector")) {
+            document.getElementById("version-menu").style.display = "none";
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        populateVersionMenu();
+
+        const currentPath = window.location.pathname;
+        const savedVersion = localStorage.getItem("preferred-version");
+        let detectedVersion = "latest";
+
+        const match = currentPath.match(VERSION_PATTERN);
+        if (match) {
+            detectedVersion = match[1];
+        }
+
+        const displayVersion = (detectedVersion !== "latest")
+            ? detectedVersion
+            : (savedVersion && VERSIONS.includes(savedVersion) ? savedVersion : "latest");
+
+        const versionSpan = document.getElementById("current-version");
+        if (versionSpan) {
+            versionSpan.textContent = displayVersion;
+        }
+    });
+</script>
