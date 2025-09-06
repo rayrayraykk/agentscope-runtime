@@ -97,7 +97,7 @@ for version in "${VERSIONS[@]}"; do
         else
             print_error "Failed to checkout $version"
             git checkout "$INITIAL_BRANCH" 2>/dev/null
-            git stash pop
+            git stash pop 2>/dev/null || true
             exit 1
         fi
     fi
@@ -112,17 +112,17 @@ for version in "${VERSIONS[@]}"; do
           else
               print_error "Failed to move $version to preview"
               git checkout "$INITIAL_BRANCH" 2>/dev/null
-              git stash pop
+              git stash pop 2>/dev/null || true
               exit 1
           fi
       else
-          print_step "Stash uncommited changes."
+          print_step "Stash uncommitted changes."
           git stash
       fi
     else
       print_error "Failed to build Jupyter Book"
       git checkout "$INITIAL_BRANCH" 2>/dev/null
-      git stash pop
+      git stash pop 2>/dev/null || true
       exit 1
     fi
 done
@@ -131,7 +131,7 @@ done
 print_step "Switching back to initial branch: $INITIAL_BRANCH"
 if git checkout "$INITIAL_BRANCH"; then
     print_success "Successfully switched back to $INITIAL_BRANCH"
-    git stash pop
+    git stash pop 2>/dev/null || true
 else
     print_error "Failed to switch back to $INITIAL_BRANCH"
     exit 1
