@@ -2,7 +2,6 @@
 # pylint: disable=protected-access, unused-argument
 import asyncio
 import inspect
-import json
 import logging
 
 from typing import Optional
@@ -199,7 +198,7 @@ async def health_check():
     )
 
 
-@app.websocket("/browser/{sandbox_id}")
+@app.websocket("/browser/{sandbox_id}/cast")
 async def websocket_endpoint(
     websocket: WebSocket,
     sandbox_id,
@@ -219,42 +218,51 @@ async def websocket_endpoint(
 
     if not service_address:
         await websocket.close(code=1001)
-        raise HTTPException(
-            status_code=404,
-            detail=f"sandbox {sandbox_id} not found",
-        )
+        return
+
     try:
+        query_params = websocket.query_params
+        target_url = service_address
+        if query_params:
+            query_string = str(query_params)
+            if "?" in target_url:
+                target_url += "&" + query_string
+            else:
+                target_url += "?" + query_string
+
+        logger.info(f"Connecting to target with URL: {target_url}")
+
         # Connect to the target WebSocket server
-        async with websockets.connect(service_address) as target_ws:
+        async with websockets.connect(target_url) as target_ws:
             # Forward messages from client to target server
             async def forward_to_service():
                 try:
                     async for message in websocket.iter_text():
-                        data = json.loads(message)
-                        await target_ws.send(json.dumps(data))
+                        await target_ws.send(message)
                 except WebSocketDisconnect:
-                    print(
+                    logger.debug(
                         f"WebSocket disconnected from client for sandbox"
                         f" {sandbox_id}",
                     )
+                    await target_ws.close()
 
             # Forward messages from target server to client
             async def forward_to_client():
                 try:
                     async for message in target_ws:
-                        data = json.loads(message)
-                        await websocket.send_text(json.dumps(data))
+                        await websocket.send_text(message)
                 except websockets.exceptions.ConnectionClosed:
-                    print(
+                    logger.debug(
                         f"WebSocket disconnected from service for sandbox"
                         f" {sandbox_id}",
                     )
+                    await websocket.close()
 
             # Run both tasks concurrently
             await asyncio.gather(forward_to_service(), forward_to_client())
+
     except Exception as e:
-        print(f"Error in sandbox {sandbox_id}: {e}")
-        await websocket.send_text(f"Error: {str(e)}")
+        logger.error(f"Error in sandbox {sandbox_id}: {e}")
         await websocket.close()
 
 
