@@ -401,6 +401,7 @@ class Message(Event):
 
         :return: First text string found in the content, or None if no text
         content
+
         """
         if self.content is None:
             return None
@@ -416,6 +417,7 @@ class Message(Event):
 
         :return: List of image URLs or base64 encoded strings found in the
         content
+
         """
         images = []
 
@@ -433,6 +435,7 @@ class Message(Event):
 
         :return: List of audio URLs or base64 encoded strings found in the
         content
+
         """
         audios = []
 
