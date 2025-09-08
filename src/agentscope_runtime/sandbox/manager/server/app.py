@@ -201,7 +201,7 @@ async def health_check():
 @app.websocket("/browser/{sandbox_id}/cast")
 async def websocket_endpoint(
     websocket: WebSocket,
-    sandbox_id,
+    sandbox_id: str,
 ):
     global _sandbox_manager
 
