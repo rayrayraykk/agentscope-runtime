@@ -399,8 +399,8 @@ class Message(Event):
         """
         Extract the first text content from the message.
 
-        :return: First text string found in the content, or None if no text
-        content
+        :return:
+            First text string found in the content, or None if no text content
         """
         if self.content is None:
             return None
@@ -414,8 +414,8 @@ class Message(Event):
         """
         Extract all image content (URLs or base64 data) from the message.
 
-        :return: List of image URLs or base64 encoded strings found in the
-        content
+        :return:
+            List of image URLs or base64 encoded strings found in the content
         """
         images = []
 
@@ -431,8 +431,8 @@ class Message(Event):
         """
         Extract all audio content (URLs or base64 data) from the message.
 
-        :return: List of audio URLs or base64 encoded strings found in the
-        content
+        :return:
+            List of audio URLs or base64 encoded strings found in the content
         """
         audios = []
 
