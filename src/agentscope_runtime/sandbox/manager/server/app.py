@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=protected-access, unused-argument
+import asyncio
 import inspect
+import json
 import logging
 
 from typing import Optional
 
+import websockets
 from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -43,7 +47,7 @@ app.add_middleware(
 security = HTTPBearer(auto_error=False)
 
 # Global SandboxManager instance
-_runtime_manager: Optional[SandboxManager] = None
+_sandbox_manager: Optional[SandboxManager] = None
 _config: Optional[SandboxManagerEnvConfig] = None
 
 
@@ -108,17 +112,17 @@ def verify_token(
     return credentials
 
 
-def get_runtime_manager():
+def get_sandbox_manager():
     """Get or create the global SandboxManager instance"""
-    global _runtime_manager
-    if _runtime_manager is None:
+    global _sandbox_manager
+    if _sandbox_manager is None:
         settings = get_settings()
         config = get_config()
-        _runtime_manager = SandboxManager(
+        _sandbox_manager = SandboxManager(
             config=config,
             default_type=settings.DEFAULT_SANDBOX_TYPE,
         )
-    return _runtime_manager
+    return _sandbox_manager
 
 
 def create_endpoint(method):
@@ -168,18 +172,18 @@ def register_routes(_app, instance):
 @app.on_event("startup")
 async def startup_event():
     """Initialize the SandboxManager on startup"""
-    get_runtime_manager()
-    register_routes(app, _runtime_manager)
+    get_sandbox_manager()
+    register_routes(app, _sandbox_manager)
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup resources on shutdown"""
-    global _runtime_manager
+    global _sandbox_manager
     settings = get_settings()
-    if _runtime_manager and settings.AUTO_CLEANUP:
-        _runtime_manager.cleanup()
-        _runtime_manager = None
+    if _sandbox_manager and settings.AUTO_CLEANUP:
+        _sandbox_manager.cleanup()
+        _sandbox_manager = None
 
 
 @app.get(
@@ -191,8 +195,70 @@ async def health_check():
     """Health check endpoint"""
     return HealthResponse(
         status="healthy",
-        version=_runtime_manager.default_type.value,
+        version=_sandbox_manager.default_type.value,
     )
+
+
+@app.websocket("/browser/{sandbox_id}")
+async def websocket_endpoint(
+    websocket: WebSocket,
+    sandbox_id,
+):
+    global _sandbox_manager
+
+    await websocket.accept()
+
+    container_json = _sandbox_manager.container_mapping.get(
+        sandbox_id,
+    )
+    service_address = None
+    if container_json:
+        service_address = container_json.get("front_browser_ws")
+
+    logger.debug(f"service_address: {service_address}")
+
+    if not service_address:
+        await websocket.close(code=1001)
+        raise HTTPException(
+            status_code=404,
+            detail=f"sandbox {sandbox_id} not found",
+        )
+    try:
+        # Connect to the target WebSocket server
+        async with websockets.connect(service_address) as target_ws:
+            # Forward messages from client to target server
+            async def forward_to_service():
+                try:
+                    async for message in websocket.iter_text():
+                        data = json.loads(message)
+                        await target_ws.send(json.dumps(data))
+                except WebSocketDisconnect:
+                    print(
+                        f"WebSocket disconnected from client for sandbox"
+                        f" {sandbox_id}",
+                    )
+
+            # Forward messages from target server to client
+            async def forward_to_client():
+                try:
+                    async for message in target_ws:
+                        data = json.loads(message)
+                        await websocket.send_text(json.dumps(data))
+                except websockets.exceptions.ConnectionClosed:
+                    print(
+                        f"WebSocket disconnected from service for sandbox"
+                        f" {sandbox_id}",
+                    )
+
+            # Run both tasks concurrently
+            await asyncio.gather(forward_to_service(), forward_to_client())
+    except Exception as e:
+        print(f"Error in sandbox {sandbox_id}: {e}")
+        await websocket.send_text(f"Error: {str(e)}")
+        await websocket.close()
+
+
+# TODO: add socketio relay endpoint for filesystem
 
 
 def setup_logging(log_level: str):
