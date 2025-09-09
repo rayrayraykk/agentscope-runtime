@@ -44,6 +44,16 @@
         "review",
         "doc"
       ]
+    },
+    {
+      "login": "ericczq",
+      "name": "ericczq",
+      "avatar_url": "https://avatars.githubusercontent.com/u/116273607?v=4",
+      "profile": "https://github.com/ericczq",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
