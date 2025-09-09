@@ -9,7 +9,7 @@ AgentScope Runtime is an open-source project focused on agent deployment and sec
 A good first step to getting involved in the AgentScope Runtime project is to participate in our discussions and join us in our different communication channels. Here are several ways to connect with us:
 
 - **GitHub Discussions**: Ask questions and share experiences (use **English**)
-- **Slack**: Join our [Slack channel](https://discord.gg/eYMpfnkG8h) for real-time discussions
+- **Discord**: Join our [Discord channel](https://discord.gg/eYMpfnkG8h) for real-time discussions
 - **DingTalk**: Chinese users can join our [DingTalk Group](https://qr.dingtalk.com/action/joingroup?code=v1,k1,OmDlBXpjW+I2vWjKDsjvI9dhcXjGZi3bQiojOq3dlDw=&_dt_no_comment=1&origin=11)
 
 
