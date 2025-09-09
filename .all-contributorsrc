@@ -33,6 +33,17 @@
         "review",
         "example"
       ]
+    },
+    {
+      "login": "zzhangpurdue",
+      "name": "Zhicheng Zhang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5746653?v=4",
+      "profile": "https://github.com/zzhangpurdue",
+      "contributions": [
+        "code",
+        "review",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
