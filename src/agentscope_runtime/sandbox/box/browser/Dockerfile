@@ -26,7 +26,7 @@ ENV PATH="/agentscope_runtime/venv/bin:$PATH"
 COPY src/agentscope_runtime/sandbox/box/shared/app.py ./
 COPY src/agentscope_runtime/sandbox/box/shared/routers/ ./routers/
 COPY src/agentscope_runtime/sandbox/box/shared/dependencies/ ./dependencies/
-COPY src/agentscope_runtime/sandbox/box/shared/steel-browser/ ./ext_services/steel-browser/
+COPY src/agentscope_runtime/sandbox/box/shared/third_party/steel-browser/ ./ext_services/steel-browser/
 COPY src/agentscope_runtime/sandbox/box/browser/box/ ./
 
 RUN pip install -r requirements.txt
