@@ -54,6 +54,15 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "qbc2016",
+      "name": "qbc",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22984042?v=4",
+      "profile": "https://github.com/qbc2016",
+      "contributions": [
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
