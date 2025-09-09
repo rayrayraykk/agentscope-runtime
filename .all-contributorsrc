@@ -22,6 +22,17 @@
         "maintenance",
         "projectManagement"
       ]
+    },
+    {
+      "login": "zhilingluo",
+      "name": "Bruce Luo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7297307?v=4",
+      "profile": "http://www.bruceluo.net/",
+      "contributions": [
+        "code",
+        "review",
+        "example"
+      ]
     }
   ],
   "contributorsPerLine": 7,
