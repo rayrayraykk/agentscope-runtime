@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import atexit
 import logging
+import signal
 from typing import Any, Optional
 
 from ..enums import SandboxType
@@ -65,6 +66,29 @@ class Sandbox:
         # Clean up function enabled in embed mode
         if self.embed_mode:
             atexit.register(self._cleanup)
+            self._register_signal_handlers()
+
+    def _register_signal_handlers(self) -> None:
+        def _handler(signum, frame):  # pylint: disable=unused-argument
+            if self.embed_mode:
+                logger.debug(
+                    f"Received signal {signum}, stopping Sandbox"
+                    f" {self.sandbox_id}...",
+                )
+                self._cleanup()
+            raise SystemExit(0)
+
+        # Windows does not support SIGTERM
+        if hasattr(signal, "SIGTERM"):
+            signals = [signal.SIGINT, signal.SIGTERM]
+        else:
+            signals = [signal.SIGINT]
+
+        for sig in signals:
+            try:
+                signal.signal(sig, _handler)
+            except Exception as e:
+                logger.warning(f"Cannot register handler for {sig}: {e}")
 
     def _cleanup(self):
         try:
