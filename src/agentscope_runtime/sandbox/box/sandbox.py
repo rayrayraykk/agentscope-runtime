@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import atexit
 import logging
 from typing import Any, Optional
 
@@ -61,17 +62,29 @@ class Sandbox:
         self.sandbox_type = sandbox_type
         self.timeout = timeout
 
+        # Clean up function enabled in embed mode
+        if self.embed_mode:
+            atexit.register(self._cleanup)
+
+    def _cleanup(self):
+        try:
+            # Remote not need to close the embed_manager
+            if self.embed_mode:
+                # Clean all
+                self.manager_api.__exit__(None, None, None)
+            else:
+                # Clean the specific sandbox
+                self.manager_api.release(self.sandbox_id)
+        except Exception as e:
+            logger.error(
+                f"Cleanup {self.sandbox_id} error: {e}",
+            )
+
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        # Remote not need to close the embed_manager
-        if self.embed_mode:
-            # Clean all
-            self.manager_api.__exit__(exc_type, exc_value, traceback)
-        else:
-            # Clean the specific sandbox
-            self.manager_api.release(self.sandbox_id)
+        self._cleanup()
 
     @property
     def sandbox_id(self) -> str:
