@@ -69,6 +69,14 @@ class Sandbox:
             self._register_signal_handlers()
 
     def _register_signal_handlers(self) -> None:
+        """
+        Register signal handlers for graceful shutdown and cleanup.
+        Handles SIGINT (Ctrl+C) and, if available, SIGTERM to ensure that
+        the sandbox is properly cleaned up when the process receives these
+        signals. On platforms where SIGTERM is not available (e.g.,
+        Windows), only SIGINT is handled.
+        """
+
         def _handler(signum, frame):  # pylint: disable=unused-argument
             logger.debug(
                 f"Received signal {signum}, stopping Sandbox"
