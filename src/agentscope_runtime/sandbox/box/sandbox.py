@@ -90,6 +90,14 @@ class Sandbox:
                 logger.warning(f"Cannot register handler for {sig}: {e}")
 
     def _cleanup(self):
+        """
+        Clean up resources associated with the sandbox.
+        This method is called when the sandbox receives termination signals
+        (such as SIGINT or SIGTERM) in embed mode, or when exiting a context
+        manager block. In embed mode, it calls the manager API's __exit__
+        method to clean up all resources. Otherwise, it releases the
+        specific sandbox instance.
+        """
         try:
             # Remote not need to close the embed_manager
             if self.embed_mode:
