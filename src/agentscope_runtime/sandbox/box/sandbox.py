@@ -70,12 +70,11 @@ class Sandbox:
 
     def _register_signal_handlers(self) -> None:
         def _handler(signum, frame):  # pylint: disable=unused-argument
-            if self.embed_mode:
-                logger.debug(
-                    f"Received signal {signum}, stopping Sandbox"
-                    f" {self.sandbox_id}...",
-                )
-                self._cleanup()
+            logger.debug(
+                f"Received signal {signum}, stopping Sandbox"
+                f" {self.sandbox_id}...",
+            )
+            self._cleanup()
             raise SystemExit(0)
 
         # Windows does not support SIGTERM
