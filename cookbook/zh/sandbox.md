@@ -371,7 +371,7 @@ with BaseSandbox(base_url="http://your_IP_address:8000") as box:
     print(box.run_ipython_cell(code="print('hi')"))
 ```
 
-### **将 Sandbox 暴露为 MCP 服务**
+### 将 Sandbox 暴露为 MCP 服务
 
 将本地的 Sandbox Runtime 配置为名为 `sandbox` 的 MCP 服务，使其可以被 MCP 兼容的客户端调用，通过远程的 sandbox 服务器 `http://127.0.0.1:8000` 来安全地执行沙箱中的命令。
 
