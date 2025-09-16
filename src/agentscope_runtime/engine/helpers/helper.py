@@ -93,7 +93,7 @@ async def simple_call_agent_tool(agent, query):
     return all_result
 
 
-async def simple_call_agent_tool_v2(agent, query):
+async def simple_call_agent_tool_auto_lifecycle(agent, query):
     all_result = ""
     async with Runner(
         agent=agent,
