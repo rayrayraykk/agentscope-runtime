@@ -49,7 +49,7 @@ sandbox = [
 ]
 
 agentscope = [
-    "agentscope==1.0.0",
+    "agentscope>=1.0.1",
 ]
 
 langgraph = [
