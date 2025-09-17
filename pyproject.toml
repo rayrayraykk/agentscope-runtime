@@ -5,7 +5,7 @@ description = "A production-ready runtime framework for agent applications, prov
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "mcp>=1.8.0,<1.10.0",
+    "mcp>=1.13",
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
     "openai",
