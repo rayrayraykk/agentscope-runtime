@@ -153,6 +153,7 @@ with BaseSandbox() as box:
 > [!NOTE]
 >
 > 当前版本需要安装并运行Docker或者Kubernetes，未来我们将提供更多公有云部署选项。请参考[此教程](https://runtime.agentscope.io/zh/sandbox.html)了解更多详情。
+>
 > 如果镜像拉取失败，可以尝试设置：
 > `export RUNTIME_SANDBOX_REGISTRY="agentscope-registry.ap-southeast-1.cr.aliyuncs.com"`
 

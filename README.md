@@ -156,6 +156,7 @@ with BaseSandbox() as box:
 > [!NOTE]
 >
 > Current version requires Docker or Kubernetes to be installed and running on your system. Please refer to [this tutorial](https://runtime.agentscope.io/en/sandbox.html) for more details.
+>
 > If pulling the Docker image fails, try setting:
 > `export RUNTIME_SANDBOX_REGISTRY="agentscope-registry.ap-southeast-1.cr.aliyuncs.com"`
 
