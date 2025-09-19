@@ -111,6 +111,7 @@ KUBECONFIG_PATH=
 | `CONTAINER_PREFIX_KEY` | Container name prefix | `agent-runtime-container-` | For identification |
 | `CONTAINER_DEPLOYMENT` | Container runtime | `docker`                   | Currently, `docker` and `k8s` are supported |
 | `DEFAULT_MOUNT_DIR` | Default mount directory | `sessions_mount_dir`       | For persistent storage path where the `/workspace` file is stored |
+| `READONLY_MOUNTS` | Read-only directory mounts | `None` | A dictionary mapping **host paths** to **container paths**, mounted in **read-only** mode. Used to share files/configurations without allowing container writes. Example:<br/>`{"\/Users\/alice\/data": "\/data"}` mounts the host's `/Users/alice/data` to `/data` inside the container as read-only. |
 | `PORT_RANGE` | Available port range | `[49152,59152]`            | For service port allocation |
 
 ####  (Optional) Redis Settings

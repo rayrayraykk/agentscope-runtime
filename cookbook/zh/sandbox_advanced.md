@@ -112,6 +112,7 @@ KUBECONFIG_PATH=
 | `CONTAINER_PREFIX_KEY` | 容器名称前缀   | `agent-runtime-container-` | 用于标识                                                     |
 | `CONTAINER_DEPLOYMENT` | 容器运行时     | `docker`                   | 目前支持`docker`和`k8s`                                      |
 | `DEFAULT_MOUNT_DIR`    | 默认挂载目录   | `sessions_mount_dir`       | 用于持久存储路径，存储`/workspace` 文件                      |
+| `READONLY_MOUNTS`      | 只读目录挂载   | `None`                     | 一个字典，映射 **宿主机路径** → **容器路径**，以 **只读** 方式挂载。用于共享文件 / 配置，但禁止容器修改数据。示例：<br/>`{"\/Users\/alice\/data": "\/data"}` 会把宿主机 `/Users/alice/data` 挂载到容器的 `/data`（只读）。 |
 | `PORT_RANGE`           | 可用端口范围   | `[49152,59152]`            | 用于服务端口分配                                             |
 
 #### （可选）Redis 设置
