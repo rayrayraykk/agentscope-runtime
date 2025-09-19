@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Image Registry: default "", means using Docker Hub.
-# For Agentscope official registry, use
+# For AgentScope official registry, use
 # "agentscope-registry.ap-southeast-1.cr.aliyuncs.com"
 REGISTRY = os.getenv("RUNTIME_SANDBOX_REGISTRY", "")
 if REGISTRY == "":
@@ -17,8 +17,8 @@ if REGISTRY == "":
         cmd = f"export RUNTIME_SANDBOX_REGISTRY={agentscope_acr}"
     logger.warning(
         "Using Docker Hub as image registry. If pulling is slow or fails, "
-        f"you can switch to the Agentscope official registry by running:\n  "
-        f"{cmd}",
+        f"you can switch to the AgentScope official registry by running:\n  "
+        f"{cmd}\n",
     )
 
 # Image Namespace
