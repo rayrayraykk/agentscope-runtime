@@ -398,8 +398,8 @@ The above commands are useful when you want to:
 The Docker image used by the Sandbox module is determined by the following three environment variables.
 You can modify any of them as needed to change the image source or version.
 
-| Environment Variable                | Purpose                                                      | Default Value  | Example Modification                                         |
-| ----------------------------------- | ------------------------------------------------------------ | -------------- | ------------------------------------------------------------ |
-| **RUNTIME_SANDBOX_REGISTRY**        | Docker registry address. An empty value means Docker Hub will be used. | `""`           | `export RUNTIME_SANDBOX_REGISTRY="agentscope-registry.ap-southeast-1.cr.aliyuncs.com"` |
-| **RUNTIME_SANDBOX_IMAGE_NAMESPACE** | Image namespace, similar to an account name.                 | `"agentscope"` | `export RUNTIME_SANDBOX_IMAGE_NAMESPACE="my_namespace"`      |
-| **RUNTIME_SANDBOX_IMAGE_TAG**       | Image version tag.                                           | `"latest"`     | `export RUNTIME_SANDBOX_IMAGE_TAG="my_custom"`               |
+| Environment Variable              | Purpose                                                      | Default Value  | Example Modification                                         |
+| --------------------------------- | ------------------------------------------------------------ | -------------- | ------------------------------------------------------------ |
+| `RUNTIME_SANDBOX_REGISTRY`        | Docker registry address. An empty value means Docker Hub will be used. | `""`           | `export RUNTIME_SANDBOX_REGISTRY="agentscope-registry.ap-southeast-1.cr.aliyuncs.com"` |
+| `RUNTIME_SANDBOX_IMAGE_NAMESPACE` | Image namespace, similar to an account name.                 | `"agentscope"` | `export RUNTIME_SANDBOX_IMAGE_NAMESPACE="my_namespace"`      |
+| `RUNTIME_SANDBOX_IMAGE_TAG`       | Image version tag.                                           | `"latest"`     | `export RUNTIME_SANDBOX_IMAGE_TAG="my_custom"`               |
