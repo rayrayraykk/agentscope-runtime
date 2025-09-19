@@ -632,7 +632,7 @@ class SandboxManager:
                 self._generate_container_key(identity),
             )
         if container_model is None:
-            return None
+            raise RuntimeError(f"No container found with id: {identity}.")
         if hasattr(container_model, "model_dump_json"):
             container_model = container_model.model_dump_json()
 
