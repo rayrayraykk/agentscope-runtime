@@ -19,7 +19,7 @@ If you encounter any issues while using the browser module, here are some troubl
 
 If you encounter the following error:
 
-```
+```bash
 docker.errors.DockerException: Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))
 ```
 
@@ -33,7 +33,13 @@ After setting the `DOCKER_HOST` environment variable, try running your command a
 
 ## Health Check Failure
 
-If the sandbox health check fails, you may need to log into the container to inspect its logs for further troubleshooting.
+If you encounter the following error:
+
+```bash
+TimeoutError: Runtime service did not start within the specified timeout.
+```
+
+it indicates that the sandbox health check has failed. You may need to log in to the container and check the logs for further troubleshooting.
 
 1. **List running containers**
 

@@ -19,7 +19,7 @@ kernelspec:
 
 如果您遇到以下错误：
 
-```
+```bash
 docker.errors.DockerException: Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))
 ```
 
@@ -33,7 +33,13 @@ export DOCKER_HOST=unix://$HOME/.colima/docker.sock
 
 ## 健康检查失败
 
-如果沙盒健康检查失败，你可能需要登录到容器中查看日志，以便进行进一步的故障排查。
+如果您遇到以下错误：
+
+```bash
+TimeoutError: Runtime service did not start within the specified timeout.
+```
+
+说明沙盒健康检查失败，你可能需要登录到容器中查看日志，以便进行进一步的故障排查。
 
 1. **列出正在运行的容器**
 
