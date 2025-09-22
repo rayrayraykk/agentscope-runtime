@@ -31,7 +31,7 @@ export DOCKER_HOST=unix://$HOME/.colima/docker.sock
 
 设置`DOCKER_HOST`环境变量后，请重新尝试运行您的命令。这应该可以解决连接问题。
 
-## 健康检查失败
+## 沙盒启动超时
 
 如果您遇到以下错误：
 

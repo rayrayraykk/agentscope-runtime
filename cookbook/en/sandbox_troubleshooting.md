@@ -31,7 +31,7 @@ export DOCKER_HOST=unix://$HOME/.colima/docker.sock
 
 After setting the `DOCKER_HOST` environment variable, try running your command again. This should resolve the connection issue.
 
-## Health Check Failure
+## Sandbox Startup Timeout
 
 If you encounter the following error:
 
