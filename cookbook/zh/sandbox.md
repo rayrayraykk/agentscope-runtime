@@ -446,21 +446,3 @@ with BaseSandbox(base_url="http://your_IP_address:8000") as box:
 |                  | `browser_console_messages()`                                 | 获取页面的所有控制台消息                     |
 |                  | `browser_network_requests()`                                 | 获取页面加载以来的所有网络请求               |
 |                  | `browser_handle_dialog(accept: bool, promptText: str)`       | 处理浏览器对话框（警告、确认、提示）         |
-
-## 故障排除
-
-### Docker连接错误
-
-如果您遇到以下错误：
-
-```
-docker.errors.DockerException: Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))
-```
-
-此错误通常表示Docker Python SDK无法连接到Docker服务。如果您使用的是Colima，需要确保Docker Python SDK配置为使用Colima的Docker服务。您可以通过设置`DOCKER_HOST`环境变量来实现：
-
-```bash
-export DOCKER_HOST=unix://$HOME/.colima/docker.sock
-```
-
-设置`DOCKER_HOST`环境变量后，请重新尝试运行您的命令。这应该可以解决连接问题。
