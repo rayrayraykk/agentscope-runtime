@@ -229,11 +229,18 @@ class AgentScopeAgent(Agent):
 
     def build(self, as_context):
         self._agent = self._attr["agent_builder"](
-            **self._attr["agent_config"],
-            model=as_context.model,
-            formatter=as_context.formatter,
-            memory=as_context.memory,
-            toolkit=as_context.toolkit,
+            **{
+                **self._attr["agent_config"],
+                **{
+                    "model": as_context.model,
+                    "formatter": self._attr["agent_config"].get(
+                        "formatter",
+                        as_context.formatter,
+                    ),
+                    "memory": as_context.memory,
+                    "toolkit": as_context.toolkit,
+                },
+            },
         )
         self._agent._disable_console_output = True
 
