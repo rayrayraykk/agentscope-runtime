@@ -18,7 +18,7 @@ if REGISTRY == "":
     logger.warning(
         "Using Docker Hub as image registry. If pulling is slow or fails, "
         f"you can switch to the AgentScope official registry by running:\n  "
-        f"{cmd}\n",
+        f"{cmd}",
     )
 
 # Image Namespace
