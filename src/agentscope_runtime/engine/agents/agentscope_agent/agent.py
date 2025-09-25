@@ -247,7 +247,7 @@ class AgentScopeAgent(Agent):
         try:
             sig = inspect.signature(
                 builder_cls.__init__,
-            )  # 对类用 __init__，对函数用自己
+            )
             allowed_params = set(sig.parameters.keys())
             allowed_params.discard("self")
         except (TypeError, ValueError):
