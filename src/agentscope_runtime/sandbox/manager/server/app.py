@@ -108,6 +108,7 @@ def verify_token(
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
     return credentials
 
 
@@ -173,6 +174,9 @@ async def startup_event():
     """Initialize the SandboxManager on startup"""
     get_sandbox_manager()
     register_routes(app, _sandbox_manager)
+    from .routers.e2b_router import get_e2b_router
+
+    app.include_router(get_e2b_router(_sandbox_manager))
 
 
 @app.on_event("shutdown")
