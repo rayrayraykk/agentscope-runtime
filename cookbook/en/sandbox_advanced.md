@@ -193,7 +193,7 @@ runtime-sandbox-server \
 
 ### Starting the Server
 
-Once your `.env` file is configured, start the server:
+You can also start the server directly without using startup options after configuring the `.env` file.
 
 ```bash
 runtime-sandbox-server

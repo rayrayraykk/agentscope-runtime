@@ -193,7 +193,7 @@ runtime-sandbox-server \
 
 ### 启动服务器
 
-配置好`.env` 文件后，启动服务器：
+你也可以不使用启动选项，配置好`.env` 文件后直接启动服务器：
 
 ```bash
 runtime-sandbox-server
