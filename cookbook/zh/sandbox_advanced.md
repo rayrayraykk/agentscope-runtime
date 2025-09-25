@@ -47,9 +47,9 @@ runtime-sandbox-server --config custom.env
 ```
 
 ```{note}
-如果您计划在生产中大规模使用沙箱，推荐直接在阿里云 ACK（容器服务 Kubernetes 版）中进行托管部署。
+如果您计划在生产中大规模使用沙箱，推荐直接在阿里云中进行托管部署。
 
-[立即在阿里云 ACK 部署沙箱环境](https://computenest.console.aliyun.com/service/instance/create/default?ServiceName=AgentScope%20Runtime%20%E6%B2%99%E7%AE%B1%E7%8E%AF%E5%A2%83)
+[在阿里云一键部署沙箱](https://computenest.console.aliyun.com/service/instance/create/default?ServiceName=AgentScope%20Runtime%20%E6%B2%99%E7%AE%B1%E7%8E%AF%E5%A2%83)
 ```
 
 ### 自定义配置

@@ -47,9 +47,9 @@ runtime-sandbox-server --config custom.env
 ```
 
 ```{note}
-If you plan to use the sandbox on a large scale in production, we recommend deploying it directly in Alibaba Cloud ACK (Container Service for Kubernetes) for managed hosting.
+If you plan to use the sandbox on a large scale in production, we recommend deploying it directly in Alibaba Cloud for managed hosting.
 
-[Deploy the sandbox environment on Alibaba Cloud now](https://computenest.console.aliyun.com/service/instance/create/default?ServiceName=AgentScope%20Runtime%20%E6%B2%99%E7%AE%B1%E7%8E%AF%E5%A2%83)
+[One-click deploy sandbox on Alibaba Cloud](https://computenest.console.aliyun.com/service/instance/create/default?ServiceName=AgentScope%20Runtime%20%E6%B2%99%E7%AE%B1%E7%8E%AF%E5%A2%83)
 ```
 
 ### Custom Configuration
