@@ -44,7 +44,7 @@ def get_e2b_router(sandbox_manager):
             "templateID": sandbox_type,  # 必填
             "alias": None,
             "domain": str(info.get("base_url") or None),
-            "envdAccessToken": str(info.get("runtime_token") or ""),
+            "envdAccessToken": str(container_name),
             "createdAt": now_iso,
             "updatedAt": now_iso,
             "timeout": 3600,
@@ -55,9 +55,6 @@ def get_e2b_router(sandbox_manager):
 
     @router.delete("/sandboxes/{sandbox_id}", status_code=status.HTTP_200_OK)
     async def e2b_delete_sandbox(sandbox_id: str):
-        """
-        e2b SDK 删除沙盒接口兼容实现
-        """
         logger.info(f"[E2B] Delete sandbox {sandbox_id}")
 
         info = sandbox_manager.get_info(sandbox_id)
@@ -74,8 +71,28 @@ def get_e2b_router(sandbox_manager):
                 "code": 500,
                 "message": f"Failed to delete sandbox {sandbox_id}",
             }
-
-        # 删除成功时 SDK 不关心返回内容，这里也可以返回简单确认
         return {"code": 200, "message": f"Sandbox {sandbox_id} deleted"}
+
+    @router.post("/execute")
+    async def proxy_execute(request: Request):
+        """
+        接收 SDK 的执行请求，转发到容器的 /execute
+        """
+        # 取请求体
+        body = await request.json()
+        identity = request.headers.get("X-Access-Token")
+
+        print("=======")
+        print(body, request.headers)
+        print("=======")
+
+        return_json = sandbox_manager.call_tool(
+            identity,
+            tool_name="run_ipython_cell",
+            arguments={"code": body["code"]},
+        )
+        print(return_json)
+
+        return return_json
 
     return router
