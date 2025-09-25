@@ -20,6 +20,7 @@ from ...manager.server.models import (
 )
 from ...manager.sandbox_manager import SandboxManager
 from ...model.manager_config import SandboxManagerEnvConfig
+from ...utils import dynamic_import
 from ....version import __version__
 
 # Configure logging
@@ -312,7 +313,20 @@ def main():
         default="INFO",
         help="Set the logging level (default: INFO)",
     )
+
+    parser.add_argument(
+        "--extension",
+        action="append",
+        help="Path to a Python file or module name to load as an extension",
+    )
+
     args = parser.parse_args()
+
+    if args.extension:
+        for ext in args.extension:
+            logger.info(f"Loading extension: {ext}")
+            mod = dynamic_import(ext)
+            logger.info(f"Extension loaded: {mod.__name__}")
 
     # Setup logging based on command line argument
     setup_logging(args.log_level)

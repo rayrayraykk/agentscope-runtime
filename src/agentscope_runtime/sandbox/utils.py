@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import os
+import importlib
 import platform
 
 from .constant import REGISTRY, IMAGE_NAMESPACE, IMAGE_TAG
@@ -69,3 +71,27 @@ def build_image_uri(
             final_tag = f"{final_tag}-arm64"
 
     return f"{reg}{final_namespace}/{image_name}:{final_tag}"
+
+
+def dynamic_import(ext: str):
+    """
+    Dynamically import a Python file or module.
+
+    Parameters
+    ----------
+    ext : str
+        File path to a Python script OR a module name to import.
+
+    Returns
+    -------
+    module : object
+        The imported Python module/object.
+    """
+    if os.path.isfile(ext):
+        module_name = os.path.splitext(os.path.basename(ext))[0]
+        spec = importlib.util.spec_from_file_location(module_name, ext)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    else:
+        return importlib.import_module(ext)
