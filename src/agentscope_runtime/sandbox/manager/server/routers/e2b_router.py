@@ -4,19 +4,31 @@ import logging
 from datetime import datetime
 
 from fastapi import APIRouter, Request, status, Response, HTTPException
+from fastapi.responses import JSONResponse
 
 from .....version import __version__
 
 logger = logging.getLogger(__name__)
 
 
-def get_e2b_router(sandbox_manager):
+def get_e2b_router(sandbox_manager, settings):
     router = APIRouter()
 
     @router.post("/sandboxes", status_code=status.HTTP_201_CREATED)
     async def e2b_create_sandbox(request: Request):
         body = await request.json()
-        logger.info(f"[E2B] Create sandbox request body: {body}")
+        logger.debug(f"[E2B] Create sandbox request body: {body}")
+
+        x_api_key = request.headers.get("x-api-key")
+
+        if settings.BEARER_TOKEN and x_api_key != settings.BEARER_TOKEN:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={
+                    "code": 401,
+                    "message": "Invalid API key",
+                },
+            )
 
         sandbox_type = body.get("template_id") or "base"
         env_vars = body.get("env_vars") or {}
@@ -26,7 +38,13 @@ def get_e2b_router(sandbox_manager):
             environment=env_vars,
         )
         if not container_name:
-            return {"code": 500, "message": "Failed to create sandbox"}
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={
+                    "code": 500,
+                    "message": "Failed to create sandbox",
+                },
+            )
 
         info = sandbox_manager.get_info(container_name) or {}
         if not isinstance(info, dict):
@@ -52,7 +70,7 @@ def get_e2b_router(sandbox_manager):
 
     @router.delete("/sandboxes/{sandbox_id}", status_code=status.HTTP_200_OK)
     async def e2b_delete_sandbox(sandbox_id: str):
-        logger.info(f"[E2B] Delete sandbox {sandbox_id}")
+        logger.debug(f"[E2B] Delete sandbox {sandbox_id}")
 
         info = sandbox_manager.get_info(sandbox_id)
         if not info:

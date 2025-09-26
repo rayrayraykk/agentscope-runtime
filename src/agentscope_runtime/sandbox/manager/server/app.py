@@ -181,7 +181,7 @@ async def startup_event():
         try:
             from .routers.e2b_router import get_e2b_router
 
-            app.include_router(get_e2b_router(_sandbox_manager))
+            app.include_router(get_e2b_router(_sandbox_manager, settings))
             logger.info("E2B router mounted successfully.")
         except ImportError as exc:
             raise ImportError(
