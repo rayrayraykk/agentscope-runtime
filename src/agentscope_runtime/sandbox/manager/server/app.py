@@ -26,8 +26,6 @@ from ....version import __version__
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-_enable_e2b = False
-
 # Create FastAPI app
 app = FastAPI(
     title="Runtime Manager Service",
@@ -177,7 +175,9 @@ async def startup_event():
     get_sandbox_manager()
     register_routes(app, _sandbox_manager)
 
-    if _enable_e2b:
+    settings = get_settings()
+
+    if settings.E2B_SDK_COMPATIBLE:
         try:
             from .routers.e2b_router import get_e2b_router
 
@@ -325,11 +325,7 @@ def main():
         default="INFO",
         help="Set the logging level (default: INFO)",
     )
-    parser.add_argument(
-        "--enable-e2b",
-        action="store_true",
-        help="Enable e2b compatibility and mount e2b router",
-    )
+
     args = parser.parse_args()
 
     # Setup logging based on command line argument
@@ -341,10 +337,6 @@ def main():
         )
 
     settings = get_settings(args.config)
-
-    # TODO: consider moving to settings
-    global _enable_e2b
-    _enable_e2b = args.enable_e2b
 
     uvicorn.run(
         "agentscope_runtime.sandbox.manager.server.app:app",

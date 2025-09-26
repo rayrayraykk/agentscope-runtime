@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 
-from fastapi import APIRouter, Request, status, Response
+from fastapi import APIRouter, Request, status, Response, HTTPException
 
 from .....version import __version__
 
@@ -74,11 +74,28 @@ def get_e2b_router(sandbox_manager):
         body = await request.json()
         identity = request.headers.get("X-Access-Token")
 
-        return_json = sandbox_manager.call_tool(
-            identity,
-            tool_name="run_ipython_cell",
-            arguments={"code": body["code"]},
-        )
+        language = (body.get("language") or "python").lower()
+
+        if language == "python":
+            return_json = sandbox_manager.call_tool(
+                identity,
+                tool_name="run_ipython_cell",
+                arguments={"code": body["code"]},
+            )
+        elif language == "bash":
+            return_json = sandbox_manager.call_tool(
+                identity,
+                tool_name="run_shell_command",
+                arguments={"command": body["code"]},
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "code": 400,
+                    "message": f"Language {language} is not supported",
+                },
+            )
 
         outputs = []
         for item in return_json.get("content", []):

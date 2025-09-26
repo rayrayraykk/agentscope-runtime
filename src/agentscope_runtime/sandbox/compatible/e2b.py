@@ -18,6 +18,21 @@ def e2b_patch(
         bearer_token: Auth token for E2B API (mapped to E2B_API_KEY env var)
         base_url: Proxy base URL, e.g. http://127.0.0.1:8000
                   Will be parsed to extract host:port for internal use.
+
+    Example:
+        ```python
+        from e2b_code_interpreter import Sandbox
+        from agentscope_runtime.sandbox.compatible.e2b import e2b_patch
+
+        # Apply patch once
+        e2b_patch(base_url="http://127.0.0.1:8000")
+
+        # Then use Sandbox normally
+        with Sandbox.create() as sandbox:
+            sandbox.run_code("x = 1")
+            execution = sandbox.run_code("x += 1; x")
+            print(execution, execution.text)  # should output 2
+        ```
     """
 
     # Keep original environment variable names
@@ -31,7 +46,9 @@ def e2b_patch(
             raise ValueError(f"Invalid base_url: {base_url}")
         os.environ["E2B_DOMAIN"] = host_port
     else:
-        host_port = os.environ.get("E2B_DOMAIN", "")
+        raise RuntimeError(
+            "E2B patching is not supported without remote sandbox server.",
+        )
 
     # ---------------- Monkey Patch ---------------------
     _old_init = ConnectionConfig.__init__
