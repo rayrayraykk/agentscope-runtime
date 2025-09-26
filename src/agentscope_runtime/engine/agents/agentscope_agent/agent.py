@@ -2,7 +2,6 @@
 # pylint:disable=too-many-nested-blocks, too-many-branches, too-many-statements
 # pylint:disable=line-too-long, protected-access
 import os
-import inspect
 import logging
 import json
 import threading
@@ -42,6 +41,7 @@ from .hooks import (
     clear_msg_instances,
     run_async_in_thread,
 )
+from ..utils import build_agent
 from ...agents import Agent
 from ...schemas.agent_schemas import (
     Message,
@@ -245,35 +245,7 @@ class AgentScopeAgent(Agent):
         }
 
         builder_cls = self._attr["agent_builder"]
-        try:
-            sig = inspect.signature(
-                builder_cls.__init__,
-            )
-            allowed_params = set(sig.parameters.keys())
-            allowed_params.discard("self")
-        except (TypeError, ValueError):
-            allowed_params = set(params.keys())
-
-        filtered_params = {}
-        unsupported = []
-
-        for k, v in params.items():
-            if k in allowed_params:
-                filtered_params[k] = v
-            else:
-                unsupported.append(f"{k}={v!r}")
-
-        if unsupported:
-            unsupported_str = ", ".join(unsupported)
-            logger.warning(
-                f"The following parameters are not supported by"
-                f" {builder_cls.__name__} and have been ignored:"
-                f" {unsupported_str}. If you require these parameters, "
-                f"please update the `__init__` method of "
-                f"{builder_cls.__name__} to accept and handle them.",
-            )
-
-        self._agent = builder_cls(**filtered_params)
+        self._agent = build_agent(builder_cls, params)
 
         # Read env variable (default = false)
         console_output_env = (
