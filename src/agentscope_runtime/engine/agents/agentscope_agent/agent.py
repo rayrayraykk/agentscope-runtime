@@ -154,6 +154,8 @@ class AgentScopeContextAdapter:
 
         toolkit = self.attr["agent_config"].get("toolkit", Toolkit())
         # Deepcopy to avoid modify the original toolkit
+        # TODO: when toolkit contains live sessions, deepcopy fails,
+        #  need further fixed in AgentScope
         toolkit = copy.deepcopy(toolkit)
         tools = self.attr["tools"]
 
