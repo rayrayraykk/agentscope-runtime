@@ -6,7 +6,6 @@ http {
     server {
         listen 80;
 
-        # FastAPI 路由
         location /fastapi {
             rewrite ^/fastapi(.*)$ $1 break;
             proxy_pass http://localhost:8000;
@@ -18,7 +17,7 @@ http {
             proxy_set_header Connection "upgrade";
         }
 
-        # noVNC 页面
+        # noVNC
         location /vnc/ {
             proxy_pass http://localhost:6080/;
             proxy_http_version 1.1;

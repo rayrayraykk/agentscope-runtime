@@ -27,7 +27,7 @@ ENV PATH="/agentscope_runtime/venv/bin:$PATH"
 COPY src/agentscope_runtime/sandbox/box/shared/app.py ./
 COPY src/agentscope_runtime/sandbox/box/shared/routers/ ./routers/
 COPY src/agentscope_runtime/sandbox/box/shared/dependencies/ ./dependencies/
-COPY src/agentscope_runtime/sandbox/box/base/box/ ./
+COPY src/agentscope_runtime/sandbox/box/gui/box/ ./
 
 RUN pip install -r requirements.txt
 
