@@ -39,17 +39,13 @@ RUN git init \
 
 COPY .gitignore ${WORKSPACE_DIR}
 
-# VNC
+# VNC + noVNC
 RUN apt-get update && apt-get install -y --fix-missing \
     xfce4  \
     xfce4-terminal \
-    tigervnc-standalone-server \
+    x11vnc \
     novnc  \
     websockify
-
-RUN mkdir -p /root/.vnc \
-    && echo "${SECRET_TOKEN}" | vncpasswd -f > /root/.vnc/passwd \
-    && chmod 600 /root/.vnc/passwd
 
 # Cleanup
 RUN pip cache purge \
