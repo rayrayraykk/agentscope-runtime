@@ -3,6 +3,7 @@ FROM node:22-slim
 # Set ENV variables
 ENV NODE_ENV=production
 ENV WORKSPACE_DIR=/workspace
+ENV DISPLAY=:1
 
 ARG DEBIAN_FRONTEND=noninteractive
 
