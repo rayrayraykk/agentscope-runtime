@@ -3,7 +3,6 @@ FROM node:22-slim
 # ENV variables
 ENV NODE_ENV=production
 ENV WORKSPACE_DIR=/workspace
-ENV DISPLAY=:1
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -41,10 +40,11 @@ COPY .gitignore ${WORKSPACE_DIR}
 
 # VNC + noVNC
 RUN apt-get update && apt-get install -y --fix-missing \
-    xfce4  \
+    xfce4 \
     xfce4-terminal \
     x11vnc \
-    novnc  \
+    xvfb \
+    novnc \
     websockify
 
 # Cleanup
