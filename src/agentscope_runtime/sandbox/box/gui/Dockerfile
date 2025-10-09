@@ -48,16 +48,8 @@ RUN apt-get update && apt-get install -y --fix-missing \
     websockify \
     dbus-x11
 
-# Install midori browser
 RUN apt-get update && apt-get install -y --fix-missing \
-    midori \
-    fonts-wqy-zenhei \
-    fonts-wqy-microhei
-
-# Set Midori as default browser
-RUN mkdir -p /root/.config/xfce4/ && \
-    echo "[Default Applications]" > /root/.config/xfce4/helpers.rc && \
-    echo "WebBrowser=midori" >> /root/.config/xfce4/helpers.rc
+    chromium
 
 # Cleanup
 RUN pip cache purge \
