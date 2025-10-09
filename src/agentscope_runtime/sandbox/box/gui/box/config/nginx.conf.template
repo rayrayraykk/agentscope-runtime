@@ -29,7 +29,7 @@ http {
         }
 
         # noVNC websocket
-        location /websockify {
+        location /vnc/websockify {
             proxy_pass http://localhost:6080/websockify;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
