@@ -27,7 +27,7 @@ class GuiSandbox(Sandbox):
             timeout,
             base_url,
             bearer_token,
-            SandboxType.BASE,
+            SandboxType.GUI,
         )
 
     def run_ipython_cell(self, code: str):
