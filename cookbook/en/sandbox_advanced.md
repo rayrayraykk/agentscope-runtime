@@ -178,7 +178,7 @@ with Sandbox.create() as sandbox:
 | `E2B_SDK_COMPATIBLE` | E2B SDK compatibility mode | `False` | -     |
 
 ```{warning}
-Please note that the current E2B compatibility mode only supports remote mode usage.
+The E2B compatibility mode currently supports remote mode only and is still in the adaptation phase. Some APIs (such as file management) are not yet supported. If you encounter any issues, please report them via a GitHub Issue.
 ```
 
 ### Starting the Server

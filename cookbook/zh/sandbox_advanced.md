@@ -179,7 +179,7 @@ with Sandbox.create() as sandbox:
 | `E2B_SDK_COMPATIBLE` | E2B SDK兼容模式 | `False` | -     |
 
 ```{warning}
-请注意目前E2B兼容模式仅支持远程模式使用。
+目前 E2B 兼容模式仅支持在远程模式下使用，且仍处于适配阶段。部分接口（如文件管理相关接口）暂未实现支持。如在使用过程中遇到问题，请在 GitHub Issue 中反馈。
 ```
 
 ### 启动服务器
