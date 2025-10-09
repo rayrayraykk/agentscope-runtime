@@ -156,12 +156,41 @@ Redis 为沙箱状态和状态管理提供缓存。如果只有一个工作进�
 | `K8S_NAMESPACE`   | 要使用的 Kubernetes 命名空间 | `default` | 设置资源部署的命名空间             |
 | `KUBECONFIG_PATH` | kubeconfig 文件的路径        | `None`    | 指定用于访问集群的 kubeconfig 位置 |
 
+### （可选）E2B SDK兼容
+
+如果想通过[E2B SDK](https://github.com/e2b-dev/code-interpreter)使用沙箱，请设置`E2B_SDK_COMPATIBLE=True`:
+
+```python
+from e2b_code_interpreter import Sandbox
+from agentscope_runtime.sandbox.compatible.e2b import e2b_patch
+
+# Apply patch once
+e2b_patch(base_url="http://127.0.0.1:8000")  # Your remote IP address
+
+# Then use Sandbox normally
+with Sandbox.create() as sandbox:
+    sandbox.run_code("x = 1")
+    execution = sandbox.run_code("x += 1; x")
+    print(execution, execution.text)  # should output 2
+```
+
+| Parameter            | Description     | Default | Notes |
+| -------------------- | --------------- | ------- | ----- |
+| `E2B_SDK_COMPATIBLE` | E2B SDK兼容模式 | `False` | -     |
+
+```{warning}
+请注意目前E2B兼容模式仅支持远程模式使用。
+```
+
 ### 启动服务器
 
 配置好`.env` 文件后，启动服务器：
 
 ```bash
 runtime-sandbox-server
+
+# Debug mode
+runtime-sandbox-server --log-level DEBUG
 ```
 
 服务器将自动从`.env` 文件加载配置并使用您的自定义设置启动。
