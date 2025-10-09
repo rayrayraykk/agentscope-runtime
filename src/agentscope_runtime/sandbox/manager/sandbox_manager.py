@@ -499,6 +499,7 @@ class SandboxManager:
                 container_id=_id,
                 container_name=container_name,
                 url=f"http://{ip}:{ports[0]}",
+                # TODO: rename to api url
                 base_url=f"http://{ip}:{ports[0]}/fastapi",
                 browser_url=f"http://{ip}:{ports[0]}/steel-api"
                 f"/{runtime_token}",
