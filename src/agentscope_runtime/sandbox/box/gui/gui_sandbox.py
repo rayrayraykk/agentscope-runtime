@@ -33,7 +33,7 @@ class GuiSandbox(Sandbox):
         )
 
     @property
-    def vnc_url(self):
+    def novnc_url(self):
         info = self.get_info()
         path = "/vnc/vnc.html"
         params = {
