@@ -46,10 +46,7 @@ RUN apt-get update && apt-get install -y --fix-missing \
     xvfb \
     novnc \
     websockify \
-    dbus-x11 \
- && curl -L https://raw.githubusercontent.com/novnc/noVNC/fe29dc650958fa31453ee66b2bcb8dbe0cf0708b/package.json \
-    -o /usr/share/novnc/package.json
-
+    dbus-x11
 
 # Cleanup
 RUN pip cache purge \

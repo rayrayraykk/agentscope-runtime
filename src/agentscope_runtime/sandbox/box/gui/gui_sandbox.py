@@ -35,7 +35,7 @@ class GuiSandbox(Sandbox):
     @property
     def novnc_url(self):
         info = self.get_info()
-        path = "/vnc/vnc.html"
+        path = "/vnc_lite.html"
         params = {
             "password": info["runtime_token"],
         }
