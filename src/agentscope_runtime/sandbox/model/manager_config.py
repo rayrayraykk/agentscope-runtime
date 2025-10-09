@@ -120,7 +120,7 @@ class SandboxManagerEnvConfig(BaseModel):
     )
 
     @model_validator(mode="after")
-    def check_settings(cls, self):
+    def check_settings(self):
         if self.default_mount_dir:
             os.makedirs(self.default_mount_dir, exist_ok=True)
 
