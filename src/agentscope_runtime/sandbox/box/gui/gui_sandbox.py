@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from typing import Optional
 
+from urllib.parse import urljoin, urlencode
+
 from ...utils import build_image_uri
 from ...registry import SandboxRegistry
 from ...enums import SandboxType
@@ -30,8 +32,17 @@ class GuiSandbox(Sandbox):
             SandboxType.GUI,
         )
 
-    def run_ipython_cell(self, code: str):
-        return self.call_tool("run_ipython_cell", {"code": code})
+    @property
+    def vnc_url(self):
+        info = self.get_info()
+        path = "/vnc/vnc.html"
+        params = {
+            "password": info["runtime_token"],
+        }
 
-    def run_shell_command(self, command: str):
-        return self.call_tool("run_shell_command", {"command": command})
+        if self.base_url is None:
+            full_url = urljoin(info["url"], path) + "?" + urlencode(params)
+            return full_url
+
+        # TODO: Implement VNC in remote mode
+        raise NotImplementedError("VNC is not supported in remote mode")
