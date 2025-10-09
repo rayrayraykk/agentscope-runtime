@@ -46,7 +46,8 @@ RUN apt-get update && apt-get install -y --fix-missing \
     xvfb \
     novnc \
     websockify \
-    dbus-x11
+    dbus-x11 \
+    firefox-esr
 
 # Cleanup
 RUN pip cache purge \
