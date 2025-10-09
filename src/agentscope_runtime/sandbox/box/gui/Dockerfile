@@ -48,16 +48,16 @@ RUN apt-get update && apt-get install -y --fix-missing \
     websockify \
     dbus-x11
 
-# Install Borwser
+# Install midori browser
 RUN apt-get update && apt-get install -y --fix-missing \
-    epiphany-browser \
+    midori \
     fonts-wqy-zenhei \
     fonts-wqy-microhei
 
-# Set XFCE Epiphany as default browser
+# Set Midori as default browser
 RUN mkdir -p /root/.config/xfce4/ && \
     echo "[Default Applications]" > /root/.config/xfce4/helpers.rc && \
-    echo "WebBrowser=epiphany-browser" >> /root/.config/xfce4/helpers.rc
+    echo "WebBrowser=midori" >> /root/.config/xfce4/helpers.rc
 
 # Cleanup
 RUN pip cache purge \
