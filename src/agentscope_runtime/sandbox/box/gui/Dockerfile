@@ -49,7 +49,10 @@ RUN apt-get update && apt-get install -y --fix-missing \
     dbus-x11
 
 RUN apt-get update && apt-get install -y --fix-missing \
-    chromium
+    chromium \
+    fonts-wqy-zenhei \
+    fonts-wqy-microhei \
+    && sed -i 's|Exec=chromium %U|Exec=chromium --no-sandbox --disable-dev-shm-usage %U|' /usr/share/applications/chromium.desktop
 
 # Cleanup
 RUN pip cache purge \
