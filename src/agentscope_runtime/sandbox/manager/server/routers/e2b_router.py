@@ -39,7 +39,7 @@ def get_e2b_router(sandbox_manager, settings):
         )
         if not container_name:
             return JSONResponse(
-                status_code=status.HTTP_401_UNAUTHORIZED,
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content={
                     "code": 500,
                     "message": "Failed to create sandbox",
