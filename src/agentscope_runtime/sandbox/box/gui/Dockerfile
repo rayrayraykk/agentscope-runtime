@@ -45,7 +45,8 @@ RUN apt-get update && apt-get install -y --fix-missing \
     x11vnc \
     xvfb \
     novnc \
-    websockify
+    websockify \
+    dbus-x11
 
 # Cleanup
 RUN pip cache purge \
