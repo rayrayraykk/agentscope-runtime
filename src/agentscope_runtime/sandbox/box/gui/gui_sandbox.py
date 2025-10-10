@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Optional
+from typing import Optional, Union, Tuple, List
 
 from urllib.parse import urljoin, urlencode
 
@@ -46,3 +46,17 @@ class GuiSandbox(Sandbox):
 
         # TODO: Implement VNC in remote mode
         raise NotImplementedError("VNC is not supported in remote mode")
+
+    def computer_use(
+        self,
+        action: str,
+        coordinate: Optional[Union[List[float], Tuple[float, float]]] = None,
+        text: Optional[str] = None,
+    ):
+        payload = {"action": action}
+        if coordinate is not None:
+            payload["coordinate"] = coordinate
+        if text is not None:
+            payload["text"] = text
+
+        return self.call_tool("computer", payload)
