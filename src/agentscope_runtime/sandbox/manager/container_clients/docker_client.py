@@ -146,9 +146,6 @@ class DockerClient(BaseClient):
             container.reload()
             _id = container.id
 
-            print("==========")
-            print(list(port_mapping.values()))
-
             self.ports_cache.set(_id, list(port_mapping.values()))
 
             return _id, list(port_mapping.values()), "localhost"
