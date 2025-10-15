@@ -107,7 +107,7 @@ This diagram visualizes installation options as a layered architecture, starting
 
 | **Component**         | **Package**          | **Use-Case**  | **Dependencies**                                             |
 | --------------------- | -------------------- | ------------- | ------------------------------------------------------------ |
-| Core Runtime          | `agentscope-runtime` | Core runtime  | Minimal including AgentScope Framework and Sandbox Depondencies |
+| Core Runtime          | `agentscope-runtime` | Core runtime  | Minimal including AgentScope Framework and Sandbox Dependencies |
 | Development Tools     | `dev`                | Dev utilities | Testing, Linting, Docs                                       |
 | Agno Integration      | `agno`               | Agno          | Agno Framework                                               |
 | LangGraph Integration | `langgraph`          | LangGraph     | LangGraph Framework                                          |

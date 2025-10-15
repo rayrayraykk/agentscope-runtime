@@ -163,7 +163,8 @@ with BaseSandbox() as box:
 >
 > If pulling the Docker image fails, try setting:
 > `export RUNTIME_SANDBOX_REGISTRY="agentscope-registry.ap-southeast-1.cr.aliyuncs.com"`
-
+>
+> If you plan to use the sandbox on a large scale in production, we recommend deploying it directly in Alibaba Cloud for managed hosting: [One-click deploy sandbox on Alibaba Cloud](https://computenest.console.aliyun.com/service/instance/create/default?ServiceName=AgentScope%20Runtime%20%E6%B2%99%E7%AE%B1%E7%8E%AF%E5%A2%83)
 ---
 
 ## 📚 Cookbook
