@@ -36,7 +36,7 @@ For **Apple Silicon devices** (such as M1/M2), we recommend the following option
 
 ### Install Dependencies
 
-First, install AgentScope Runtime with sandbox support:
+First, install AgentScope Runtime:
 
 ```bash
 pip install agentscope-runtime
