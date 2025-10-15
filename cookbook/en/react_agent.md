@@ -27,7 +27,7 @@ The ReAct (Reasoning and Acting) paradigm enables agents to interleave reasoning
 Install AgentScope Runtime with the required dependencies:
 
 ```bash
-pip install "agentscope-runtime[sandbox,agentscope]"
+pip install agentscope-runtime
 ```
 
 ### 🐳 Sandbox Setup

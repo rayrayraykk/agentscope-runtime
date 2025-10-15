@@ -27,7 +27,7 @@ ReAct（推理与行动）范式使智能体能够将推理轨迹与特定任务
 安装带有必需依赖项的AgentScope Runtime：
 
 ```bash
-pip install "agentscope-runtime[sandbox,agentscope]"
+pip install agentscope-runtime
 ```
 
 ### 🐳 Sandbox Setup
