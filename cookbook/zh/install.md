@@ -109,3 +109,4 @@ except ImportError as e:
 | 开发工具       | `dev`                | 开发工具集   | 测试、代码检查（Linting）、文档                |
 | Agno 集成      | `agno`               | Agno         | Agno 框架                                      |
 | LangGraph 集成 | `langgraph`          | LangGraph    | LangGraph 框架                                 |
+| AutoGen 集成   | `autogen`            | AutoGen      | AutoGen 框架                                   |

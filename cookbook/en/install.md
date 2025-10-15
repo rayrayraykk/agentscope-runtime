@@ -111,4 +111,5 @@ This diagram visualizes installation options as a layered architecture, starting
 | Development Tools     | `dev`                | Dev utilities | Testing, Linting, Docs                                       |
 | Agno Integration      | `agno`               | Agno          | Agno Framework                                               |
 | LangGraph Integration | `langgraph`          | LangGraph     | LangGraph Framework                                          |
+| AutoGen Integration   | `autogen`            | AutoGen       | AutoGen Framework                                            |
 
