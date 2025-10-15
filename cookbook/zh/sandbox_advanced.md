@@ -230,7 +230,7 @@ with BaseSandbox(
 git clone https://github.com/agentscope-ai/agentscope-runtime.git
 cd agentscope-runtime
 git submodule update --init --recursive
-pip install -e ".[sandbox]"
+pip install -e .
 ```
 
 ```{note}

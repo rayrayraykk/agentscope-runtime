@@ -36,9 +36,6 @@ dev = [
     "fakeredis>=2.31.0",
     "sphinx-autoapi>=3.6.0",
     "agentscope>=1.0.1",
-]
-
-sandbox = [
     "docker>=7.1.0",
     "steel-sdk>=0.1.0",
     "redis>=6.0.0b2",

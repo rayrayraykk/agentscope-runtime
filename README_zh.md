@@ -72,9 +72,6 @@
 ```bash
 # 安装核心依赖
 pip install agentscope-runtime
-
-# 安装沙盒依赖
-pip install "agentscope-runtime[sandbox]"
 ```
 
 （可选）从源码安装：
@@ -86,9 +83,6 @@ cd agentscope-runtime
 
 # 安装核心依赖
 pip install -e .
-
-# 安装沙盒依赖
-pip install -e ".[sandbox]"
 ```
 
 ### 基本智能体使用示例

@@ -2,27 +2,17 @@
 # pylint: disable=too-many-branches
 from typing import List
 
-try:
-    from ...sandbox.enums import SandboxType
-    from ...sandbox.manager import SandboxManager
-    from ...sandbox.registry import SandboxRegistry
-    from ...sandbox.tools.mcp_tool import MCPTool
-    from ...sandbox.tools.sandbox_tool import SandboxTool
-    from ...sandbox.tools.function_tool import FunctionTool
-except ImportError:
-    pass
-
+from ...sandbox.enums import SandboxType
+from ...sandbox.manager import SandboxManager
+from ...sandbox.registry import SandboxRegistry
+from ...sandbox.tools.mcp_tool import MCPTool
+from ...sandbox.tools.sandbox_tool import SandboxTool
+from ...sandbox.tools.function_tool import FunctionTool
 from ...engine.services.base import ServiceWithLifecycleManager
 
 
 class SandboxService(ServiceWithLifecycleManager):
     def __init__(self, base_url=None, bearer_token=None):
-        if SandboxManager is None:
-            raise ImportError(
-                "SandboxManager is not available. "
-                "Please install agentscope-runtime[sandbox]",
-            )
-
         self.manager_api = SandboxManager(
             base_url=base_url,
             bearer_token=bearer_token,

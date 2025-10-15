@@ -75,9 +75,6 @@ From PyPI:
 ```bash
 # Install core dependencies
 pip install agentscope-runtime
-
-# Install sandbox dependencies
-pip install "agentscope-runtime[sandbox]"
 ```
 
 (Optional) From source:
@@ -89,9 +86,6 @@ cd agentscope-runtime
 
 # Install core dependencies
 pip install -e .
-
-# Install sandbox dependencies
-pip install -e ".[sandbox]"
 ```
 
 ### Basic Agent Usage Example

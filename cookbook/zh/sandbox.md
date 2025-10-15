@@ -39,7 +39,7 @@ AgentScope Runtime的Sandbox提供了一个**安全**且**隔离**的环境，�
 首先，安装带有沙箱支持的AgentScope Runtime：
 
 ```bash
-pip install "agentscope-runtime[sandbox]"
+pip install "agentscope-runtime"
 ```
 
 ### 准备Docker镜像
@@ -382,13 +382,13 @@ with BaseSandbox(base_url="http://your_IP_address:8000") as box:
             "command": "uvx",
             "args": [
                 "--from",
-                "agentscope-runtime[sandbox]",
+                "agentscope-runtime",
                 "runtime-sandbox-mcp",
                 "--type=base",
                 "--base_url=http://127.0.0.1:8000"
-            ],
+            ]
         }
-    },
+    }
 }
 ```
 

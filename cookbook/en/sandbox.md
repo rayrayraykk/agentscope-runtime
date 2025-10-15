@@ -39,7 +39,7 @@ For **Apple Silicon devices** (such as M1/M2), we recommend the following option
 First, install AgentScope Runtime with sandbox support:
 
 ```bash
-pip install "agentscope-runtime[sandbox]"
+pip install "agentscope-runtime"
 ```
 
 ### Prepare the Docker Images
@@ -380,13 +380,13 @@ Configure the local Sandbox Runtime as an MCP server named `sandbox`, so it can 
             "command": "uvx",
             "args": [
                 "--from",
-                "agentscope-runtime[sandbox]",
+                "agentscope-runtime",
                 "runtime-sandbox-mcp",
                 "--type=base",
                 "--base_url=http://127.0.0.1:8000"
-            ],
+            ]
         }
-    },
+    }
 }
 ```
 
