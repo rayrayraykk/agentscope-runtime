@@ -39,7 +39,7 @@ For **Apple Silicon devices** (such as M1/M2), we recommend the following option
 First, install AgentScope Runtime with sandbox support:
 
 ```bash
-pip install "agentscope-runtime"
+pip install agentscope-runtime
 ```
 
 ### Prepare the Docker Images

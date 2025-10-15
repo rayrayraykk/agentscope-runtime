@@ -39,7 +39,7 @@ AgentScope Runtime的Sandbox提供了一个**安全**且**隔离**的环境，�
 首先，安装带有沙箱支持的AgentScope Runtime：
 
 ```bash
-pip install "agentscope-runtime"
+pip install agentscope-runtime
 ```
 
 ### 准备Docker镜像
