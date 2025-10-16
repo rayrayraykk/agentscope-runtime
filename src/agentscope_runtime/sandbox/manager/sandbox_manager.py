@@ -15,6 +15,8 @@ from urllib.parse import urlparse, urlunparse
 import shortuuid
 import requests
 
+from .container_clients.docker_client import DockerClient
+from .container_clients.kubernetes_client import KubernetesClient
 from ..model import (
     ContainerModel,
     SandboxManagerEnvConfig,
@@ -33,7 +35,6 @@ from ..manager.storage import (
     LocalStorage,
     OSSStorage,
 )
-from ..manager.container_clients import DockerClient, KubernetesClient
 from ..constant import BROWSER_SESSION_ID
 
 logging.basicConfig(level=logging.INFO)
@@ -160,7 +161,7 @@ class SandboxManager:
             elif self.container_deployment == "k8s":
                 self.client = KubernetesClient(config=self.config)
             elif self.container_deployment == "agentrun":
-                from .container_clients import AgentRunClient
+                from .container_clients.agentrun_client import AgentRunClient
 
                 self.client = AgentRunClient(config=self.config)
             else:
