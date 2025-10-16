@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=no-self-argument
-# flake8: noqa: E501
 import os
 from typing import Optional, Literal, Tuple, Dict
 from pydantic import BaseModel, Field, model_validator
@@ -128,7 +127,8 @@ class SandboxManagerEnvConfig(BaseModel):
     # AgentRun settings
     agent_run_access_key_id: Optional[str] = Field(
         None,
-        description="Access key ID for AgentRun. Required if container_deployment is 'agentrun'.",
+        description="Access key ID for AgentRun. Required if "
+        "container_deployment is 'agentrun'.",
     )
     agent_run_access_key_secret: Optional[str] = Field(
         None,
@@ -137,7 +137,8 @@ class SandboxManagerEnvConfig(BaseModel):
     )
     agent_run_account_id: Optional[str] = Field(
         None,
-        description="Account ID for AgentRun. Required if container_deployment is 'agentrun'.",
+        description="Account ID for AgentRun. Required if "
+        "container_deployment is 'agentrun'.",
     )
     agent_run_region_id: str = Field(
         "cn-hangzhou",
@@ -153,11 +154,13 @@ class SandboxManagerEnvConfig(BaseModel):
     )
     agent_run_vpc_id: Optional[str] = Field(
         None,
-        description="VPC ID for AgentRun. Required if container_deployment is 'agentrun'.",
+        description="VPC ID for AgentRun. Required if container_deployment "
+        "is 'agentrun'.",
     )
     agent_run_vswitch_ids: Optional[list[str]] = Field(
         None,
-        description="VSwitch IDs for AgentRun. Required if container_deployment is 'agentrun'.",
+        description="VSwitch IDs for AgentRun. Required if "
+        "container_deployment is 'agentrun'.",
     )
     agent_run_security_group_id: Optional[str] = Field(
         None,
@@ -242,7 +245,8 @@ class SandboxManagerEnvConfig(BaseModel):
             ):
                 if not field_value:
                     raise ValueError(
-                        f"{field_name} must be set when container_deployment is 'agentrun'",
+                        f"{field_name} must be set when "
+                        f"container_deployment is 'agentrun'",
                     )
 
         return self

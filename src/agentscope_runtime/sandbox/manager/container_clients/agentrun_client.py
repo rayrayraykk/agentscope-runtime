@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# flake8: noqa: E501
 # pylint: disable=line-too-long, arguments-renamed
 import logging
 import random
@@ -31,10 +30,13 @@ logger = logging.getLogger(__name__)
 
 
 class AgentRunSessionManager:
-    """Manager for AgentRun sessions that handles creation, retrieval, updating, and deletion of sessions."""
+    """
+    Manager for AgentRun sessions that handles creation, retrieval,
+    updating, and deletion of sessions.
+    """
 
     def __init__(self):
-        """Initialize the session manager with an empty sessions dictionary."""
+        """Initialize the session manager with an empty session dictionary."""
         self.sessions = {}
         logger.debug("AgentRunSessionManager initialized")
 
@@ -90,10 +92,12 @@ class AgentRunSessionManager:
 
 
 class AgentRunClient(BaseClient):
-    """Client for managing AgentRun containers in the sandbox environment.
+    """
+    Client for managing AgentRun containers in the sandbox environment.
 
-    This client provides methods to create, start, stop, remove, and inspect AgentRun sessions.
-    It also handles the underlying AgentRun API calls and status polling.
+    This client provides methods to create, start, stop, remove,
+    and inspect AgentRun sessions. It also handles the underlying AgentRun
+    API calls and status polling.
     """
 
     # Global attempts and interval for status polling
@@ -108,7 +112,8 @@ class AgentRunClient(BaseClient):
         """Initialize the AgentRunClient with the provided configuration.
 
         Args:
-            config (SandboxManagerEnvConfig): Configuration object containing AgentRun settings.
+            config (SandboxManagerEnvConfig): Configuration object
+                containing AgentRun settings.
         """
         self.config = config
         self.client = self._create_agent_run_client()
@@ -135,10 +140,12 @@ class AgentRunClient(BaseClient):
 
         Args:
             image (str): The container image to use for the AgentRun session.
-            name (str, optional): The name for the session. If not provided, a random name will be generated.
+            name (str, optional): The name for the session. If not provided,
+                a random name will be generated.
             ports (list, optional): List of ports to expose.
             volumes (list, optional): List of volumes to mount.
-            environment (dict, optional): Environment variables to set in the container.
+            environment (dict, optional): Environment variables to set in
+                the container.
             runtime_config (dict, optional): Additional runtime configuration.
 
         Returns:
@@ -223,7 +230,8 @@ class AgentRunClient(BaseClient):
                 network_configuration=network_config,
                 log_configuration=log_config,
                 health_check_configuration=health_check_config,
-                description=f"agentScope sandbox deploy for {agent_runtime_name}",
+                description=f"agentScope sandbox deploy for"
+                f" {agent_runtime_name}",
             )
 
             # Create and check agent runtime
@@ -255,7 +263,8 @@ class AgentRunClient(BaseClient):
 
             self.session_manager.create_session(session_id, session_data)
             logger.info(
-                f"Success to create agent runtime with ID: {agent_runtime_id}, create session id: {session_id}",
+                f"Success to create agent runtime with ID:"
+                f" {agent_runtime_id}, create session id: {session_id}",
             )
 
             logger.info(
@@ -288,7 +297,8 @@ class AgentRunClient(BaseClient):
             session_id (str): The ID of the session to start.
 
         Returns:
-            bool: True if the session was successfully started, False otherwise.
+            bool: True if the session was successfully started,
+            False otherwise.
         """
         session = self.session_manager.get_session(session_id)
         if not session:
@@ -309,7 +319,8 @@ class AgentRunClient(BaseClient):
             return True
         except Exception as e:
             logger.error(
-                f"failed to set agentRun session status to running: {session_id}: {e}",
+                f"failed to set agentRun session status to running:"
+                f" {session_id}: {e}",
             )
             return False
 
@@ -318,10 +329,12 @@ class AgentRunClient(BaseClient):
 
         Args:
             session_id (str): The ID of the session to stop.
-            timeout (int, optional): Timeout for the stop operation (not currently used).
+            timeout (int, optional): Timeout for the stop operation (not
+                currently used).
 
         Returns:
-            bool: True if the session was successfully stopped, False otherwise.
+            bool: True if the session was successfully stopped,
+                False otherwise.
         """
         session = self.session_manager.get_session(session_id)
         if not session:
@@ -340,7 +353,8 @@ class AgentRunClient(BaseClient):
 
         except Exception as e:
             logger.error(
-                f"failed to set agentRun session status to stopped: {session_id}: {e}",
+                f"failed to set agentRun session status to stopped:"
+                f" {session_id}: {e}",
             )
             return False
 
@@ -349,7 +363,8 @@ class AgentRunClient(BaseClient):
 
         Args:
             session_id (str): The ID of the session to remove.
-            force (bool, optional): Whether to force removal (not currently used).
+            force (bool, optional): Whether to force removal (not currently
+                used).
 
         Returns:
             dict: A dictionary containing the result of the removal operation.
@@ -367,7 +382,8 @@ class AgentRunClient(BaseClient):
             # Check if the response is successful
             if response.body and response.body.code == "SUCCESS":
                 logger.info(
-                    f"Agent runtime deletion initiated successfully for ID: {agent_runtime_id}",
+                    f"Agent runtime deletion initiated successfully for ID:"
+                    f" {agent_runtime_id}",
                 )
 
                 # Poll for status
@@ -375,7 +391,8 @@ class AgentRunClient(BaseClient):
                 status_reason = None
                 if agent_runtime_id:
                     logger.info(
-                        f"Polling status for agent runtime deletion ID: {agent_runtime_id}",
+                        f"Polling status for agent runtime deletion ID:"
+                        f" {agent_runtime_id}",
                     )
                     poll_status = self._poll_agent_runtime_status(
                         agent_runtime_id,
@@ -387,7 +404,8 @@ class AgentRunClient(BaseClient):
                             f"Agent runtime deletion status: {status_result}",
                         )
 
-                # Return a dictionary with relevant information from the response
+                # Return a dictionary with relevant information from the
+                # response
                 return {
                     "success": True,
                     "message": "Agent runtime deletion initiated successfully",
@@ -415,7 +433,8 @@ class AgentRunClient(BaseClient):
             return {
                 "success": False,
                 "error": str(e),
-                "message": f"Exception occurred while deleting agent runtime: {str(e)}",
+                "message": f"Exception occurred while deleting agent "
+                f"runtime: {str(e)}",
             }
 
     def inspect(self, session_id):
@@ -425,7 +444,8 @@ class AgentRunClient(BaseClient):
             session_id (str): The ID of the session to inspect.
 
         Returns:
-            dict: A dictionary containing session information, agent runtime info, and status.
+            dict: A dictionary containing session information,
+                agent runtime info, and status.
         """
         session = self.session_manager.get_session(session_id)
         if not session:
@@ -467,13 +487,14 @@ class AgentRunClient(BaseClient):
                         "created_at": agent_runtime.created_at,
                         "last_updated_at": agent_runtime.last_updated_at,
                         "description": agent_runtime.description,
-                        "agent_runtime_version": agent_runtime.agent_runtime_version,
-                        "environment_variables": agent_runtime.environment_variables,
+                        "agent_runtime_version": agent_runtime.agent_runtime_version,  # noqa: E501
+                        "environment_variables": agent_runtime.environment_variables,  # noqa: E501
                         "request_id": response.body.request_id,
                     }
                 else:
                     logger.warning(
-                        f"Failed to get agent runtime info for ID: {agent_runtime_id}",
+                        f"Failed to get agent runtime info for ID:"
+                        f" {agent_runtime_id}",
                     )
                     agent_runtime_info = {
                         "error": "Failed to get agent runtime info",
@@ -485,11 +506,13 @@ class AgentRunClient(BaseClient):
                     }
         except Exception as e:
             logger.error(
-                f"Exception occurred while getting agent runtime info: {str(e)}",
+                f"Exception occurred while getting agent runtime info:"
+                f" {str(e)}",
             )
             agent_runtime_info = {
                 "error": str(e),
-                "message": f"Exception occurred while getting agent runtime info: {str(e)}",
+                "message": f"Exception occurred while getting agent runtime "
+                f"info: {str(e)}",
                 "agent_runtime_id": agent_runtime_id,
             }
 
@@ -508,7 +531,8 @@ class AgentRunClient(BaseClient):
             session_id (str): The ID of the session to get status for.
 
         Returns:
-            str: The status of the session (running, exited, starting, or unknown).
+            str: The status of the session (running, exited, starting,
+                or unknown).
         """
         session = self.session_manager.get_session(session_id)
         if not session:
@@ -565,13 +589,15 @@ class AgentRunClient(BaseClient):
         """Create an agent runtime and check its status until it's ready.
 
         Args:
-            input_data (CreateAgentRuntimeInput): The input data for creating the agent runtime.
+            input_data (CreateAgentRuntimeInput): The input data for
+                creating the agent runtime.
 
         Returns:
             str: The agent runtime ID.
 
         Raises:
-            Exception: If the agent runtime creation fails or the agent runtime is not ready.
+            Exception: If the agent runtime creation fails or the agent
+                runtime is not ready.
         """
         # Create the request object
         agent_runtime_id = None
@@ -600,18 +626,22 @@ class AgentRunClient(BaseClient):
             status_response = self._poll_agent_runtime_status(agent_runtime_id)
             if not status_response.get("success"):
                 logger.error(
-                    f"Failed to get agent runtime status: {status_response.get('message')}",
+                    f"Failed to get agent runtime status:"
+                    f" {status_response.get('message')}",
                 )
                 raise RuntimeError(
-                    f"Failed to get agent runtime status: {status_response.get('message')}",
+                    f"Failed to get agent runtime status:"
+                    f" {status_response.get('message')}",
                 )
 
             if status_response.get("status") not in ["READY", "ACTIVE"]:
                 logger.error(
-                    f"Agent runtime is not ready. Status: {status_response.get('status')}",
+                    f"Agent runtime is not ready. Status:"
+                    f" {status_response.get('status')}",
                 )
                 raise RuntimeError(
-                    f"Agent runtime is not ready. Status: {status_response.get('status')}",
+                    f"Agent runtime is not ready. Status:"
+                    f" {status_response.get('status')}",
                 )
 
         return agent_runtime_id
@@ -621,17 +651,20 @@ class AgentRunClient(BaseClient):
         agent_runtime_id: str,
         agent_runtime_name: str,
     ) -> tuple:
-        """Create an agent runtime endpoint and check its status until it's ready.
+        """Create an agent runtime endpoint and check its status until it's
+        ready.
 
         Args:
             agent_runtime_id (str): The ID of the agent runtime.
             agent_runtime_name (str): The name of the agent runtime.
 
         Returns:
-            tuple: A tuple containing (agent_runtime_endpoint_id, endpoint_public_url).
+            tuple: A tuple containing (agent_runtime_endpoint_id,
+                endpoint_public_url).
 
         Raises:
-            Exception: If the agent runtime endpoint creation fails or the endpoint is not ready.
+            Exception: If the agent runtime endpoint creation fails or the
+                endpoint is not ready.
         """
         # Create agent runtime endpoint
         agent_runtime_endpoint_id = None
@@ -641,7 +674,8 @@ class AgentRunClient(BaseClient):
             endpoint_input = CreateAgentRuntimeEndpointInput(
                 agent_runtime_endpoint_name=self.DEFAULT_ENDPOINT_NAME,
                 target_version="LATEST",
-                description=f"agentScope deploy auto-generated endpoint for {agent_runtime_name}",
+                description=f"agentScope deploy auto-generated endpoint for"
+                f" {agent_runtime_name}",
             )
 
             endpoint_request = CreateAgentRuntimeEndpointRequest(
@@ -674,10 +708,12 @@ class AgentRunClient(BaseClient):
             )
             if not endpoint_status_response.get("success"):
                 logger.error(
-                    f"Failed to get agent runtime endpoint status: {endpoint_status_response.get('message')}",
+                    f"Failed to get agent runtime endpoint status:"
+                    f" {endpoint_status_response.get('message')}",
                 )
                 raise RuntimeError(
-                    f"Failed to get agent runtime endpoint status: {endpoint_status_response.get('message')}",
+                    f"Failed to get agent runtime endpoint status:"
+                    f" {endpoint_status_response.get('message')}",
                 )
 
             if endpoint_status_response.get("status") not in [
@@ -685,10 +721,12 @@ class AgentRunClient(BaseClient):
                 "ACTIVE",
             ]:
                 logger.error(
-                    f"Agent runtime endpoint is not ready. Status: {endpoint_status_response.get('status')}",
+                    f"Agent runtime endpoint is not ready. Status:"
+                    f" {endpoint_status_response.get('status')}",
                 )
                 raise RuntimeError(
-                    f"Agent runtime endpoint is not ready. Status: {endpoint_status_response.get('status')}",
+                    f"Agent runtime endpoint is not ready. Status:"
+                    f" {endpoint_status_response.get('status')}",
                 )
 
         return agent_runtime_endpoint_id, endpoint_public_url
@@ -698,14 +736,18 @@ class AgentRunClient(BaseClient):
         agent_runtime_id: str,
         agent_runtime_endpoint_id: str,
     ):
-        """Poll agent runtime endpoint status until a terminal state is reached or max attempts exceeded.
+        """
+        Poll agent runtime endpoint status until a terminal state is
+        reached or max attempts exceeded.
 
         Args:
             agent_runtime_id (str): The ID of the agent runtime.
-            agent_runtime_endpoint_id (str): The ID of the agent runtime endpoint.
+            agent_runtime_endpoint_id (str): The ID of the agent runtime
+                endpoint.
 
         Returns:
-            Dict[str, Any]: A dictionary containing the final agent runtime endpoint status or error information.
+            Dict[str, Any]: A dictionary containing the final agent runtime
+                endpoint status or error information.
         """
         # Terminal states that indicate the end of polling for endpoints
         terminal_states = {
@@ -722,7 +764,8 @@ class AgentRunClient(BaseClient):
         interval_seconds = self._get_agent_runtime_status_interval
 
         logger.info(
-            f"Starting to poll agent runtime endpoint status for ID: {agent_runtime_endpoint_id}",
+            f"Starting to poll agent runtime endpoint status for ID:"
+            f" {agent_runtime_endpoint_id}",
         )
 
         for attempt in range(1, max_attempts + 1):
@@ -735,7 +778,8 @@ class AgentRunClient(BaseClient):
             # Check if the request was successful
             if not status_response.get("success"):
                 logger.warning(
-                    f"Attempt {attempt}/{max_attempts}: Failed to get status - {status_response.get('message')}",
+                    f"Attempt {attempt}/{max_attempts}: Failed "
+                    f"to get status - {status_response.get('message')}",
                 )
                 # Wait before next attempt unless this is the last attempt
                 if attempt < max_attempts:
@@ -756,7 +800,8 @@ class AgentRunClient(BaseClient):
             # Check if we've reached a terminal state
             if current_status in terminal_states:
                 logger.info(
-                    f"Reached terminal state '{current_status}' after {attempt} attempts",
+                    f"Reached terminal state '{current_status}' after"
+                    f" {attempt} attempts",
                 )
                 return status_response
 
@@ -766,7 +811,8 @@ class AgentRunClient(BaseClient):
 
         # If we've exhausted all attempts without reaching a terminal state
         logger.warning(
-            f"Exceeded maximum attempts ({max_attempts}) without reaching a terminal state",
+            f"Exceeded maximum attempts ({max_attempts}) without reaching a "
+            f"terminal state",
         )
         return self._get_agent_runtime_endpoint_status(
             agent_runtime_id,
@@ -782,10 +828,12 @@ class AgentRunClient(BaseClient):
 
         Args:
             agent_runtime_id (str): The ID of the agent runtime.
-            agent_runtime_version (str, optional): The version of the agent runtime.
+            agent_runtime_version (str, optional): The version of the agent
+                runtime.
 
         Returns:
-            Dict[str, Any]: A dictionary containing the agent runtime status or error information.
+            Dict[str, Any]: A dictionary containing the agent runtime
+                status or error information.
         """
         try:
             logger.debug(
@@ -812,7 +860,8 @@ class AgentRunClient(BaseClient):
                     else None
                 )
                 logger.debug(
-                    f"Agent runtime status for ID {agent_runtime_id}: {status}",
+                    f"Agent runtime status for ID {agent_runtime_id}:"
+                    f" {status}",
                 )
                 # Return the status from the agent runtime data
                 return {
@@ -839,13 +888,15 @@ class AgentRunClient(BaseClient):
                 }
         except Exception as e:
             logger.error(
-                f"Exception occurred while getting agent runtime status: {str(e)}",
+                f"Exception occurred while getting agent runtime status:"
+                f" {str(e)}",
             )
             # Return error information if an exception occurred
             return {
                 "success": False,
                 "error": str(e),
-                "message": f"Exception occurred while getting agent runtime status: {str(e)}",
+                "message": f"Exception occurred while getting agent runtime "
+                f"status: {str(e)}",
             }
 
     def _get_agent_runtime_endpoint_status(
@@ -857,14 +908,17 @@ class AgentRunClient(BaseClient):
 
         Args:
             agent_runtime_id (str): The ID of the agent runtime.
-            agent_runtime_endpoint_id (str): The ID of the agent runtime endpoint.
+            agent_runtime_endpoint_id (str): The ID of the agent runtime
+            endpoint.
 
         Returns:
-            Dict[str, str]: A dictionary containing the agent runtime endpoint status or error information.
+            Dict[str, str]: A dictionary containing the agent runtime
+            endpoint status or error information.
         """
         try:
             logger.debug(
-                f"Getting agent runtime endpoint status for ID: {agent_runtime_endpoint_id}",
+                f"Getting agent runtime endpoint status for ID:"
+                f" {agent_runtime_endpoint_id}",
             )
 
             # Call the SDK method
@@ -885,7 +939,8 @@ class AgentRunClient(BaseClient):
                     else None
                 )
                 logger.debug(
-                    f"Agent runtime endpoint status for ID {agent_runtime_endpoint_id}: {status}",
+                    f"Agent runtime endpoint status for ID"
+                    f" {agent_runtime_endpoint_id}: {status}",
                 )
                 # Return the status from the agent runtime endpoint data
                 return {
@@ -912,13 +967,15 @@ class AgentRunClient(BaseClient):
                 }
         except Exception as e:
             logger.debug(
-                f"Exception occurred while getting agent runtime endpoint status: {str(e)}",
+                f"Exception occurred while getting agent runtime endpoint "
+                f"status: {str(e)}",
             )
             # Return error information if an exception occurred
             return {
                 "success": False,
                 "error": str(e),
-                "message": f"Exception occurred while getting agent runtime endpoint status: {str(e)}",
+                "message": f"Exception occurred while getting agent runtime "
+                f"endpoint status: {str(e)}",
             }
 
     def _poll_agent_runtime_status(
@@ -926,14 +983,18 @@ class AgentRunClient(BaseClient):
         agent_runtime_id: str,
         agent_runtime_version: str = None,
     ):
-        """Poll agent runtime status until a terminal state is reached or max attempts exceeded.
+        """
+        Poll agent runtime status until a terminal state is reached or
+        max attempts exceeded.
 
         Args:
             agent_runtime_id (str): The ID of the agent runtime.
-            agent_runtime_version (str, optional): The version of the agent runtime.
+            agent_runtime_version (str, optional): The version of the agent
+                runtime.
 
         Returns:
-            Dict[str, Any]: A dictionary containing the final agent runtime status or error information.
+            Dict[str, Any]: A dictionary containing the final agent runtime
+                status or error information.
         """
         # Terminal states that indicate the end of polling for agent runtimes
         terminal_states = {
@@ -950,7 +1011,8 @@ class AgentRunClient(BaseClient):
         interval_seconds = self._get_agent_runtime_status_interval
 
         logger.info(
-            f"Starting to poll agent runtime status for ID: {agent_runtime_id}",
+            f"Starting to poll agent runtime status for ID:"
+            f" {agent_runtime_id}",
         )
 
         for attempt in range(1, max_attempts + 1):
@@ -963,7 +1025,8 @@ class AgentRunClient(BaseClient):
             # Check if the request was successful
             if not status_response.get("success"):
                 logger.warning(
-                    f"Attempt {attempt}/{max_attempts}: Failed to get status - {status_response.get('message')}",
+                    f"Attempt {attempt}/{max_attempts}: Failed to "
+                    f"get status - {status_response.get('message')}",
                 )
                 # Wait before next attempt unless this is the last attempt
                 if attempt < max_attempts:
@@ -984,7 +1047,8 @@ class AgentRunClient(BaseClient):
             # Check if we've reached a terminal state
             if current_status in terminal_states:
                 logger.info(
-                    f"Reached terminal state '{current_status}' after {attempt} attempts",
+                    f"Reached terminal state '{current_status}' after"
+                    f" {attempt} attempts",
                 )
                 return status_response
 
@@ -994,7 +1058,8 @@ class AgentRunClient(BaseClient):
 
         # If we've exhausted all attempts without reaching a terminal state
         logger.warning(
-            f"Exceeded maximum attempts ({max_attempts}) without reaching a terminal state",
+            f"Exceeded maximum attempts ({max_attempts}) without reaching a "
+            f"terminal state",
         )
         return self._get_agent_runtime_status(
             agent_runtime_id,
@@ -1002,7 +1067,8 @@ class AgentRunClient(BaseClient):
         )
 
     def _replace_agent_runtime_images(self, image: str) -> str:
-        """Replace agent runtime images with their corresponding remote images.
+        """
+        Replace agent runtime images with their corresponding remote images.
 
         Args:
             image (str): The original image name.
@@ -1011,9 +1077,12 @@ class AgentRunClient(BaseClient):
             str: The replaced image name with remote registry path.
         """
         replacement_map = {
-            "agentscope/runtime-sandbox-base": "serverless-registry.cn-hangzhou.cr.aliyuncs.com/functionai/agentscope_runtime-sandbox-base:d439a",
-            "agentscope/runtime-sandbox-browser": "serverless-registry.cn-hangzhou.cr.aliyuncs.com/functionai/agentscope_runtime-sandbox-browser:43ea6",
-            "agentscope/runtime-sandbox-filesystem": "serverless-registry.cn-hangzhou.cr.aliyuncs.com/functionai/agentscope_runtime-sandbox-filesystem:e5bf4",
+            "agentscope/runtime-sandbox-base": "serverless-registry.cn-hangzhou.cr.aliyuncs.com/functionai"  # noqa: E501
+            "/agentscope_runtime-sandbox-base:d439a",
+            "agentscope/runtime-sandbox-browser": "serverless-registry.cn-hangzhou.cr.aliyuncs.com/functionai"  # noqa: E501
+            "/agentscope_runtime-sandbox-browser:43ea6",
+            "agentscope/runtime-sandbox-filesystem": "serverless-registry.cn-hangzhou.cr.aliyuncs.com/functionai"  # noqa: E501
+            "/agentscope_runtime-sandbox-filesystem:e5bf4",
         }
 
         if ":" in image:
