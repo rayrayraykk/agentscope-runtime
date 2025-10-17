@@ -23,6 +23,11 @@ http {
         location /vnc/ {
             alias /usr/share/novnc/;
             index vnc.html;
+
+            types {
+                application/javascript js;
+            }
+            default_type application/javascript;
         }
 
         location /websockify {
