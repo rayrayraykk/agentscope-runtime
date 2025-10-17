@@ -25,9 +25,26 @@ RUN apt-get update && apt-get install -y --fix-missing \
     novnc \
     websockify \
     dbus-x11 \
-    firefox-esr \
     fonts-wqy-zenhei \
     fonts-wqy-microhei
+
+RUN apt-get update && apt-get install -y --fix-missing \
+    chromium \
+    chromium-sandbox \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxtst6 \
+    libnss3 \
+    libglib2.0-0 \
+    libdrm2 \
+    libgbm1 \
+    libasound2 \
+    fonts-liberation \
+    libu2f-udev
 
 WORKDIR /agentscope_runtime
 RUN python3 -m venv venv
