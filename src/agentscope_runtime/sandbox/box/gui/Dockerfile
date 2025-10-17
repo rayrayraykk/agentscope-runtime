@@ -17,7 +17,17 @@ RUN apt-get update && apt-get install -y --fix-missing \
     supervisor  \
     vim  \
     nginx \
-    gettext-base
+    gettext-base \
+    xfce4 \
+    xfce4-terminal \
+    x11vnc \
+    xvfb \
+    novnc \
+    websockify \
+    dbus-x11 \
+    firefox-esr \
+    fonts-wqy-zenhei \
+    fonts-wqy-microhei
 
 WORKDIR /agentscope_runtime
 RUN python3 -m venv venv
@@ -37,21 +47,6 @@ RUN git init \
     && chmod +x /agentscope_runtime/scripts/start.sh
 
 COPY .gitignore ${WORKSPACE_DIR}
-
-# VNC + noVNC
-RUN apt-get update && apt-get install -y --fix-missing \
-    xfce4 \
-    xfce4-terminal \
-    x11vnc \
-    xvfb \
-    novnc \
-    websockify \
-    dbus-x11
-
-RUN apt-get update && apt-get install -y \
-    firefox-esr \
-    fonts-wqy-zenhei \
-    fonts-wqy-microhei
 
 # Cleanup
 RUN pip cache purge \
