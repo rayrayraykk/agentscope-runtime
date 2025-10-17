@@ -25,7 +25,8 @@ RUN apt-get update && apt-get install -y --fix-missing \
     novnc \
     websockify \
     dbus-x11 \
-    firefox-esr \
+    libwebkit2gtk-4.1-0 \
+    epiphany-browser \
     fonts-wqy-zenhei \
     fonts-wqy-microhei
 

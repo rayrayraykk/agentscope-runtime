@@ -1,10 +1,6 @@
 {
   "browser": {
-    "browserName": "firefox",
-    "launchOptions": {
-      "executablePath": "/usr/bin/firefox",
-      "headless": false
-    },
+    "browserName": "webkit",
     "contextOptions": {
       "viewport": {
         "width": 1920,
