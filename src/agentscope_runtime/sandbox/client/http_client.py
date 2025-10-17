@@ -78,7 +78,7 @@ class SandboxHttpClient:
             runtime sandbox.
         """
         self.session_id = model.session_id
-        self.base_url = model.base_url.replace("localhost", domain)
+        self.base_url = model.api_url.replace("localhost", domain)
 
         self.timeout = timeout
         self.session = requests.Session()

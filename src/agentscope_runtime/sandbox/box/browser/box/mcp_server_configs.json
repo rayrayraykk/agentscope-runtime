@@ -5,6 +5,8 @@
       "args": [
         "-y",
         "@playwright/mcp@0.0.25",
+        "--browser",
+        "firefox",
         "--config",
         "/agentscope_runtime/playwright_mcp_config.json"
       ]

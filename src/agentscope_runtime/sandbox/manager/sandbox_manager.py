@@ -662,8 +662,8 @@ class SandboxManager:
             "sandbox-appworld" in container_model.version
             or "sandbox-bfcl" in container_model.version
         ):
-            parsed = urlparse(container_model.base_url)
-            base_url = urlunparse(
+            parsed = urlparse(container_model.api_url)
+            api_url = urlunparse(
                 (
                     parsed.scheme,
                     parsed.netloc,
@@ -675,7 +675,7 @@ class SandboxManager:
             )
 
             return TrainingSandboxClient(
-                base_url=base_url,
+                base_url=api_url,
             ).__enter__()
 
         return SandboxHttpClient(
