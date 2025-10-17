@@ -19,9 +19,19 @@ http {
             proxy_set_header Connection "upgrade";
         }
 
-        location /vnc/ {
-            root /usr/share/novnc;
-            index vnc_lite.html;
+        location ^~ /vnc/ {
+            alias /usr/share/novnc/;
+            index vnc.html;
+            try_files $uri $uri/ =404;
+
+            location ~* ^/vnc/.*\.js$ {
+                alias /usr/share/novnc/;
+                default_type application/javascript;
+            }
+            location ~* ^/vnc/.*\.mjs$ {
+                alias /usr/share/novnc/;
+                default_type application/javascript;
+            }
         }
 
         location /websockify {
