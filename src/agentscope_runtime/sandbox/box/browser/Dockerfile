@@ -25,10 +25,30 @@ RUN apt-get update && apt-get install -y --fix-missing \
     novnc \
     websockify \
     dbus-x11 \
-    libwebkit2gtk-4.1-0 \
-    epiphany-browser \
     fonts-wqy-zenhei \
-    fonts-wqy-microhei
+    fonts-wqy-microhei \
+    libwoff1  \
+    libopus0  \
+    libwebp6  \
+    libwebpdemux2  \
+    libenchant-2-2 \
+    libgudev-1.0-0  \
+    libsecret-1-0  \
+    libhyphen0 \
+    libgdk-pixbuf2.0-0  \
+    libegl1 libnotify4  \
+    libxslt1.1  \
+    libevent-2.1-7 \
+    libgles2  \
+    libvpx7  \
+    libxcomposite1  \
+    libxdamage1  \
+    libxrandr2 \
+    libatk1.0-0  \
+    libatk-bridge2.0-0  \
+    libdrm2  \
+    libgbm1  \
+    libasound2
 
 WORKDIR /agentscope_runtime
 RUN python3 -m venv venv
@@ -41,6 +61,9 @@ COPY src/agentscope_runtime/sandbox/box/gui/box/ ./
 COPY src/agentscope_runtime/sandbox/box/browser/box/ ./
 
 RUN pip install -r requirements.txt
+
+RUN npm install -g playwright \
+    && playwright install --with-deps webkit
 
 WORKDIR ${WORKSPACE_DIR}
 RUN mv /agentscope_runtime/config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
