@@ -4,6 +4,7 @@ events { worker_connections 1024; }
 
 http {
     include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
 
     server {
         listen 80;
@@ -19,18 +20,25 @@ http {
             proxy_set_header Connection "upgrade";
         }
 
-        location ^~ /vnc/ {
+        location /vnc/ {
             alias /usr/share/novnc/;
             index vnc.html;
-            try_files $uri $uri/ =404;
 
-            location ~* ^/vnc/.*\.js$ {
+            location ~* \.js$ {
                 alias /usr/share/novnc/;
-                default_type application/javascript;
+                add_header Content-Type text/javascript;
+                expires 1d;
             }
-            location ~* ^/vnc/.*\.mjs$ {
+
+            location ~* \.mjs$ {
                 alias /usr/share/novnc/;
-                default_type application/javascript;
+                add_header Content-Type text/javascript;
+                expires 1d;
+            }
+
+            location ~* \.(css|html|png|jpg|jpeg|gif|ico|svg)$ {
+                alias /usr/share/novnc/;
+                expires 1d;
             }
         }
 
