@@ -6,7 +6,7 @@ from urllib.parse import urlparse, urlunparse
 from ...utils import build_image_uri
 from ...registry import SandboxRegistry
 from ...enums import SandboxType
-from ...box.base import BaseSandbox
+from ...box.gui import GuiSandbox
 
 
 def http_to_ws(url, use_localhost=True):
@@ -33,7 +33,7 @@ def http_to_ws(url, use_localhost=True):
     timeout=60,
     description="Browser sandbox",
 )
-class BrowserSandbox(BaseSandbox):
+class BrowserSandbox(GuiSandbox):
     def __init__(  # pylint: disable=useless-parent-delegation
         self,
         sandbox_id: Optional[str] = None,

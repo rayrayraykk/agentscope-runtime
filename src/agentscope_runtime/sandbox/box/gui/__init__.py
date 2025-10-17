@@ -1,4 +1,4 @@
 # -*- coding: utf-8 -*-
-from gui_sandbox import GuiSandbox
+from .gui_sandbox import GuiSandbox
 
 __all__ = ["GuiSandbox"]
