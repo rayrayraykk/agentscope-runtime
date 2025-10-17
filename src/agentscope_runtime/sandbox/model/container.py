@@ -25,30 +25,11 @@ class ContainerModel(BaseModel):
         description="URL for accessing the container",
     )
 
-    base_url: str = Field(
+    api_url: str = Field(
         ...,
-        description="Base URL for accessing the container python backend",
+        description="Base API URL for accessing the container python backend",
     )
 
-    browser_url: str = Field(
-        ...,
-        description="URL for browser interface within the container",
-    )
-
-    front_browser_ws: str = Field(
-        ...,
-        description="WebSocket URL for the browser used by frontend",
-    )
-
-    client_browser_ws: str = Field(
-        ...,
-        description="WebSocket URL for the browser used by runtime client",
-    )
-
-    artifacts_sio: str = Field(
-        ...,
-        description="Socketio URL for the artifacts used by frontend",
-    )
     ports: List[int | str] = Field(
         ...,
         description="List of occupied port numbers",

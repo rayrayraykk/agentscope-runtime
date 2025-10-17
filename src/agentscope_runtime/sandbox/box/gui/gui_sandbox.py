@@ -6,7 +6,7 @@ from urllib.parse import urljoin, urlencode
 from ...utils import build_image_uri
 from ...registry import SandboxRegistry
 from ...enums import SandboxType
-from ...box.sandbox import Sandbox
+from ...box.base import BaseSandbox
 
 
 @SandboxRegistry.register(
@@ -16,20 +16,21 @@ from ...box.sandbox import Sandbox
     timeout=30,
     description="GUI Sandbox",
 )
-class GuiSandbox(Sandbox):
-    def __init__(
+class GuiSandbox(BaseSandbox):
+    def __init__(  # pylint: disable=useless-parent-delegation
         self,
         sandbox_id: Optional[str] = None,
         timeout: int = 3000,
         base_url: Optional[str] = None,
         bearer_token: Optional[str] = None,
+        sandbox_type: SandboxType = SandboxType.GUI,
     ):
         super().__init__(
             sandbox_id,
             timeout,
             base_url,
             bearer_token,
-            SandboxType.GUI,
+            sandbox_type,
         )
 
     @property

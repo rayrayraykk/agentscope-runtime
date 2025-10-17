@@ -17,7 +17,36 @@ RUN apt-get update && apt-get install -y --fix-missing \
     supervisor  \
     vim  \
     nginx \
-    gettext-base
+    gettext-base \
+    xfce4 \
+    xfce4-terminal \
+    x11vnc \
+    xvfb \
+    novnc \
+    websockify \
+    dbus-x11 \
+    fonts-wqy-zenhei \
+    fonts-wqy-microhei
+
+RUN apt-get update && apt-get install -y --fix-missing \
+    chromium \
+    chromium-sandbox \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxtst6 \
+    libnss3 \
+    libglib2.0-0 \
+    libdrm2 \
+    libgbm1 \
+    libasound2 \
+    fonts-liberation \
+    libu2f-udev
+
+RUN sed -i 's/^CHROMIUM_FLAGS=""/CHROMIUM_FLAGS="--no-sandbox"/' /usr/bin/chromium
 
 WORKDIR /agentscope_runtime
 RUN python3 -m venv venv
@@ -37,21 +66,6 @@ RUN git init \
     && chmod +x /agentscope_runtime/scripts/start.sh
 
 COPY .gitignore ${WORKSPACE_DIR}
-
-# VNC + noVNC
-RUN apt-get update && apt-get install -y --fix-missing \
-    xfce4 \
-    xfce4-terminal \
-    x11vnc \
-    xvfb \
-    novnc \
-    websockify \
-    dbus-x11
-
-RUN apt-get update && apt-get install -y \
-    firefox-esr \
-    fonts-wqy-zenhei \
-    fonts-wqy-microhei
 
 # Cleanup
 RUN pip cache purge \
