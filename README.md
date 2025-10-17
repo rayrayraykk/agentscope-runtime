@@ -75,9 +75,6 @@ From PyPI:
 ```bash
 # Install core dependencies
 pip install agentscope-runtime
-
-# Install sandbox dependencies
-pip install "agentscope-runtime[sandbox]"
 ```
 
 (Optional) From source:
@@ -89,35 +86,41 @@ cd agentscope-runtime
 
 # Install core dependencies
 pip install -e .
-
-# Install sandbox dependencies
-pip install -e ".[sandbox]"
 ```
 
 ### Basic Agent Usage Example
 
-This example demonstrates how to create a simple LLM agent using AgentScope Runtime and stream responses from the Qwen model.
+This example demonstrates how to create an agentscope agent using AgentScope Runtime and
+stream responses from the Qwen model.
+
 
 ```python
 import asyncio
 import os
+
 from agentscope_runtime.engine import Runner
-from agentscope_runtime.engine.agents.llm_agent import LLMAgent
-from agentscope_runtime.engine.llms import QwenLLM
+from agentscope_runtime.engine.agents.agentscope_agent import AgentScopeAgent
 from agentscope_runtime.engine.schemas.agent_schemas import AgentRequest
 from agentscope_runtime.engine.services.context_manager import ContextManager
 
+from agentscope.agent import ReActAgent
+from agentscope.model import OpenAIChatModel
 
 async def main():
     # Set up the language model and agent
-    model = QwenLLM(
-        model_name="qwen-turbo",
-        api_key=os.getenv("DASHSCOPE_API_KEY"),
+    agent = AgentScopeAgent(
+        name="Friday",
+        model=OpenAIChatModel(
+            "gpt-4",
+            api_key=os.getenv("OPENAI_API_KEY"),
+        ),
+        agent_config={
+            "sys_prompt": "You're a helpful assistant named Friday.",
+        },
+        agent_builder=ReActAgent,
     )
-    llm_agent = LLMAgent(model=model, name="llm_agent")
-
     async with ContextManager() as context_manager:
-        runner = Runner(agent=llm_agent, context_manager=context_manager)
+        runner = Runner(agent=agent, context_manager=context_manager)
 
         # Create a request and stream the response
         request = AgentRequest(
@@ -160,7 +163,8 @@ with BaseSandbox() as box:
 >
 > If pulling the Docker image fails, try setting:
 > `export RUNTIME_SANDBOX_REGISTRY="agentscope-registry.ap-southeast-1.cr.aliyuncs.com"`
-
+>
+> If you plan to use the sandbox on a large scale in production, we recommend deploying it directly in Alibaba Cloud for managed hosting: [One-click deploy sandbox on Alibaba Cloud](https://computenest.console.aliyun.com/service/instance/create/default?ServiceName=AgentScope%20Runtime%20%E6%B2%99%E7%AE%B1%E7%8E%AF%E5%A2%83)
 ---
 
 ## 📚 Cookbook
@@ -174,29 +178,6 @@ with BaseSandbox() as box:
 ---
 
 ## 🔌 Agent Framework Integration
-
-### AgentScope Integration
-
-```python
-# pip install "agentscope-runtime[agentscope]"
-import os
-
-from agentscope.agent import ReActAgent
-from agentscope.model import OpenAIChatModel
-from agentscope_runtime.engine.agents.agentscope_agent import AgentScopeAgent
-
-agent = AgentScopeAgent(
-    name="Friday",
-    model=OpenAIChatModel(
-        "gpt-4",
-        api_key=os.getenv("OPENAI_API_KEY"),
-    ),
-    agent_config={
-        "sys_prompt": "You're a helpful assistant named Friday.",
-    },
-    agent_builder=ReActAgent,
-)
-```
 
 ### Agno Integration
 
@@ -349,7 +330,7 @@ limitations under the License.
 
 ## Contributors ✨
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-12-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-13-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
@@ -374,6 +355,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://davdgao.github.io/"><img src="https://avatars.githubusercontent.com/u/102287034?v=4?s=100" width="100px;" alt="DavdGao"/><br /><sub><b>DavdGao</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/pulls?q=is%3Apr+reviewed-by%3ADavdGao" title="Reviewed Pull Requests">👀</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/FLyLeaf-coder"><img src="https://avatars.githubusercontent.com/u/122603493?v=4?s=100" width="100px;" alt="FlyLeaf"/><br /><sub><b>FlyLeaf</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/commits?author=FLyLeaf-coder" title="Code">💻</a> <a href="https://github.com/agentscope-ai/agentscope-runtime/commits?author=FLyLeaf-coder" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/jinghuan-Chen"><img src="https://avatars.githubusercontent.com/u/42742857?v=4?s=100" width="100px;" alt="jinghuan-Chen"/><br /><sub><b>jinghuan-Chen</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/commits?author=jinghuan-Chen" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Sodawyx"><img src="https://avatars.githubusercontent.com/u/34974468?v=4?s=100" width="100px;" alt="Yuxuan Wu"/><br /><sub><b>Yuxuan Wu</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/commits?author=Sodawyx" title="Code">💻</a> <a href="https://github.com/agentscope-ai/agentscope-runtime/commits?author=Sodawyx" title="Documentation">📖</a></td>
     </tr>
   </tbody>
   <tfoot>

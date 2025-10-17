@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=redefined-outer-name, protected-access, too-many-branches
-# pylint: disable=too-many-statements
+# pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=too-many-branches, too-many-statements
 import logging
 import os
 import json
@@ -15,6 +15,8 @@ from urllib.parse import urlparse, urlunparse
 import shortuuid
 import requests
 
+from .container_clients.docker_client import DockerClient
+from .container_clients.kubernetes_client import KubernetesClient
 from ..model import (
     ContainerModel,
     SandboxManagerEnvConfig,
@@ -33,7 +35,6 @@ from ..manager.storage import (
     LocalStorage,
     OSSStorage,
 )
-from ..manager.container_clients import DockerClient, KubernetesClient
 from ..constant import BROWSER_SESSION_ID
 
 logging.basicConfig(level=logging.INFO)
@@ -159,6 +160,10 @@ class SandboxManager:
                 self.client = DockerClient(config=self.config)
             elif self.container_deployment == "k8s":
                 self.client = KubernetesClient(config=self.config)
+            elif self.container_deployment == "agentrun":
+                from .container_clients.agentrun_client import AgentRunClient
+
+                self.client = AgentRunClient(config=self.config)
             else:
                 raise NotImplementedError("Not implemented")
         else:
@@ -424,7 +429,7 @@ class SandboxManager:
                 mount_dir = os.path.join(self.default_mount_dir, session_id)
                 os.makedirs(mount_dir, exist_ok=True)
 
-        if mount_dir:
+        if mount_dir and self.container_deployment != "agentrun":
             if not os.path.isabs(mount_dir):
                 mount_dir = os.path.abspath(mount_dir)
 
@@ -435,7 +440,11 @@ class SandboxManager:
                     session_id,
                 )
 
-        if mount_dir and storage_path:
+        if (
+            mount_dir
+            and storage_path
+            and self.container_deployment != "agentrun"
+        ):
             self.storage.download_folder(storage_path, mount_dir)
 
         try:
@@ -450,7 +459,7 @@ class SandboxManager:
             runtime_token = secrets.token_hex(16)
 
             # Prepare volume bindings if a mount directory is provided
-            if mount_dir:
+            if mount_dir and self.container_deployment != "agentrun":
                 volume_bindings = {
                     mount_dir: {
                         "bind": self.workdir,
@@ -469,7 +478,7 @@ class SandboxManager:
                         "mode": "ro",
                     }
 
-            _id, ports, ip = self.client.create(
+            _id, ports, ip, *rest = self.client.create(
                 image,
                 name=container_name,
                 ports=["80/tcp"],  # Nginx
@@ -480,6 +489,12 @@ class SandboxManager:
                 },
                 runtime_config=config.runtime_config,
             )
+
+            http_protocol = "http"
+            ws_protocol = "ws"
+            if rest and rest[0] == "https":
+                http_protocol = "https"
+                ws_protocol = "wss"
 
             if _id is None:
                 return None
@@ -498,24 +513,24 @@ class SandboxManager:
                 session_id=session_id,
                 container_id=_id,
                 container_name=container_name,
-                url=f"http://{ip}:{ports[0]}",
-                # TODO: rename to api url
-                base_url=f"http://{ip}:{ports[0]}/fastapi",
-                browser_url=f"http://{ip}:{ports[0]}/steel-api"
+                url=f"{http_protocol}://{ip}:{ports[0]}",
+                base_url=f"{http_protocol}://{ip}:{ports[0]}/fastapi",
+                browser_url=f"{http_protocol}://{ip}:{ports[0]}/steel-api"
                 f"/{runtime_token}",
-                front_browser_ws=f"ws://{ip}:"
+                front_browser_ws=f"{ws_protocol}://{ip}:"
                 f"{ports[0]}/steel-api/"
                 f"{runtime_token}/v1/sessions/cast",
-                client_browser_ws=f"ws://{ip}:"
+                client_browser_ws=f"{ws_protocol}://{ip}:"
                 f"{ports[0]}/steel-api/{runtime_token}/&sessionId"
                 f"={BROWSER_SESSION_ID}",
-                artifacts_sio=f"http://{ip}:{ports[0]}/v1",
+                artifacts_sio=f"{http_protocol}://{ip}:{ports[0]}/v1",
                 ports=[ports[0]],
                 mount_dir=str(mount_dir),
                 storage_path=storage_path,
                 runtime_token=runtime_token,
                 version=image,
             )
+
             # Register in mapping
             self.container_mapping.set(
                 container_model.container_name,

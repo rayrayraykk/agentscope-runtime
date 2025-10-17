@@ -27,7 +27,7 @@ The ReAct (Reasoning and Acting) paradigm enables agents to interleave reasoning
 Install AgentScope Runtime with the required dependencies:
 
 ```bash
-pip install "agentscope-runtime[sandbox,agentscope]"
+pip install agentscope-runtime
 ```
 
 ### 🐳 Sandbox Setup
@@ -127,13 +127,13 @@ Set up the ReAct agent builder with your chosen language model from the AgentSco
 
 ```{code-cell}
 from agentscope.agent import ReActAgent
-from agentscope.model import DashScopeChatModel
+from agentscope.model import OpenAIChatModel
 
 # Initialize the language model
-model = DashScopeChatModel(
-    "qwen-max",
-    api_key=os.getenv("DASHSCOPE_API_KEY"),
-)
+model=OpenAIChatModel(
+    "gpt-4",
+    api_key=os.getenv("OPENAI_API_KEY"),
+),
 
 # Create the AgentScope agent
 agent = AgentScopeAgent(
