@@ -14,10 +14,10 @@ dependencies = [
     "agentscope>=1.0.1",
     "docker>=7.1.0",
     "steel-sdk>=0.1.0",
-    "redis>=6.0.0b2",
+    "redis>=6.0.0",
     "oss2>=2.19.1",
     "pydantic-settings>=2.9.1",
-    "dotenv>=0.9.9",
+    "python-dotenv>=1.0.1",
     "kubernetes>=33.1.0",
     "shortuuid>=1.0.13",
 ]
