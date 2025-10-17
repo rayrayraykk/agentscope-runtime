@@ -225,11 +225,9 @@ async def proxy_vnc_static(sandbox_id: str, path: str):
         return Response(status_code=404)
 
     target_url = f"{base_url}/{path}"
-    logger.error(target_url)
 
     async with httpx.AsyncClient() as client:
         upstream = await client.get(target_url)
-        logger.error(upstream.content)
         return Response(
             content=upstream.content,
             media_type=upstream.headers.get("content-type"),

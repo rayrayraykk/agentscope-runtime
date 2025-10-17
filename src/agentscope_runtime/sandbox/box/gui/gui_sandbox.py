@@ -46,7 +46,6 @@ class GuiSandbox(BaseSandbox):
             full_url = urljoin(info["url"], path) + "?" + urlencode(params)
             return full_url
 
-        print("self.sandbox_id: ", self.sandbox_id)
         return (
             f"{self.base_url}/desktop/{self.sandbox_id}{remote_path}"
             f"?{urlencode(params)}"
