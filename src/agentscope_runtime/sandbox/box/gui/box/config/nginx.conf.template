@@ -20,8 +20,8 @@ http {
         }
 
         location /vnc/ {
-            alias /usr/share/novnc/;
-            index vnc.html;
+            root /usr/share;
+            index novnc/vnc_lite.html;
         }
 
         location /websockify {
