@@ -44,7 +44,7 @@ RUN apt-get update && apt-get install -y --fix-missing \
     libgbm1 \
     libasound2 \
     fonts-liberation \
-    libu2f-udev \
+    libu2f-udev
 
 RUN sed -i 's/^CHROMIUM_FLAGS=""/CHROMIUM_FLAGS="--no-sandbox"/' /usr/bin/chromium
 
