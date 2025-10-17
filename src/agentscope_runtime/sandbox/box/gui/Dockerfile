@@ -46,6 +46,8 @@ RUN apt-get update && apt-get install -y --fix-missing \
     fonts-liberation \
     libu2f-udev
 
+RUN sed -i 's/^CHROMIUM_FLAGS=""/CHROMIUM_FLAGS="--no-sandbox"/' /usr/bin/chromium
+
 WORKDIR /agentscope_runtime
 RUN python3 -m venv venv
 ENV PATH="/agentscope_runtime/venv/bin:$PATH"
