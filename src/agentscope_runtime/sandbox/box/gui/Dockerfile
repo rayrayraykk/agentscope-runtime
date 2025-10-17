@@ -62,6 +62,7 @@ RUN pip install -r requirements.txt
 WORKDIR ${WORKSPACE_DIR}
 RUN mv /agentscope_runtime/config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN mv /agentscope_runtime/config/nginx.conf.template /etc/nginx/nginx.conf.template
+RUN mv /agentscope_runtime/vnc_relay.html /usr/share/novnc/vnc_relay.html
 RUN git init \
     && chmod +x /agentscope_runtime/scripts/start.sh
 

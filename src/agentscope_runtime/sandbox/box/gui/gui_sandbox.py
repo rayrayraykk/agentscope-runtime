@@ -34,9 +34,10 @@ class GuiSandbox(BaseSandbox):
         )
 
     @property
-    def novnc_url(self):
+    def desktop_url(self):
         info = self.get_info()
         path = "/vnc/vnc_lite.html"
+        remote_path = "/vnc/vnc_relay.html"
         params = {
             "password": info["runtime_token"],
         }
@@ -45,8 +46,11 @@ class GuiSandbox(BaseSandbox):
             full_url = urljoin(info["url"], path) + "?" + urlencode(params)
             return full_url
 
-        # TODO: Implement VNC in remote mode
-        raise NotImplementedError("VNC is not supported in remote mode")
+        print("self.sandbox_id: ", self.sandbox_id)
+        return (
+            f"{self.base_url}/desktop/{self.sandbox_id}{remote_path}"
+            f"?{urlencode(params)}"
+        )
 
     def computer_use(
         self,

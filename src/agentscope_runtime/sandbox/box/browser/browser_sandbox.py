@@ -50,13 +50,6 @@ class BrowserSandbox(GuiSandbox):
             sandbox_type,
         )
 
-    @property
-    def browser_ws(self):
-        if self.base_url is None:
-            # Local mode
-            return self.get_info()["front_browser_ws"]
-        return http_to_ws(f"{self.base_url}/browser/{self.sandbox_id}/cast")
-
     def browser_close(self):
         return self.call_tool("browser_close", {})
 
