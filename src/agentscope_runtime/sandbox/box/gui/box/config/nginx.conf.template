@@ -20,8 +20,8 @@ http {
         }
 
         location /vnc/ {
-            root /usr/share;
-            index novnc/vnc_lite.html;
+            root /usr/share/novnc;
+            index vnc_lite.html;
         }
 
         location /websockify {
