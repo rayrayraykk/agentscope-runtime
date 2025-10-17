@@ -46,6 +46,7 @@ class GuiSandbox(BaseSandbox):
             full_url = urljoin(info["url"], path) + "?" + urlencode(params)
             return full_url
 
+        # Should align with app.py
         return (
             f"{self.base_url}/desktop/{self.sandbox_id}{remote_path}"
             f"?{urlencode(params)}"
