@@ -23,23 +23,7 @@ http {
         location /vnc/ {
             alias /usr/share/novnc/;
             index vnc.html;
-
-            location ~* \.js$ {
-                alias /usr/share/novnc/;
-                add_header Content-Type text/javascript;
-                expires 1d;
-            }
-
-            location ~* \.mjs$ {
-                alias /usr/share/novnc/;
-                add_header Content-Type text/javascript;
-                expires 1d;
-            }
-
-            location ~* \.(css|html|png|jpg|jpeg|gif|ico|svg)$ {
-                alias /usr/share/novnc/;
-                expires 1d;
-            }
+            try_files $uri $uri/ =404;
         }
 
         location /websockify {
