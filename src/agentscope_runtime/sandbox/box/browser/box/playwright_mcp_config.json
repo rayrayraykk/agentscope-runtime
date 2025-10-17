@@ -1,6 +1,6 @@
 {
   "browser": {
-    "browserName": "webkit",
+    "browserName": "chrome",
     "contextOptions": {
       "viewport": {
         "width": 1920,

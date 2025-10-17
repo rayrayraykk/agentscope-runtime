@@ -28,6 +28,24 @@ RUN apt-get update && apt-get install -y --fix-missing \
     fonts-wqy-zenhei \
     fonts-wqy-microhei
 
+RUN apt-get update && apt-get install -y --fix-missing \
+    chromium \
+    chromium-sandbox \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxtst6 \
+    libnss3 \
+    libglib2.0-0 \
+    libdrm2 \
+    libgbm1 \
+    libasound2 \
+    fonts-liberation \
+    libu2f-udev
+
 WORKDIR /agentscope_runtime
 RUN python3 -m venv venv
 ENV PATH="/agentscope_runtime/venv/bin:$PATH"
@@ -39,9 +57,6 @@ COPY src/agentscope_runtime/sandbox/box/gui/box/ ./
 COPY src/agentscope_runtime/sandbox/box/browser/box/ ./
 
 RUN pip install -r requirements.txt
-
-RUN npm install -g playwright \
-    && playwright install --with-deps webkit
 
 WORKDIR ${WORKSPACE_DIR}
 RUN mv /agentscope_runtime/config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
