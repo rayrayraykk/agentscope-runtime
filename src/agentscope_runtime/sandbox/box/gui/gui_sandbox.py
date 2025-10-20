@@ -35,6 +35,9 @@ class GuiSandbox(BaseSandbox):
 
     @property
     def desktop_url(self):
+        if not self.manager_api.check_health(identity=self.sandbox_id):
+            raise RuntimeError(f"Sandbox {self.sandbox_id} is not healthy")
+
         info = self.get_info()
         path = "/vnc/vnc_lite.html"
         remote_path = "/vnc/vnc_relay.html"

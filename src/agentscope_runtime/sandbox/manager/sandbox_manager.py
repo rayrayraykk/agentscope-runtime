@@ -683,6 +683,12 @@ class SandboxManager:
         ).__enter__()
 
     @remote_wrapper()
+    def check_health(self, identity):
+        """List tool"""
+        client = self._establish_connection(identity)
+        return client.check_health()
+
+    @remote_wrapper()
     def list_tools(self, identity, tool_type=None, **kwargs):
         """List tool"""
         client = self._establish_connection(identity)
