@@ -354,8 +354,8 @@ COPY src/agentscope_runtime/sandbox/box/shared/app.py ./
 COPY src/agentscope_runtime/sandbox/box/shared/routers/ ./routers/
 COPY src/agentscope_runtime/sandbox/box/shared/dependencies/ ./dependencies/
 COPY src/agentscope_runtime/sandbox/box/shared/artifacts/ ./ext_services/artifacts/
-COPY src/agentscope_runtime/sandbox/box/shared/third_party/markdownify-mcp/ ./mcp_project/markdownify-mcp/
-COPY src/agentscope_runtime/sandbox/box/shared/third_party/steel-browser/ ./ext_services/steel-browser/
+COPY examples/custom_sandbox/box/third_party/markdownify-mcp/ ./mcp_project/markdownify-mcp/
+COPY examples/custom_sandbox/box/third_party/steel-browser/ ./ext_services/steel-browser/
 COPY examples/custom_sandbox/custom_sandbox/box/ ./
 
 RUN pip install -r requirements.txt
@@ -438,10 +438,13 @@ runtime-sandbox-builder all
 # Build base image (~1Gb)
 runtime-sandbox-builder base
 
-# Build browser image (~2.6Gb)
+# Build gui image (~2Gb)
+runtime-sandbox-builder gui
+
+# Build browser image (~2Gb)
 runtime-sandbox-builder browser
 
-# Build filesystem image (~1Gb)
+# Build filesystem image (~2Gb)
 runtime-sandbox-builder filesystem
 ```
 The above commands are useful when you want to:
