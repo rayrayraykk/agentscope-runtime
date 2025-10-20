@@ -144,22 +144,76 @@ asyncio.run(main())
 
 ### 基本沙盒使用示例
 
-此示例演示如何创建沙盒并在沙盒中执行工具。
-
-```python
-from agentscope_runtime.sandbox import BaseSandbox
-
-with BaseSandbox() as box:
-    # 默认会从DockerHub拉取`agentscope/runtime-sandbox-base:latest`
-    print(box.run_ipython_cell(code="print('你好')"))
-    print(box.run_shell_command(command="echo hello"))
-```
+这些示例演示了如何创建沙箱环境并在其中执行工具，部分示例提供前端可交互页面（通过VNC，即Virtual Network Computing技术实现）
 
 > [!NOTE]
 >
 > 当前版本需要安装并运行Docker或者Kubernetes，未来我们将提供更多公有云部署选项。请参考[此教程](https://runtime.agentscope.io/zh/sandbox.html)了解更多详情。
 >
 > 如果您计划在生产中大规模使用沙箱，推荐直接在阿里云中进行托管部署：[在阿里云一键部署沙箱](https://computenest.console.aliyun.com/service/instance/create/default?ServiceName=AgentScope%20Runtime%20%E6%B2%99%E7%AE%B1%E7%8E%AF%E5%A2%83)
+
+#### 基础沙箱（Base Sandbox）
+
+用于在隔离环境中运行 **Python 代码** 或 **Shell 命令**。
+
+```python
+from agentscope_runtime.sandbox import BaseSandbox
+
+with BaseSandbox() as box:
+    # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-base:latest` 镜像
+    print(box.run_ipython_cell(code="print('hi')"))
+    print(box.run_shell_command(command="echo hello"))
+    input("按 Enter 键继续...")
+```
+
+#### GUI 沙箱 （GUI Sandbox）
+
+提供**可视化桌面环境**，可执行鼠标、键盘以及屏幕相关操作。
+
+<img src="https://img.alicdn.com/imgextra/i2/O1CN01df5SaM1xKFQP4KGBW_!!6000000006424-2-tps-2958-1802.png" alt="GUI Sandbox" width="800" height="500">
+
+```python
+from agentscope_runtime.sandbox import GuiSandbox
+
+with GuiSandbox() as box:
+    # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-gui:latest` 镜像
+    print(box.desktop_url)  # 桌面访问链接
+    print(box.computer_use(action="get_cursor_position"))  # 获取鼠标位置
+    print(box.computer_use(action="get_screenshot"))       # 获取屏幕截图
+    input("按 Enter 键继续...")
+```
+
+#### 浏览器沙箱（Browser Sandbox）
+
+基于 GUI 的沙箱，可进行浏览器操作。
+
+<img src="https://img.alicdn.com/imgextra/i4/O1CN01OIq1dD1gAJMcm0RFR_!!6000000004101-2-tps-2734-1684.png" alt="GUI Sandbox" width="800" height="500">
+
+```python
+from agentscope_runtime.sandbox import BrowserSandbox
+
+with BrowserSandbox() as box:
+    # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-browser:latest` 镜像
+    print(box.desktop_url)  # 浏览器桌面访问链接
+    box.browser_navigate("https://www.google.com/")  # 打开网页
+    input("按 Enter 键继续...")
+```
+
+#### Filesystem Sandbox
+
+基于 GUI 的隔离沙箱，可进行文件系统操作，如创建、读取和删除文件。
+
+<img src="https://img.alicdn.com/imgextra/i3/O1CN01VocM961vK85gWbJIy_!!6000000006153-2-tps-2730-1686.png" alt="GUI Sandbox" width="800" height="500">
+
+```python
+from agentscope_runtime.sandbox import FilesystemSandbox
+
+with FilesystemSandbox() as box:
+    # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-gui:latest` 镜像
+    print(sandbox.desktop_url)  # 桌面访问链接
+    box.create_directory("test")  # 创建目录
+    input("按 Enter 键继续...")
+```
 
 #### 配置沙箱镜像的 Registry（镜像仓库）、Namespace（命名空间）和 Tag（标签）
 

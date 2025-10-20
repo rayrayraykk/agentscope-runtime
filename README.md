@@ -147,22 +147,77 @@ asyncio.run(main())
 
 ### Basic Sandbox Usage Example
 
-This example demonstrates how to create sandboxed and execute tool within the sandbox.
-
-```python
-from agentscope_runtime.sandbox import BaseSandbox
-
-with BaseSandbox() as box:
-    # By default, pulls `agentscope/runtime-sandbox-base:latest` from DockerHub
-    print(box.run_ipython_cell(code="print('hi')"))
-    print(box.run_shell_command(command="echo hello"))
-```
+These examples demonstrate how to create sandboxed environments and execute tools within them, with some examples featuring interactive frontend interfaces accessible via VNC (Virtual Network Computing):
 
 > [!NOTE]
 >
 > Current version requires Docker or Kubernetes to be installed and running on your system. Please refer to [this tutorial](https://runtime.agentscope.io/en/sandbox.html) for more details.
 >
 > If you plan to use the sandbox on a large scale in production, we recommend deploying it directly in Alibaba Cloud for managed hosting: [One-click deploy sandbox on Alibaba Cloud](https://computenest.console.aliyun.com/service/instance/create/default?ServiceName=AgentScope%20Runtime%20%E6%B2%99%E7%AE%B1%E7%8E%AF%E5%A2%83)
+
+#### Base Sandbox
+
+Use for running **Python code** or **shell commands** in an isolated environment.
+
+```python
+from agentscope_runtime.sandbox import BaseSandbox
+
+with BaseSandbox() as box:
+    # By default, pulls `agentscope/runtime-sandbox-base:latest` from DockerHub
+    print(box.run_ipython_cell(code="print('hi')"))  # Run Python code
+    print(box.run_shell_command(command="echo hello"))  # Run shell command
+    input("Press Enter to continue...")
+```
+
+#### GUI Sandbox
+
+Provides a **virtual desktop** environment for mouse, keyboard, and screen operations.
+
+<img src="https://img.alicdn.com/imgextra/i2/O1CN01df5SaM1xKFQP4KGBW_!!6000000006424-2-tps-2958-1802.png" alt="GUI Sandbox" width="800" height="500">
+
+```python
+from agentscope_runtime.sandbox import GuiSandbox
+
+with GuiSandbox() as box:
+    # By default, pulls `agentscope/runtime-sandbox-gui:latest` from DockerHub
+    print(box.desktop_url)  # Web desktop access URL
+    print(box.computer_use(action="get_cursor_position"))  # Get mouse cursor position
+    print(box.computer_use(action="get_screenshot"))       # Capture screenshot
+    input("Press Enter to continue...")
+```
+
+#### Browser Sandbox
+
+A GUI-based sandbox with **browser operations** inside an isolated sandbox.
+
+<img src="https://img.alicdn.com/imgextra/i4/O1CN01OIq1dD1gAJMcm0RFR_!!6000000004101-2-tps-2734-1684.png" alt="GUI Sandbox" width="800" height="500">
+
+```python
+from agentscope_runtime.sandbox import BrowserSandbox
+
+with BrowserSandbox() as box:
+    # By default, pulls `agentscope/runtime-sandbox-browser:latest` from DockerHub
+    print(box.desktop_url)  # Web desktop access URL
+    box.browser_navigate("https://www.google.com/")  # Open a webpage
+    input("Press Enter to continue...")
+```
+
+#### Filesystem Sandbox
+
+A GUI-based sandbox with **file system operations** such as creating, reading, and deleting files.
+
+<img src="https://img.alicdn.com/imgextra/i3/O1CN01VocM961vK85gWbJIy_!!6000000006153-2-tps-2730-1686.png" alt="GUI Sandbox" width="800" height="500">
+
+```python
+from agentscope_runtime.sandbox import FilesystemSandbox
+
+with FilesystemSandbox() as box:
+    # By default, pulls `agentscope/runtime-sandbox-gui:latest` from DockerHub
+    print(sandbox.desktop_url)  # Web desktop access URL
+    box.create_directory("test")  # Create a directory
+    input("Press Enter to continue...")
+```
+
 #### Configuring Sandbox Image Registry, Namespace, and Tag
 
 If pulling the Docker image from DockerHub fails (for example, due to network restrictions), you can change the source registry to the Alibaba Cloud container registry for faster access:
