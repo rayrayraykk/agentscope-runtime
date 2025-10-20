@@ -60,6 +60,9 @@ All Docker images are hosted on Alibaba Cloud Container Registry (ACR) for optim
 # Base image
 docker pull agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-base:latest && docker tag agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-base:latest agentscope/runtime-sandbox-base:latest
 
+# GUI image
+docker pull agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-gui:latest && docker tag agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-gui:latest agentscope/runtime-sandbox-gui:latest
+
 # Filesystem image
 docker pull agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-filesystem:latest && docker tag agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-filesystem:latest agentscope/runtime-sandbox-filesystem:latest
 
@@ -74,6 +77,7 @@ Choose the images based on your specific needs:
 | Image                | Purpose                               | When to Use                                                  |
 | -------------------- | ------------------------------------- | ------------------------------------------------------------ |
 | **Base Image**       | Python code execution, shell commands | Essential for basic tool execution                           |
+| **GUI Image**        | Computer Use                          | When you need a graph UI                                     |
 | **Filesystem Image** | File system operations                | When you need file read/write/management                     |
 | **Browser Image**    | Web browser automation                | When you need web scraping or browser control                |
 | **Training Image**   | Training and evaluating agent         | Used for training and evaluating agent on some benchmark (see {doc}`training_sandbox` for details) |
@@ -267,6 +271,18 @@ with BaseSandbox() as box:
     print(box.run_shell_command(command="echo hello"))
 ```
 
+* **GuiSandbox**: GUI sandbox for computer use.
+
+```{code-cell}
+from agentscope_runtime.sandbox import GuiSandbox
+
+# Create a base sandbox
+with GuiSandbox() as box:
+    print(box.list_tools())
+    print(box.computer_use(action="get_cursor_position"))
+    print(box.computer_use(action="get_screenshot"))
+```
+
 * **FilesystemSandbox**: Sandbox with file system operations support.
 
 ```{code-cell}
@@ -279,7 +295,7 @@ with FilesystemSandbox() as box:
     print(box.list_allowed_directories())
 ```
 
-* **BrowserSandbox**: Sandbox for web automation and browser control powered by [Steel Browser](https://github.com/steel-dev/steel-browser).
+* **BrowserSandbox**: Sandbox for web operations and browser control.
 
 ```{code-cell}
 from agentscope_runtime.sandbox import BrowserSandbox
@@ -291,7 +307,7 @@ with BrowserSandbox() as box:
     print(box.browser_snapshot())
 ```
 
-* **TrainingSandbox**: Sandbox for training and evaluation，please refer to {doc}`training_sandbox` for details。
+* **TrainingSandbox**: Sandbox for training and evaluation，please refer to {doc}`training_sandbox` for details.
 
 ```{code-cell}
 from agentscope_runtime.sandbox import TrainingSandbox
@@ -396,51 +412,53 @@ The `runtime-sandbox-mcp` command accepts the following arguments:
 
 | Argument         | Values                            | Description                                                  |
 | ---------------- | --------------------------------- | ------------------------------------------------------------ |
-| `--type`         | `base` | `browser` | `filesystem` | Sandbox type to run. `base` for Python/shell, `browser` for browser automation, `filesystem` for file operations. |
+| `--type`         | `base`, `gui`, `browser`, `filesystem` | Type of sandbox |
 | `--base_url`     | URL string                        | Base URL of a remote sandbox service. Leave empty to run locally. |
 | `--bearer_token` | String token                      | Optional authentication token for secure access.             |
 
 ## Tool List
 
 * Base Tools (Available in all sandbox types)
+* Computer-use Tool (Available in `GuiSandbox`)
 * Browser Tools (Available in `BrowserSandbox`)
 * Filesystem Tools (Available in `FilesystemSandbox`)
 
-| Category             | Tool Name                                                    | Description                                        |
-| -------------------- | ------------------------------------------------------------ | -------------------------------------------------- |
-| **Base Tools**       | `run_ipython_cell(code: str)`                                | Execute Python code in an IPython environment      |
-|                      | `run_shell_command(command: str)`                            | Execute shell commands in the sandbox              |
-| **Filesystem Tools** | `read_file(path: str)`                                       | Read the complete contents of a file               |
-|                      | `read_multiple_files(paths: list)`                           | Read multiple files simultaneously                 |
-|                      | `write_file(path: str, content: str)`                        | Create or overwrite a file with content            |
-|                      | `edit_file(path: str, edits: list, dryRun: bool)`            | Make line-based edits to a text file               |
-|                      | `create_directory(path: str)`                                | Create a new directory                             |
-|                      | `list_directory(path: str)`                                  | List all files and directories in a path           |
-|                      | `directory_tree(path: str)`                                  | Get recursive tree view of directory structure     |
-|                      | `move_file(source: str, destination: str)`                   | Move or rename files and directories               |
-|                      | `search_files(path: str, pattern: str, excludePatterns: list)` | Search for files matching a pattern                |
-|                      | `get_file_info(path: str)`                                   | Get detailed metadata about a file or directory    |
-|                      | `list_allowed_directories()`                                 | List directories the server can access             |
-| **Browser Tools**    | `browser_navigate(url: str)`                                 | Navigate to a specific URL                         |
-|                      | `browser_navigate_back()`                                    | Go back to the previous page                       |
-|                      | `browser_navigate_forward()`                                 | Go forward to the next page                        |
-|                      | `browser_close()`                                            | Close the current browser page                     |
-|                      | `browser_resize(width: int, height: int)`                    | Resize the browser window                          |
-|                      | `browser_click(element: str, ref: str)`                      | Click on a web element                             |
-|                      | `browser_type(element: str, ref: str, text: str, submit: bool)` | Type text into an input field                      |
-|                      | `browser_hover(element: str, ref: str)`                      | Hover over a web element                           |
-|                      | `browser_drag(startElement: str, startRef: str, endElement: str, endRef: str)` | Drag and drop between elements                     |
-|                      | `browser_select_option(element: str, ref: str, values: list)` | Select options in a dropdown                       |
-|                      | `browser_press_key(key: str)`                                | Press a keyboard key                               |
-|                      | `browser_file_upload(paths: list)`                           | Upload files to the page                           |
-|                      | `browser_snapshot()`                                         | Capture accessibility snapshot of the current page |
-|                      | `browser_take_screenshot(raw: bool, filename: str, element: str, ref: str)` | Take a screenshot of the page or element           |
-|                      | `browser_pdf_save(filename: str)`                            | Save the current page as PDF                       |
-|                      | `browser_tab_list()`                                         | List all open browser tabs                         |
-|                      | `browser_tab_new(url: str)`                                  | Open a new tab                                     |
-|                      | `browser_tab_select(index: int)`                             | Switch to a specific tab                           |
-|                      | `browser_tab_close(index: int)`                              | Close a tab (current tab if index not specified)   |
-|                      | `browser_wait_for(time: int, text: str, textGone: str)`      | Wait for conditions or time to pass                |
-|                      | `browser_console_messages()`                                 | Get all console messages from the page             |
-|                      | `browser_network_requests()`                                 | Get all network requests since page load           |
-|                      | `browser_handle_dialog(accept: bool, promptText: str)`       | Handle browser dialogs (alert, confirm, prompt)    |
+| Category               | Tool Name                                                    | Description                                                  |
+| ---------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **Base Tools**         | `run_ipython_cell(code: str)`                                | Execute Python code in an IPython environment                |
+|                        | `run_shell_command(command: str)`                            | Execute shell commands in the sandbox                        |
+| **Filesystem Tools**   | `read_file(path: str)`                                       | Read the complete contents of a file                         |
+|                        | `read_multiple_files(paths: list)`                           | Read multiple files simultaneously                           |
+|                        | `write_file(path: str, content: str)`                        | Create or overwrite a file with content                      |
+|                        | `edit_file(path: str, edits: list, dryRun: bool)`            | Make line-based edits to a text file                         |
+|                        | `create_directory(path: str)`                                | Create a new directory                                       |
+|                        | `list_directory(path: str)`                                  | List all files and directories in a path                     |
+|                        | `directory_tree(path: str)`                                  | Get recursive tree view of directory structure               |
+|                        | `move_file(source: str, destination: str)`                   | Move or rename files and directories                         |
+|                        | `search_files(path: str, pattern: str, excludePatterns: list)` | Search for files matching a pattern                          |
+|                        | `get_file_info(path: str)`                                   | Get detailed metadata about a file or directory              |
+|                        | `list_allowed_directories()`                                 | List directories the server can access                       |
+| **Browser Tools**      | `browser_navigate(url: str)`                                 | Navigate to a specific URL                                   |
+|                        | `browser_navigate_back()`                                    | Go back to the previous page                                 |
+|                        | `browser_navigate_forward()`                                 | Go forward to the next page                                  |
+|                        | `browser_close()`                                            | Close the current browser page                               |
+|                        | `browser_resize(width: int, height: int)`                    | Resize the browser window                                    |
+|                        | `browser_click(element: str, ref: str)`                      | Click on a web element                                       |
+|                        | `browser_type(element: str, ref: str, text: str, submit: bool)` | Type text into an input field                                |
+|                        | `browser_hover(element: str, ref: str)`                      | Hover over a web element                                     |
+|                        | `browser_drag(startElement: str, startRef: str, endElement: str, endRef: str)` | Drag and drop between elements                               |
+|                        | `browser_select_option(element: str, ref: str, values: list)` | Select options in a dropdown                                 |
+|                        | `browser_press_key(key: str)`                                | Press a keyboard key                                         |
+|                        | `browser_file_upload(paths: list)`                           | Upload files to the page                                     |
+|                        | `browser_snapshot()`                                         | Capture accessibility snapshot of the current page           |
+|                        | `browser_take_screenshot(raw: bool, filename: str, element: str, ref: str)` | Take a screenshot of the page or element                     |
+|                        | `browser_pdf_save(filename: str)`                            | Save the current page as PDF                                 |
+|                        | `browser_tab_list()`                                         | List all open browser tabs                                   |
+|                        | `browser_tab_new(url: str)`                                  | Open a new tab                                               |
+|                        | `browser_tab_select(index: int)`                             | Switch to a specific tab                                     |
+|                        | `browser_tab_close(index: int)`                              | Close a tab (current tab if index not specified)             |
+|                        | `browser_wait_for(time: int, text: str, textGone: str)`      | Wait for conditions or time to pass                          |
+|                        | `browser_console_messages()`                                 | Get all console messages from the page                       |
+|                        | `browser_network_requests()`                                 | Get all network requests since page load                     |
+|                        | `browser_handle_dialog(accept: bool, promptText: str)`       | Handle browser dialogs (alert, confirm, prompt)              |
+| **Computer Use Tools** | `computer_use(action: str, coordinate: list, text: str)`     | Use a mouse and keyboard to interact with a desktop GUI, supporting actions like moving the cursor, clicking, typing, and taking screenshots |

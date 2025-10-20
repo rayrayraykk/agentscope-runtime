@@ -60,6 +60,9 @@ pip install agentscope-runtime
 # 基础镜像
 docker pull agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-base:latest && docker tag agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-base:latest agentscope/runtime-sandbox-base:latest
 
+# GUI镜像
+docker pull agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-gui:latest && docker tag agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-gui:latest agentscope/runtime-sandbox-gui:latest
+
 # 文件系统镜像
 docker pull agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-filesystem:latest && docker tag agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-filesystem:latest agentscope/runtime-sandbox-filesystem:latest
 
@@ -74,6 +77,7 @@ docker pull agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtim
 | Image                | Purpose                   | When to Use                                                  |
 | -------------------- | ------------------------- | ------------------------------------------------------------ |
 | **Base Image**       | Python代码执行，shell命令 | 基本工具执行必需                                             |
+| **GUI Image**        | 计算机操作                | 当你需要图形操作页面时                                       |
 | **Filesystem Image** | 文件系统操作              | 当您需要文件读取/写入/管理时                                 |
 | **Browser Image**    | Web浏览器自动化           | 当您需要网络爬取或浏览器控制时                               |
 | **Training Image**   | 训练和评估智能体          | 当你需要在某些基准数据集上训练和评估智能体时 （详情请参考 {doc}`training_sandbox` ） |
@@ -257,7 +261,7 @@ bound_tool = original_tool.bind(sandbox=my_sandbox)
 
 您可以通过`sandbox` SDK创建不同类型的沙箱：
 
-* **BaseSandbox**: 用于Python代码执行和shell命令的基础沙箱。
+* **BaseSandbox**：用于Python代码执行和shell命令的基础沙箱。
 
 ```{code-cell}
 from agentscope_runtime.sandbox import BaseSandbox
@@ -269,7 +273,19 @@ with BaseSandbox() as box:
     print(box.run_shell_command(command="echo hello"))
 ```
 
-* **FilesystemSandbox**: 支持文件系统操作的沙箱。
+* **GuiSandbox**： 用于计算机的图形界面沙盒。
+
+```{code-cell}
+from agentscope_runtime.sandbox import GuiSandbox
+
+# Create a base sandbox
+with GuiSandbox() as box:
+    print(box.list_tools())
+    print(box.computer_use(action="get_cursor_position"))
+    print(box.computer_use(action="get_screenshot"))
+```
+
+* **FilesystemSandbox**：支持文件系统操作的沙箱。
 
 ```{code-cell}
 from agentscope_runtime.sandbox import FilesystemSandbox
@@ -281,7 +297,7 @@ with FilesystemSandbox() as box:
     print(box.list_allowed_directories())
 ```
 
-* **BrowserSandbox**: 由[Steel浏览器](https://github.com/steel-dev/steel-browser)驱动用于Web自动化和浏览器控制的沙箱。
+* **BrowserSandbox**: 用于Web操作和浏览器控制的沙箱。
 
 ```{code-cell}
 from agentscope_runtime.sandbox import BrowserSandbox
@@ -293,7 +309,7 @@ with BrowserSandbox() as box:
     print(box.browser_snapshot())
 ```
 
-* **TrainingSandbox**: 训练评估沙箱，详情请参考：{doc}`training_sandbox`。
+* **TrainingSandbox**：训练评估沙箱，详情请参考：{doc}`training_sandbox`。
 
 ```{code-cell}
 from agentscope_runtime.sandbox import TrainingSandbox
@@ -398,51 +414,53 @@ with BaseSandbox(base_url="http://your_IP_address:8000") as box:
 
 | 参数             | 取值范围                          | 描述                                                         |
 | ---------------- | --------------------------------- | ------------------------------------------------------------ |
-| `--type`         | `base` | `browser` | `filesystem` | 要运行的沙箱类型：`base` 适用于 Python/终端执行，`browser` 适用于浏览器操作，`filesystem` 适用于文件系统操作。 |
+| `--type`         | `base`, `gui`, `browser`, `filesystem` | 沙箱种类 |
 | `--base_url`     | URL 字符串                        | 远程 Sandbox 服务的基础 URL。不填写则在本地运行。            |
 | `--bearer_token` | 字符串令牌                        | （可选）安全访问的身份认证令牌。                             |
 
 ## 工具列表
 
 * 基础工具（在所有沙箱类型中可用）
+* 计算机操作工具（在`GuiSandbox`中可用）
 * 文件系统工具（在`FilesystemSandbox`中可用）
 * 浏览器工具（在`BrowserSandbox`中可用）
 
-| 分类             | 工具名称                                                     | 描述                                         |
-| ---------------- | ------------------------------------------------------------ | -------------------------------------------- |
-| **基础工具**     | `run_ipython_cell(code: str)`                                | 在IPython环境中执行Python代码                |
-|                  | `run_shell_command(command: str)`                            | 在沙箱中执行shell命令                        |
-| **文件系统工具** | `read_file(path: str)`                                       | 读取文件的完整内容                           |
-|                  | `read_multiple_files(paths: list)`                           | 同时读取多个文件                             |
-|                  | `write_file(path: str, content: str)`                        | 创建或覆盖文件内容                           |
-|                  | `edit_file(path: str, edits: list,dryRun: bool)`             | 对文本文件进行基于行的编辑                   |
-|                  | `create_directory(path: str)`                                | 创建新目录                                   |
-|                  | `list_directory(path: str)`                                  | 列出路径中的所有文件和目录                   |
-|                  | `directory_tree(path: str)`                                  | 获取目录结构的递归树视图                     |
-|                  | `move_file(source: str, destination: str)`                   | 移动或重命名文件和目录                       |
-|                  | `search_files(path: str, pattern: str, excludePatterns: list)` | 搜索匹配模式的文件                           |
-|                  | `get_file_info(path: str)`                                   | 获取文件或目录的详细元数据                   |
-|                  | `list_allowed_directories()`                                 | 列出服务器可以访问的目录                     |
-| **浏览器工具**   | `browser_navigate(url: str)`                                 | 导航到特定URL                                |
-|                  | `browser_navigate_back()`                                    | 返回到上一页                                 |
-|                  | `browser_navigate_forward()`                                 | 前进到下一页                                 |
-|                  | `browser_close()`                                            | 关闭当前浏览器页面                           |
-|                  | `browser_resize(width: int, height: int)`                    | 调整浏览器窗口大小                           |
-|                  | `browser_click(element: str, ref: str)`                      | 点击Web元素                                  |
-|                  | `browser_type(element: str, ref: str, text: str, submit: bool)` | 在输入框中输入文本                           |
-|                  | `browser_hover(element: str, ref: str)`                      | 悬停在Web元素上                              |
-|                  | `browser_drag(startElement: str, startRef: str, endElement: str, endRef: str)` | 在元素之间拖拽                               |
-|                  | `browser_select_option(element: str, ref: str, values: list)` | 在下拉菜单中选择选项                         |
-|                  | `browser_press_key(key: str)`                                | 按键盘按键                                   |
-|                  | `browser_file_upload(paths: list)`                           | 上传文件到页面                               |
-|                  | `browser_snapshot()`                                         | 捕获当前页面的可访问性快照                   |
-|                  | `browser_take_screenshot(raw: bool, filename: str, element: str, ref: str)` | 截取页面或元素的屏幕快照                     |
-|                  | `browser_pdf_save(filename: str)`                            | 将当前页面保存为PDF                          |
-|                  | `browser_tab_list()`                                         | 列出所有打开的浏览器标签页                   |
-|                  | `browser_tab_new(url: str)`                                  | 打开新标签页                                 |
-|                  | `browser_tab_select(index: int)`                             | 切换到特定标签页                             |
-|                  | `browser_tab_close(index: int)`                              | 关闭标签页（如果未指定索引则关闭当前标签页） |
-|                  | `browser_wait_for(time: int, text: str, textGone: str)`      | 等待条件或时间流逝                           |
-|                  | `browser_console_messages()`                                 | 获取页面的所有控制台消息                     |
-|                  | `browser_network_requests()`                                 | 获取页面加载以来的所有网络请求               |
-|                  | `browser_handle_dialog(accept: bool, promptText: str)`       | 处理浏览器对话框（警告、确认、提示）         |
+| 分类               | 工具名称                                                     | 描述                                                         |
+| ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **基础工具**       | `run_ipython_cell(code: str)`                                | 在IPython环境中执行Python代码                                |
+|                    | `run_shell_command(command: str)`                            | 在沙箱中执行shell命令                                        |
+| **文件系统工具**   | `read_file(path: str)`                                       | 读取文件的完整内容                                           |
+|                    | `read_multiple_files(paths: list)`                           | 同时读取多个文件                                             |
+|                    | `write_file(path: str, content: str)`                        | 创建或覆盖文件内容                                           |
+|                    | `edit_file(path: str, edits: list,dryRun: bool)`             | 对文本文件进行基于行的编辑                                   |
+|                    | `create_directory(path: str)`                                | 创建新目录                                                   |
+|                    | `list_directory(path: str)`                                  | 列出路径中的所有文件和目录                                   |
+|                    | `directory_tree(path: str)`                                  | 获取目录结构的递归树视图                                     |
+|                    | `move_file(source: str, destination: str)`                   | 移动或重命名文件和目录                                       |
+|                    | `search_files(path: str, pattern: str, excludePatterns: list)` | 搜索匹配模式的文件                                           |
+|                    | `get_file_info(path: str)`                                   | 获取文件或目录的详细元数据                                   |
+|                    | `list_allowed_directories()`                                 | 列出服务器可以访问的目录                                     |
+| **浏览器工具**     | `browser_navigate(url: str)`                                 | 导航到特定URL                                                |
+|                    | `browser_navigate_back()`                                    | 返回到上一页                                                 |
+|                    | `browser_navigate_forward()`                                 | 前进到下一页                                                 |
+|                    | `browser_close()`                                            | 关闭当前浏览器页面                                           |
+|                    | `browser_resize(width: int, height: int)`                    | 调整浏览器窗口大小                                           |
+|                    | `browser_click(element: str, ref: str)`                      | 点击Web元素                                                  |
+|                    | `browser_type(element: str, ref: str, text: str, submit: bool)` | 在输入框中输入文本                                           |
+|                    | `browser_hover(element: str, ref: str)`                      | 悬停在Web元素上                                              |
+|                    | `browser_drag(startElement: str, startRef: str, endElement: str, endRef: str)` | 在元素之间拖拽                                               |
+|                    | `browser_select_option(element: str, ref: str, values: list)` | 在下拉菜单中选择选项                                         |
+|                    | `browser_press_key(key: str)`                                | 按键盘按键                                                   |
+|                    | `browser_file_upload(paths: list)`                           | 上传文件到页面                                               |
+|                    | `browser_snapshot()`                                         | 捕获当前页面的可访问性快照                                   |
+|                    | `browser_take_screenshot(raw: bool, filename: str, element: str, ref: str)` | 截取页面或元素的屏幕快照                                     |
+|                    | `browser_pdf_save(filename: str)`                            | 将当前页面保存为PDF                                          |
+|                    | `browser_tab_list()`                                         | 列出所有打开的浏览器标签页                                   |
+|                    | `browser_tab_new(url: str)`                                  | 打开新标签页                                                 |
+|                    | `browser_tab_select(index: int)`                             | 切换到特定标签页                                             |
+|                    | `browser_tab_close(index: int)`                              | 关闭标签页（如果未指定索引则关闭当前标签页）                 |
+|                    | `browser_wait_for(time: int, text: str, textGone: str)`      | 等待条件或时间流逝                                           |
+|                    | `browser_console_messages()`                                 | 获取页面的所有控制台消息                                     |
+|                    | `browser_network_requests()`                                 | 获取页面加载以来的所有网络请求                               |
+|                    | `browser_handle_dialog(accept: bool, promptText: str)`       | 处理浏览器对话框（警告、确认、提示）                         |
+| **计算机操作工具** | `computer_use(action: str, coordinate: list, text: str)`     | 使用鼠标和键盘与桌面 GUI 互动，支持以下操作：移动光标、点击、输入文字以及截图 |
