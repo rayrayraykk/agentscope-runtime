@@ -150,15 +150,21 @@ def create_endpoint(method):
             logger.info(
                 f"Calling {method.__name__} with data: {data}",
             )
-            result = method(**data)
+
+            # Check if the method is asynchronous
+            if inspect.iscoroutinefunction(method):
+                # If async, just await it
+                result = await method(**data)
+            else:
+                # If sync, run it in a thread to avoid blocking the event loop
+                result = await asyncio.to_thread(method, **data)
+
             if hasattr(result, "model_dump_json"):
                 return JSONResponse(content={"data": result.model_dump_json()})
             return JSONResponse(content={"data": result})
+
         except Exception as e:
-            error = (
-                f"Error in {method.__name__}: {str(e)},"
-                # f" {traceback.format_exc()}"
-            )
+            error = f"Error in {method.__name__}: {str(e)},"
             logger.error(error)
             raise HTTPException(status_code=500, detail=error) from e
 
