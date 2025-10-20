@@ -153,6 +153,7 @@ This example demonstrates how to create sandboxed and execute tool within the sa
 from agentscope_runtime.sandbox import BaseSandbox
 
 with BaseSandbox() as box:
+    # By default, pulls `agentscope/runtime-sandbox-base:latest` from DockerHub
     print(box.run_ipython_cell(code="print('hi')"))
     print(box.run_shell_command(command="echo hello"))
 ```
@@ -161,10 +162,34 @@ with BaseSandbox() as box:
 >
 > Current version requires Docker or Kubernetes to be installed and running on your system. Please refer to [this tutorial](https://runtime.agentscope.io/en/sandbox.html) for more details.
 >
-> If pulling the Docker image fails, try setting:
-> `export RUNTIME_SANDBOX_REGISTRY="agentscope-registry.ap-southeast-1.cr.aliyuncs.com"`
->
 > If you plan to use the sandbox on a large scale in production, we recommend deploying it directly in Alibaba Cloud for managed hosting: [One-click deploy sandbox on Alibaba Cloud](https://computenest.console.aliyun.com/service/instance/create/default?ServiceName=AgentScope%20Runtime%20%E6%B2%99%E7%AE%B1%E7%8E%AF%E5%A2%83)
+#### Configuring Sandbox Image Registry, Namespace, and Tag
+
+If pulling the Docker image from DockerHub fails (for example, due to network restrictions), you can change the source registry to the Alibaba Cloud container registry for faster access:
+
+```bash
+export RUNTIME_SANDBOX_REGISTRY="agentscope-registry.ap-southeast-1.cr.aliyuncs.com"
+```
+
+You can also customize the **image namespace** and **image tag** via environment variables:
+
+```bash
+export RUNTIME_SANDBOX_IMAGE_NAMESPACE="myteam"
+export RUNTIME_SANDBOX_IMAGE_TAG="20251020"
+```
+
+This will make the sandbox SDK pull:
+
+```bash
+<RUNTIME_SANDBOX_REGISTRY>/<RUNTIME_SANDBOX_IMAGE_NAMESPACE>/runtime-sandbox-base:<RUNTIME_SANDBOX_IMAGE_TAG>
+```
+
+Example:
+
+```bash
+agentscope-registry.ap-southeast-1.cr.aliyuncs.com/myteam/runtime-sandbox-base:20251020
+```
+
 ---
 
 ## 📚 Cookbook

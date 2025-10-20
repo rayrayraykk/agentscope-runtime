@@ -150,6 +150,7 @@ asyncio.run(main())
 from agentscope_runtime.sandbox import BaseSandbox
 
 with BaseSandbox() as box:
+    # 默认会从DockerHub拉取`agentscope/runtime-sandbox-base:latest`
     print(box.run_ipython_cell(code="print('你好')"))
     print(box.run_shell_command(command="echo hello"))
 ```
@@ -158,11 +159,34 @@ with BaseSandbox() as box:
 >
 > 当前版本需要安装并运行Docker或者Kubernetes，未来我们将提供更多公有云部署选项。请参考[此教程](https://runtime.agentscope.io/zh/sandbox.html)了解更多详情。
 >
-> 如果镜像拉取失败，可以尝试设置：
-> `export RUNTIME_SANDBOX_REGISTRY="agentscope-registry.ap-southeast-1.cr.aliyuncs.com"`
->
 > 如果您计划在生产中大规模使用沙箱，推荐直接在阿里云中进行托管部署：[在阿里云一键部署沙箱](https://computenest.console.aliyun.com/service/instance/create/default?ServiceName=AgentScope%20Runtime%20%E6%B2%99%E7%AE%B1%E7%8E%AF%E5%A2%83)
->
+
+#### 配置沙箱镜像的 Registry（镜像仓库）、Namespace（命名空间）和 Tag（标签）
+
+如果从 DockerHub 拉取镜像失败（例如由于网络限制），你可以将镜像源切换为阿里云容器镜像服务，以获得更快的访问速度：
+
+```bash
+export RUNTIME_SANDBOX_REGISTRY="agentscope-registry.ap-southeast-1.cr.aliyuncs.com"
+```
+
+你也可以通过环境变量自定义 **镜像命名空间（Namespace）** 和 **镜像标签（Tag）**：
+
+```bash
+export RUNTIME_SANDBOX_IMAGE_NAMESPACE="myteam"
+export RUNTIME_SANDBOX_IMAGE_TAG="20251020"
+```
+
+这样沙箱SDK将会拉取以下镜像：
+
+```bash
+<RUNTIME_SANDBOX_REGISTRY>/<RUNTIME_SANDBOX_IMAGE_NAMESPACE>/runtime-sandbox-base:<RUNTIME_SANDBOX_IMAGE_TAG>
+```
+
+示例：
+
+```bash
+agentscope-registry.ap-southeast-1.cr.aliyuncs.com/myteam/runtime-sandbox-base:20251020
+```
 
 ---
 
