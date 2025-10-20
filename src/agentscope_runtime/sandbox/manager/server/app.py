@@ -164,7 +164,7 @@ def create_endpoint(method):
             return JSONResponse(content={"data": result})
 
         except Exception as e:
-            error = f"Error in {method.__name__}: {str(e)},"
+            error = f"Error in {method.__name__}: {str(e)}"
             logger.error(error)
             raise HTTPException(status_code=500, detail=error) from e
 
