@@ -355,7 +355,7 @@ COPY src/agentscope_runtime/sandbox/box/shared/dependencies/ ./dependencies/
 COPY src/agentscope_runtime/sandbox/box/shared/artifacts/ ./ext_services/artifacts/
 COPY examples/custom_sandbox/box/third_party/markdownify-mcp/ ./mcp_project/markdownify-mcp/
 COPY examples/custom_sandbox/box/third_party/steel-browser/ ./ext_services/steel-browser/
-COPY examples/custom_sandbox/custom_sandbox/box/ ./
+COPY examples/custom_sandbox/box/ ./
 
 RUN pip install -r requirements.txt
 
@@ -415,7 +415,7 @@ CMD ["/bin/sh", "-c", "envsubst '$SECRET_TOKEN' < /etc/nginx/nginx.conf.template
 准备好Dockerfile 和自定义沙箱类后，使用内置构建器工具构建您的自定义沙箱镜像：
 
 ```bash
-runtime-sandbox-builder my_custom_sandbox --dockerfile_path examples/custom_sandbox/custom_sandbox/Dockerfile --extention PATH_TO_YOUR_SANDBOX_MODULE
+runtime-sandbox-builder my_custom_sandbox --dockerfile_path examples/custom_sandbox/Dockerfile --extention PATH_TO_YOUR_SANDBOX_MODULE
 ```
 
 **命令参数：**

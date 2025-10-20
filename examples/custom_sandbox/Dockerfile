@@ -30,7 +30,7 @@ COPY src/agentscope_runtime/sandbox/box/shared/dependencies/ ./dependencies/
 COPY src/agentscope_runtime/sandbox/box/shared/artifacts/ ./ext_services/artifacts/
 COPY examples/custom_sandbox/box/third_party/markdownify-mcp/ ./mcp_project/markdownify-mcp/
 COPY examples/custom_sandbox/box/third_party/steel-browser/ ./ext_services/steel-browser/
-COPY examples/custom_sandbox/custom_sandbox/box/ ./
+COPY examples/custom_sandbox/box/ ./
 
 RUN pip install -r requirements.txt
 
