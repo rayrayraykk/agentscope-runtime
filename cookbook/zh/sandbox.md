@@ -143,31 +143,56 @@ with BaseSandbox() as sandbox:
 
 ### 将 MCP 服务器转换为工具
 
-您还可以集成外部 MCP 服务器来扩展工具。本示例演示如何使用 `MCPConfigConverter` 类将 MCP 服务器配置转换为内置工具。
+`MCPConfigConverter` 用于将外部 MCP（Model Context Protocol）服务器的配置，转换成可在 **Sandbox** 中运行的 `MCPTool`。这样可以在沙箱内调用这些外部工具，保证安全与隔离：
 
 ```{code-cell}
 from agentscope_runtime.sandbox.tools.mcp_tool import MCPConfigConverter
 
-mcp_tools = MCPConfigConverter(
-    server_configs={
-        "mcpServers": {
-            "time": {
-                "command": "uvx",
-                "args": [
-                    "mcp-server-time",
-                    "--local-timezone=America/New_York",
-                ],
-            },
+# 定义 MCP 服务器配置
+config = {
+    "mcpServers": {
+        "time": {
+            "command": "uvx",
+            "args": [
+                "mcp-server-time",
+                "--local-timezone=America/New_York",
+            ],
         },
     },
-).to_builtin_tools()
+}
+
+# 转换为可以在 Sandbox 中运行的 MCPTool 列表
+mcp_tools = MCPConfigConverter(server_configs=config).to_builtin_tools()
 
 print(mcp_tools)
 ```
 
+#### 可选参数
+
+- `sandbox`：传入已有 Sandbox 实例，工具绑定到该沙箱运行
+- `sandbox_type`：未传 `sandbox` 时指定沙箱类型（如 `"base"`、`"gui"`），自动创建临时沙箱运行工具
+- `whitelist` / `blacklist`：按工具名过滤导入的工具
+
+#### 使用不同沙箱类型注册工具
+
+```{code-cell}
+# 自动创建指定类型的沙箱并注册工具
+mcp_tools = MCPConfigConverter(server_configs=config).to_builtin_tools(
+    sandbox_type="base",
+)
+
+# 使用已有的沙箱实例注册工具
+with BaseSandbox() as sandbox:
+    mcp_tools = MCPConfigConverter(server_configs=config).to_builtin_tools(
+        sandbox=sandbox,
+    )
+```
+
+这里选择的沙箱类型会决定转换好的工具运行时依赖的沙箱类型，因此应根据实际需求选择合适的 `sandbox_type` 或具体的 `Sandbox` 实例。
+
 ### 函数工具（Function Tool）
 
-除了在沙箱环境中运行的工具，您还可以为Agent添加进程内函数作为工具。这些函数工具直接在当前 Python 进程中执行，而无需沙箱隔离，非常适合轻量级操作和计算。
+除了在沙箱环境中运行的工具，您还可以为Agent添加进程内函数作为工具。这些函数工具直接在当前 Python 进程中执行，而不会在沙箱隔离环境中运行，非常适合轻量级操作和计算。
 
 函数工具提供两种创建方法：
 

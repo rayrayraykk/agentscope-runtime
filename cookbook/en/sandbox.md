@@ -141,33 +141,58 @@ with BaseSandbox() as sandbox:
     print(func2(command="whoami"))
 ```
 
-### Convert MCP Server to Tools
+### Converting an MCP Server into a Tool
 
-You can also integrate external MCP servers to extend the tools. This example demonstrates how to convert MCP server configurations into built-in tools using the `MCPConfigConverter` class.
+`MCPConfigConverter` is used to convert an external MCP (Model Context Protocol) server configuration into an `MCPTool` that can run inside a **Sandbox**. This allows you to call these external tools safely and in isolation within the sandbox environment:
 
 ```{code-cell}
 from agentscope_runtime.sandbox.tools.mcp_tool import MCPConfigConverter
 
-mcp_tools = MCPConfigConverter(
-    server_configs={
-        "mcpServers": {
-            "time": {
-                "command": "uvx",
-                "args": [
-                    "mcp-server-time",
-                    "--local-timezone=America/New_York",
-                ],
-            },
+# Define MCP server configuration
+config = {
+    "mcpServers": {
+        "time": {
+            "command": "uvx",
+            "args": [
+                "mcp-server-time",
+                "--local-timezone=America/New_York",
+            ],
         },
     },
-).to_builtin_tools()
+}
+
+# Convert into a list of MCPTools runnable inside the Sandbox
+mcp_tools = MCPConfigConverter(server_configs=config).to_builtin_tools()
 
 print(mcp_tools)
 ```
 
+#### Optional Parameters
+
+- **`sandbox`**: Pass in an existing Sandbox instance to bind the tool to that sandbox.
+- **`sandbox_type`**: When no `sandbox` is provided, specify the sandbox type (e.g. `"base"`, `"gui"`) to automatically create a temporary sandbox for running the tool.
+- **`whitelist` / `blacklist`**: Filter imported tools by name.
+
+#### Registering Tools with Different Sandbox Types
+
+```{code-cell}
+# Automatically create a sandbox of the specified type and register tools
+mcp_tools = MCPConfigConverter(server_configs=config).to_builtin_tools(
+    sandbox_type="base",
+)
+
+# Use an existing sandbox instance to register tools
+with BaseSandbox() as sandbox:
+    mcp_tools = MCPConfigConverter(server_configs=config).to_builtin_tools(
+        sandbox=sandbox,
+    )
+```
+
+The sandbox type selected will determine the environment dependencies used by the converted tools at runtime. Therefore, you should choose the appropriate `sandbox_type` or specific `Sandbox` instance according to your actual needs.
+
 ### Function Tool
 
-Besides the tools that run in sandbox environments, you can also add in-process functions as tools for agents. These function tools execute directly within the current Python process without requiring sandbox isolation, making them suitable for lightweight operations and calculations.
+Besides the tools that run in sandbox environments, you can also add in-process functions as tools for agents. These function tools execute directly within the current Python process without running in sandbox, making them suitable for lightweight operations and calculations.
 
 Function tools offer two creation methods:
 
