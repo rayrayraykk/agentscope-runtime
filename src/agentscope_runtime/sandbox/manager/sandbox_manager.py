@@ -366,7 +366,7 @@ class SandboxManager:
 
                 container_model = ContainerModel(**container_json)
 
-                # Add meta filed to container
+                # Add meta field to container
                 if meta and not container_model.meta:
                     container_model.meta = meta
                     self.container_mapping.set(

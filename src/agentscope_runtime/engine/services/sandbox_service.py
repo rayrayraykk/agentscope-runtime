@@ -49,14 +49,6 @@ class SandboxService(ServiceWithLifecycleManager):
         env_types=None,
         tools=None,
     ) -> List:
-        if tools:
-            for tool in tools:
-                if not isinstance(tool, (SandboxTool, FunctionTool, MCPTool)):
-                    raise ValueError(
-                        "tools must be instances of SandboxTool, "
-                        "FunctionTool, or MCPTool",
-                    )
-
         # Create a composite key
         session_ctx_id = self._create_session_ctx_id(session_id, user_id)
 
@@ -76,10 +68,18 @@ class SandboxService(ServiceWithLifecycleManager):
 
     def _create_new_environment(
         self,
-        session_ctx_id,
+        session_ctx_id: str,
         env_types=None,
         tools=None,
     ):
+        if tools:
+            for tool in tools:
+                if not isinstance(tool, (SandboxTool, FunctionTool, MCPTool)):
+                    raise ValueError(
+                        "tools must be instances of SandboxTool, "
+                        "FunctionTool, or MCPTool",
+                    )
+
         if env_types is None:
             assert (
                 tools is not None
@@ -139,7 +139,7 @@ class SandboxService(ServiceWithLifecycleManager):
             sandboxes.append(box)
         return sandboxes
 
-    def _connect_existing_environment(self, env_ids):
+    def _connect_existing_environment(self, env_ids: List[str]):
         boxes = []
         for env_id in env_ids:
             info = self.manager_api.get_info(env_id)
