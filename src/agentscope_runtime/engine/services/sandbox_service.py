@@ -49,12 +49,13 @@ class SandboxService(ServiceWithLifecycleManager):
         env_types=None,
         tools=None,
     ) -> List:
-        for tool in tools:
-            if not isinstance(tool, (SandboxTool, FunctionTool, MCPTool)):
-                raise ValueError(
-                    "tools must be instances of SandboxTool, FunctionTool, "
-                    "or MCPTool",
-                )
+        if tools:
+            for tool in tools:
+                if not isinstance(tool, (SandboxTool, FunctionTool, MCPTool)):
+                    raise ValueError(
+                        "tools must be instances of SandboxTool, "
+                        "FunctionTool, or MCPTool",
+                    )
 
         # Create a composite key
         session_ctx_id = self._create_session_ctx_id(session_id, user_id)
@@ -120,9 +121,13 @@ class SandboxService(ServiceWithLifecycleManager):
 
             # Add MCP to the sandbox
             server_config_list = []
-            for tool in tools:
-                if isinstance(tool, MCPTool) and tool.sandbox_type == box_type:
-                    server_config_list.append(tool.server_configs)
+            if tools:
+                for tool in tools:
+                    if (
+                        isinstance(tool, MCPTool)
+                        and tool.sandbox_type == box_type
+                    ):
+                        server_config_list.append(tool.server_configs)
             if server_config_list:
                 server_configs = {"mcpServers": {}}
                 for server_config in server_config_list:
