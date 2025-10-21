@@ -426,7 +426,7 @@ class SandboxManager:
                 f"using default",
             )
             image = SandboxRegistry.get_image_by_type(
-                self.default_type,
+                self.default_type[0],
             )
 
         # TODO: enable for timeout for the sandbox (auto cleanup)
