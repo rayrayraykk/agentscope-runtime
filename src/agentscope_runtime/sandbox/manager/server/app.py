@@ -232,11 +232,18 @@ async def proxy_vnc_static(sandbox_id: str, path: str):
 
     target_url = f"{base_url}/{path}"
 
-    async with httpx.AsyncClient() as client:
-        upstream = await client.get(target_url)
-        return Response(
-            content=upstream.content,
-            media_type=upstream.headers.get("content-type"),
+    try:
+        async with httpx.AsyncClient() as client:
+            upstream = await client.get(target_url)
+            return Response(
+                content=upstream.content,
+                media_type=upstream.headers.get("content-type"),
+            )
+    except httpx.RequestError as exc:
+        logger.error(f"Upstream request to {target_url} failed: {repr(exc)}")
+        return JSONResponse(
+            status_code=502,
+            content={"detail": f"Upstream request failed: {str(exc)}"},
         )
 
 

@@ -417,7 +417,7 @@ class SandboxManager:
         if sandbox_type is not None:
             target_sandbox_type = SandboxType(sandbox_type)
         else:
-            target_sandbox_type = self.default_type
+            target_sandbox_type = self.default_type[0]
 
         image = SandboxRegistry.get_image_by_type(target_sandbox_type)
         if not image:

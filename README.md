@@ -212,8 +212,8 @@ A GUI-based sandbox with **file system operations** such as creating, reading, a
 from agentscope_runtime.sandbox import FilesystemSandbox
 
 with FilesystemSandbox() as box:
-    # By default, pulls `agentscope/runtime-sandbox-gui:latest` from DockerHub
-    print(sandbox.desktop_url)  # Web desktop access URL
+    # By default, pulls `agentscope/runtime-sandbox-filesystem:latest` from DockerHub
+    print(box.desktop_url)  # Web desktop access URL
     box.create_directory("test")  # Create a directory
     input("Press Enter to continue...")
 ```

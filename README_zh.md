@@ -209,8 +209,8 @@ with BrowserSandbox() as box:
 from agentscope_runtime.sandbox import FilesystemSandbox
 
 with FilesystemSandbox() as box:
-    # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-gui:latest` 镜像
-    print(sandbox.desktop_url)  # 桌面访问链接
+    # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-filesystem:latest` 镜像
+    print(box.desktop_url)  # 桌面访问链接
     box.create_directory("test")  # 创建目录
     input("按 Enter 键继续...")
 ```
