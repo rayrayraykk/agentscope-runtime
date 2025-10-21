@@ -119,7 +119,7 @@ class MCPConfigConverter:
         self,
         *,
         sandbox: Optional[Sandbox] = None,
-        sandbox_type: Optional[SandboxType | str] = SandboxType.BASE,
+        sandbox_type: Optional[SandboxType | str] = None,
     ) -> List[MCPTool]:
         """
         Converts to a list of MCPTool instances.
@@ -130,6 +130,9 @@ class MCPConfigConverter:
         box = sandbox or self._sandbox
         if box is None:
             from ..registry import SandboxRegistry
+
+            if sandbox_type is None:
+                sandbox_type = SandboxType.BASE
 
             cls_ = SandboxRegistry.get_classes_by_type(sandbox_type)
             # Use proper context manager
