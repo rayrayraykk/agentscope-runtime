@@ -780,3 +780,11 @@ class SandboxManager:
     def get_session_mapping(self, session_ctx_id: str) -> list:
         """Get all container names bound to a session context"""
         return self.session_mapping.get(session_ctx_id) or []
+
+    @remote_wrapper(method="GET")
+    def list_session_keys(self) -> list:
+        """Return all session_ctx_id keys currently in mapping"""
+        session_keys = []
+        for key in self.session_mapping.scan():
+            session_keys.append(key)
+        return session_keys

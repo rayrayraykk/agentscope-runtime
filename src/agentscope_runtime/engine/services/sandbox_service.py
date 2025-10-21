@@ -26,9 +26,14 @@ class SandboxService(ServiceWithLifecycleManager):
 
     async def stop(self) -> None:
         # Release all environments
-        for _, env_ids in self.session_mapping.items():
-            for env_id in env_ids:
-                self.manager_api.release(env_id)
+        session_keys = self.manager_api.list_session_keys()
+
+        if session_keys:
+            for session_ctx_id in session_keys:
+                env_ids = self.manager_api.get_session_mapping(session_ctx_id)
+                if env_ids:
+                    for env_id in env_ids:
+                        self.manager_api.release(env_id)
 
         if self.base_url is None:
             # Embedded mode
@@ -59,7 +64,7 @@ class SandboxService(ServiceWithLifecycleManager):
         # Check if the session_ctx_id already has an environment
         if env_ids:
             # Connect to existing environment
-            return self._connect_existing_environment(session_ctx_id)
+            return self._connect_existing_environment(env_ids)
         else:
             # Create a new environment
             return self._create_new_environment(
@@ -125,22 +130,15 @@ class SandboxService(ServiceWithLifecycleManager):
                 # Embedded mode
                 box.manager_api = self.manager_api
 
+            # TODO: fix mcp server added in right sandbox
             if box_type == SandboxType.BASE:
                 if server_configs:
                     box.add_mcp_servers(server_configs, overwrite=False)
 
-            # Store mapping from session_ctx_id to env_id
-            if session_ctx_id not in self.session_mapping:
-                self.session_mapping[session_ctx_id] = []
-
-            self.session_mapping[session_ctx_id].append(box_id)
-
             wbs.append(box)
         return wbs
 
-    def _connect_existing_environment(self, session_ctx_id):
-        env_ids = self.session_mapping.get(session_ctx_id)
-
+    def _connect_existing_environment(self, env_ids):
         boxes = []
         for env_id in env_ids:
             info = self.manager_api.get_info(env_id)
