@@ -84,28 +84,16 @@ class SandboxService(ServiceWithLifecycleManager):
                 tools is not None
             ), "tools must be specified when env_types is not set"
 
-        server_configs = None
         if tools:
-            server_config_list = []
             tool_env_types = set()
             for tool in tools:
                 tool_env_types.add(tool.sandbox_type)
-                if isinstance(tool, MCPTool):
-                    server_config_list.append(tool.server_configs)
-
             if env_types is None:
                 env_types = []
 
-            if server_config_list:
-                server_configs = {"mcpServers": {}}
-                for server_config in server_config_list:
-                    server_configs["mcpServers"].update(
-                        server_config["mcpServers"],
-                    )
-
             env_types = set(env_types) | tool_env_types
 
-        wbs = []
+        sandboxes = []
         for env_type in env_types:
             if env_type is None:
                 continue
@@ -130,13 +118,21 @@ class SandboxService(ServiceWithLifecycleManager):
                 # Embedded mode
                 box.manager_api = self.manager_api
 
-            # TODO: fix mcp server added in right sandbox
-            if box_type == SandboxType.BASE:
-                if server_configs:
-                    box.add_mcp_servers(server_configs, overwrite=False)
+            # Add MCP to the sandbox
+            server_config_list = []
+            for tool in tools:
+                if isinstance(tool, MCPTool) and tool.sandbox_type == box_type:
+                    server_config_list.append(tool.server_configs)
+            if server_config_list:
+                server_configs = {"mcpServers": {}}
+                for server_config in server_config_list:
+                    server_configs["mcpServers"].update(
+                        server_config["mcpServers"],
+                    )
+                box.add_mcp_servers(server_configs, overwrite=False)
 
-            wbs.append(box)
-        return wbs
+            sandboxes.append(box)
+        return sandboxes
 
     def _connect_existing_environment(self, env_ids):
         boxes = []
