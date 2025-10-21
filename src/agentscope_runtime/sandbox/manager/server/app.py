@@ -216,7 +216,7 @@ async def health_check():
     """Health check endpoint"""
     return HealthResponse(
         status="healthy",
-        version=_sandbox_manager.default_type.value,
+        version=_sandbox_manager.default_type,
     )
 
 
