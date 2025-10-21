@@ -5,7 +5,8 @@ from typing import Optional
 from ...utils import build_image_uri
 from ...registry import SandboxRegistry
 from ...enums import SandboxType
-from ...box.gui import GuiSandbox
+from ...box.base import BaseSandbox
+from ...box.gui import GUIMixin
 
 
 @SandboxRegistry.register(
@@ -15,7 +16,7 @@ from ...box.gui import GuiSandbox
     timeout=60,
     description="Filesystem sandbox",
 )
-class FilesystemSandbox(GuiSandbox):
+class FilesystemSandbox(GUIMixin, BaseSandbox):
     def __init__(  # pylint: disable=useless-parent-delegation
         self,
         sandbox_id: Optional[str] = None,

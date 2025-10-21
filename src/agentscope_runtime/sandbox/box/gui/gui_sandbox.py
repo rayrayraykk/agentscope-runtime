@@ -9,6 +9,26 @@ from ...enums import SandboxType
 from ...box.base import BaseSandbox
 
 
+class GUIMixin:
+    @property
+    def desktop_url(self):
+        if not self.manager_api.check_health(identity=self.sandbox_id):
+            raise RuntimeError(f"Sandbox {self.sandbox_id} is not healthy")
+
+        info = self.get_info()
+        path = "/vnc/vnc_lite.html"
+        remote_path = "/vnc/vnc_relay.html"
+        params = {"password": info["runtime_token"]}
+
+        if self.base_url is None:
+            return urljoin(info["url"], path) + "?" + urlencode(params)
+
+        return (
+            f"{self.base_url}/desktop/{self.sandbox_id}{remote_path}"
+            f"?{urlencode(params)}"
+        )
+
+
 @SandboxRegistry.register(
     build_image_uri("runtime-sandbox-gui"),
     sandbox_type=SandboxType.GUI,
@@ -16,7 +36,7 @@ from ...box.base import BaseSandbox
     timeout=30,
     description="GUI Sandbox",
 )
-class GuiSandbox(BaseSandbox):
+class GuiSandbox(GUIMixin, BaseSandbox):
     def __init__(  # pylint: disable=useless-parent-delegation
         self,
         sandbox_id: Optional[str] = None,
@@ -31,28 +51,6 @@ class GuiSandbox(BaseSandbox):
             base_url,
             bearer_token,
             sandbox_type,
-        )
-
-    @property
-    def desktop_url(self):
-        if not self.manager_api.check_health(identity=self.sandbox_id):
-            raise RuntimeError(f"Sandbox {self.sandbox_id} is not healthy")
-
-        info = self.get_info()
-        path = "/vnc/vnc_lite.html"
-        remote_path = "/vnc/vnc_relay.html"
-        params = {
-            "password": info["runtime_token"],
-        }
-
-        if self.base_url is None:
-            full_url = urljoin(info["url"], path) + "?" + urlencode(params)
-            return full_url
-
-        # Should align with app.py
-        return (
-            f"{self.base_url}/desktop/{self.sandbox_id}{remote_path}"
-            f"?{urlencode(params)}"
         )
 
     def computer_use(
