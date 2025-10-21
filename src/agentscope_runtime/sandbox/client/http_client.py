@@ -3,6 +3,7 @@
 import logging
 import time
 from typing import Any, Optional
+from urllib.parse import urljoin
 
 import requests
 from pydantic import Field
@@ -78,7 +79,10 @@ class SandboxHttpClient:
             runtime sandbox.
         """
         self.session_id = model.session_id
-        self.base_url = model.api_url.replace("localhost", domain)
+        self.base_url = urljoin(
+            model.url.replace("localhost", domain),
+            "fastapi",
+        )
 
         self.timeout = timeout
         self.session = requests.Session()

@@ -25,11 +25,6 @@ class ContainerModel(BaseModel):
         description="URL for accessing the container",
     )
 
-    api_url: str = Field(
-        ...,
-        description="Base API URL for accessing the container python backend",
-    )
-
     ports: List[int | str] = Field(
         ...,
         description="List of occupied port numbers",

@@ -10,7 +10,6 @@ import traceback
 
 from functools import wraps
 from typing import Optional, Dict, Union, List
-from urllib.parse import urlparse, urlunparse
 
 import shortuuid
 import requests
@@ -535,7 +534,6 @@ class SandboxManager:
                 container_id=_id,
                 container_name=container_name,
                 url=f"{http_protocol}://{ip}:{ports[0]}",
-                api_url=f"{http_protocol}://{ip}:{ports[0]}/fastapi",
                 ports=[ports[0]],
                 mount_dir=str(mount_dir),
                 storage_path=storage_path,
@@ -686,20 +684,8 @@ class SandboxManager:
             "sandbox-appworld" in container_model.version
             or "sandbox-bfcl" in container_model.version
         ):
-            parsed = urlparse(container_model.api_url)
-            api_url = urlunparse(
-                (
-                    parsed.scheme,
-                    parsed.netloc,
-                    "",
-                    "",
-                    "",
-                    "",
-                ),
-            )
-
             return TrainingSandboxClient(
-                base_url=api_url,
+                base_url=container_model.url,
             ).__enter__()
 
         return SandboxHttpClient(
