@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import List
+from typing import List, Optional, Dict
 
 from pydantic import BaseModel, Field
 
@@ -50,6 +50,8 @@ class ContainerModel(BaseModel):
         None,
         description="Image version of the container",
     )
+
+    meta: Optional[Dict] = Field(default_factory=dict)
 
     class Config:
         extra = "allow"

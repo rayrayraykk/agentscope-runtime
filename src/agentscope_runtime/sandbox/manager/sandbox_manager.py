@@ -153,6 +153,10 @@ class SandboxManager:
                 ) from e
 
             self.container_mapping = RedisMapping(redis_client)
+            self.session_mapping = RedisMapping(
+                redis_client,
+                prefix="session_mapping",
+            )
 
             # Init multi sand box pool
             for t in self.default_type:
@@ -160,6 +164,7 @@ class SandboxManager:
                 self.pool_queues[t] = RedisQueue(redis_client, queue_key)
         else:
             self.container_mapping = InMemoryMapping()
+            self.session_mapping = InMemoryMapping()
 
             # Init multi sand box pool
             for t in self.default_type:
@@ -322,13 +327,13 @@ class SandboxManager:
                 )
 
     @remote_wrapper()
-    def create_from_pool(self, sandbox_type=None):
+    def create_from_pool(self, sandbox_type=None, meta: Optional[Dict] = None):
         """Try to get a container from runtime pool"""
         # If not specified, use the first one
         sandbox_type = SandboxType(sandbox_type or self.default_type[0])
 
         if sandbox_type not in self.pool_queues:
-            return self.create(sandbox_type=sandbox_type.value)
+            return self.create(sandbox_type=sandbox_type.value, meta=meta)
 
         queue = self.pool_queues[sandbox_type]
 
@@ -360,6 +365,29 @@ class SandboxManager:
                     )
 
                 container_model = ContainerModel(**container_json)
+
+                # Add meta filed to container
+                if meta and not container_model.meta:
+                    container_model.meta = meta
+                    self.container_mapping.set(
+                        container_model.container_name,
+                        container_model.model_dump(),
+                    )
+                    # Update session mapping
+                    if "session_ctx_id" in meta:
+                        env_ids = (
+                            self.session_mapping.get(
+                                meta["session_ctx_id"],
+                            )
+                            or []
+                        )
+                        if container_model.container_name not in env_ids:
+                            env_ids.append(container_model.container_name)
+                        self.session_mapping.set(
+                            meta["session_ctx_id"],
+                            env_ids,
+                        )
+
                 logger.debug(
                     f"Retrieved container from pool:"
                     f" {container_model.session_id}",
@@ -412,6 +440,7 @@ class SandboxManager:
         mount_dir=None,  # TODO: remove to avoid leaking
         storage_path=None,
         environment: Optional[Dict] = None,
+        meta: Optional[Dict] = None,
     ):
         if sandbox_type is not None:
             target_sandbox_type = SandboxType(sandbox_type)
@@ -539,6 +568,7 @@ class SandboxManager:
                 storage_path=storage_path,
                 runtime_token=runtime_token,
                 version=image,
+                meta=meta or {},
             )
 
             # Register in mapping
@@ -546,6 +576,17 @@ class SandboxManager:
                 container_model.container_name,
                 container_model.model_dump(),
             )
+
+            # Build mapping session_ctx_id to container_name
+            if meta and "session_ctx_id" in meta:
+                env_ids = (
+                    self.session_mapping.get(
+                        meta["session_ctx_id"],
+                    )
+                    or []
+                )
+                env_ids.append(container_model.container_name)
+                self.session_mapping.set(meta["session_ctx_id"], env_ids)
 
             logger.debug(
                 f"Created container {container_name}"
@@ -573,6 +614,20 @@ class SandboxManager:
 
             # remove key in mapping before we remove container
             self.container_mapping.delete(container_json.get("container_name"))
+
+            # remove key in mapping
+            session_ctx_id = container_info.meta.get("session_ctx_id")
+            if session_ctx_id:
+                env_ids = self.session_mapping.get(session_ctx_id) or []
+                env_ids = [
+                    eid
+                    for eid in env_ids
+                    if eid != container_info.container_name
+                ]
+                if env_ids:
+                    self.session_mapping.set(session_ctx_id, env_ids)
+                else:
+                    self.session_mapping.delete(session_ctx_id)
 
             self.client.stop(container_info.container_id, timeout=1)
             self.client.remove(container_info.container_id, force=True)
@@ -720,3 +775,8 @@ class SandboxManager:
             server_configs=server_configs,
             overwrite=overwrite,
         )
+
+    @remote_wrapper(method="GET")
+    def get_session_mapping(self, session_ctx_id: str) -> list:
+        """Get all container names bound to a session context"""
+        return self.session_mapping.get(session_ctx_id) or []
