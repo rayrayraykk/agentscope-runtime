@@ -119,7 +119,7 @@ class MCPConfigConverter:
         self,
         *,
         sandbox: Optional[Sandbox] = None,
-        sandbox_type: Optional[SandboxType | str] = "base",
+        sandbox_type: Optional[SandboxType | str] = SandboxType.BASE,
     ) -> List[MCPTool]:
         """
         Converts to a list of MCPTool instances.
