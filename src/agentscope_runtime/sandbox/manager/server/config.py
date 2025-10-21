@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-from typing import Optional, Tuple, Literal, Dict
+from typing import Optional, Tuple, Literal, Dict, Union, List
 from pydantic_settings import BaseSettings
 from pydantic import field_validator, ConfigDict
 from dotenv import load_dotenv
@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     BEARER_TOKEN: Optional[str] = None
 
     # Runtime Manager settings
-    DEFAULT_SANDBOX_TYPE: str = "base"
+    DEFAULT_SANDBOX_TYPE: Union[str, List[str]] = "base"
     POOL_SIZE: int = 1
     AUTO_CLEANUP: bool = True
     CONTAINER_PREFIX_KEY: str = "runtime_sandbox_container_"
