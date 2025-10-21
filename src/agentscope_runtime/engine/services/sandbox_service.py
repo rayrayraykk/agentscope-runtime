@@ -131,9 +131,13 @@ class SandboxService(ServiceWithLifecycleManager):
             if server_config_list:
                 server_configs = {"mcpServers": {}}
                 for server_config in server_config_list:
-                    server_configs["mcpServers"].update(
-                        server_config["mcpServers"],
-                    )
+                    if (
+                        server_config is not None
+                        and "mcpServers" in server_config
+                    ):
+                        server_configs["mcpServers"].update(
+                            server_config["mcpServers"],
+                        )
                 box.add_mcp_servers(server_configs, overwrite=False)
 
             sandboxes.append(box)
