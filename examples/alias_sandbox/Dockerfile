@@ -57,7 +57,7 @@ WORKDIR /agentscope_runtime
 RUN python3 -m venv venv
 ENV PATH="/agentscope_runtime/venv/bin:$PATH"
 
-COPY examples/alias_sandbox/box/ ./
+COPY box/ ./
 
 RUN pip install -r requirements.txt
 
