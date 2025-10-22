@@ -123,10 +123,9 @@ class SandboxService(ServiceWithLifecycleManager):
             server_config_list = []
             if tools:
                 for tool in tools:
-                    if (
-                        isinstance(tool, MCPTool)
-                        and tool.sandbox_type == box_type
-                    ):
+                    if isinstance(tool, MCPTool) and SandboxType(
+                        tool.sandbox_type,
+                    ) == SandboxType(box_type):
                         server_config_list.append(tool.server_configs)
             if server_config_list:
                 server_configs = {"mcpServers": {}}
