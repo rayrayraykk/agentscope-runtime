@@ -220,20 +220,41 @@ with FilesystemSandbox() as box:
 
 #### Configuring Sandbox Image Registry, Namespace, and Tag
 
-If pulling the Docker image from DockerHub fails (for example, due to network restrictions), you can change the source registry to the Alibaba Cloud container registry for faster access:
+##### 1. Registry
+
+If pulling images from DockerHub fails (for example, due to network restrictions), you can switch the image source to Alibaba Cloud Container Registry for faster access:
 
 ```bash
 export RUNTIME_SANDBOX_REGISTRY="agentscope-registry.ap-southeast-1.cr.aliyuncs.com"
 ```
 
-You can also customize the **image namespace** and **image tag** via environment variables:
+##### 2. Namespace
+
+A namespace is used to distinguish images of different teams or projects. You can customize the namespace via an environment variable:
 
 ```bash
-export RUNTIME_SANDBOX_IMAGE_NAMESPACE="myteam"
-export RUNTIME_SANDBOX_IMAGE_TAG="20251020"
+export RUNTIME_SANDBOX_IMAGE_NAMESPACE="agentscope"
 ```
 
-This will make the sandbox SDK pull:
+For example, here `agentscope` will be used as part of the image path.
+
+##### 3. Tag
+
+An image tag specifies the version of the image, for example:
+
+```bash
+export RUNTIME_SANDBOX_IMAGE_TAG="preview"
+```
+
+Details:
+
+- Default is `latest`, which means the image version matches the PyPI latest release.
+- `preview` means the latest preview version built in sync with the **GitHub main branch**.
+- You can also use a specified version number such as `20250909`. You can check all available image versions at [DockerHub](https://hub.docker.com/repositories/agentscope).
+
+##### 4. Complete Image Path
+
+The sandbox SDK will build the full image path based on the above environment variables:
 
 ```bash
 <RUNTIME_SANDBOX_REGISTRY>/<RUNTIME_SANDBOX_IMAGE_NAMESPACE>/runtime-sandbox-base:<RUNTIME_SANDBOX_IMAGE_TAG>
@@ -242,7 +263,7 @@ This will make the sandbox SDK pull:
 Example:
 
 ```bash
-agentscope-registry.ap-southeast-1.cr.aliyuncs.com/myteam/runtime-sandbox-base:20251020
+agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-base:preview
 ```
 
 ---

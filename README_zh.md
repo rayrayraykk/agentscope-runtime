@@ -217,20 +217,41 @@ with FilesystemSandbox() as box:
 
 #### 配置沙箱镜像的 Registry（镜像仓库）、Namespace（命名空间）和 Tag（标签）
 
+##### 1. Registry（镜像仓库）
+
 如果从 DockerHub 拉取镜像失败（例如由于网络限制），你可以将镜像源切换为阿里云容器镜像服务，以获得更快的访问速度：
 
 ```bash
 export RUNTIME_SANDBOX_REGISTRY="agentscope-registry.ap-southeast-1.cr.aliyuncs.com"
 ```
 
-你也可以通过环境变量自定义 **镜像命名空间（Namespace）** 和 **镜像标签（Tag）**：
+##### 2. Namespace（命名空间）
+
+命名空间用于区分不同的团队或项目镜像，你可以通过环境变量自定义 namespace：
 
 ```bash
-export RUNTIME_SANDBOX_IMAGE_NAMESPACE="myteam"
-export RUNTIME_SANDBOX_IMAGE_TAG="20251020"
+export RUNTIME_SANDBOX_IMAGE_NAMESPACE="agentscope"
 ```
 
-这样沙箱SDK将会拉取以下镜像：
+例如，这里会使用 `agentscope` 作为镜像路径的一部分。
+
+##### 3. Tag（标签）
+
+镜像标签用于指定镜像版本，例如：
+
+```bash
+export RUNTIME_SANDBOX_IMAGE_TAG="preview"
+```
+
+其中：
+
+- 默认为`latest`，表示与PyPI发行版本适配的镜像版本
+- `preview` 表示与 **GitHub main 分支** 同步构建的最新预览版本
+- 你也可以使用指定版本号，如 `20250909`，可以在[DockerHub](https://hub.docker.com/repositories/agentscope)查看所有可用镜像版本
+
+##### 4. 完整镜像路径
+
+沙箱 SDK 会根据上述环境变量拼接拉取镜像的完整路径：
 
 ```bash
 <RUNTIME_SANDBOX_REGISTRY>/<RUNTIME_SANDBOX_IMAGE_NAMESPACE>/runtime-sandbox-base:<RUNTIME_SANDBOX_IMAGE_TAG>
@@ -239,7 +260,7 @@ export RUNTIME_SANDBOX_IMAGE_TAG="20251020"
 示例：
 
 ```bash
-agentscope-registry.ap-southeast-1.cr.aliyuncs.com/myteam/runtime-sandbox-base:20251020
+agentscope-registry.ap-southeast-1.cr.aliyuncs.com/myteam/runtime-sandbox-base:preview
 ```
 
 ---
