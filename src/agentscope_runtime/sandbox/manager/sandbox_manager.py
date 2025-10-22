@@ -427,10 +427,10 @@ class SandboxManager:
                     self.release(container_model.session_id)
 
         except Exception as e:
-            logger.error(
-                f"Error getting container from pool, create a "
-                f"new one. {e}: {traceback.format_exc()}",
+            logger.warning(
+                "Error getting container from pool, create a new one.",
             )
+            logger.debug(f"{e}: {traceback.format_exc()}")
             return self.create()
 
     @remote_wrapper()
@@ -498,9 +498,9 @@ class SandboxManager:
         ):
             self.storage.download_folder(storage_path, mount_dir)
 
+        # Check for an existing container with the same name
+        container_name = self._generate_container_key(session_id)
         try:
-            # Check for an existing container with the same name
-            container_name = self._generate_container_key(session_id)
             if self.client.inspect(container_name):
                 raise ValueError(
                     f"Container with name {container_name} already exists.",
@@ -597,6 +597,7 @@ class SandboxManager:
             logger.error(
                 f"Failed to create container: {e}: {traceback.format_exc()}",
             )
+            self.release(identity=container_name)
             return None
 
     @remote_wrapper()
