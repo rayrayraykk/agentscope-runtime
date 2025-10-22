@@ -49,7 +49,7 @@ class Sandbox:
             )
 
             sandbox_id = self.manager_api.create_from_pool(
-                sandbox_type=sandbox_type.value,
+                sandbox_type=SandboxType(sandbox_type).value,
             )
             if sandbox_id is None:
                 raise RuntimeError(
