@@ -28,6 +28,12 @@
 
 ---
 
+## 🆕 新闻
+
+* **[2025-10]** 添加了 **GUI Sandbox**，支持虚拟桌面环境、鼠标、键盘以及屏幕操作。引入了 **`desktop_url`** 属性，适用于 GUI Sandbox、Browser Sandbox 和 Filesystem Sandbox —— 允许通过浏览器直接访问虚拟桌面。详情请参阅我们的 [cookbook](https://runtime.agentscope.io/zh/sandbox.html#id18)。
+
+---
+
 ## ✨ 关键特性
 
 - **🏗️ 部署基础设施**：内置服务用于历史会话管理、长期记忆和沙盒环境生命周期控制
@@ -161,6 +167,7 @@ from agentscope_runtime.sandbox import BaseSandbox
 
 with BaseSandbox() as box:
     # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-base:latest` 镜像
+    print(box.list_tools()) # 列出所有可用工具
     print(box.run_ipython_cell(code="print('hi')"))
     print(box.run_shell_command(command="echo hello"))
     input("按 Enter 键继续...")
@@ -177,6 +184,7 @@ from agentscope_runtime.sandbox import GuiSandbox
 
 with GuiSandbox() as box:
     # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-gui:latest` 镜像
+    print(box.list_tools()) # 列出所有可用工具
     print(box.desktop_url)  # 桌面访问链接
     print(box.computer_use(action="get_cursor_position"))  # 获取鼠标位置
     print(box.computer_use(action="get_screenshot"))       # 获取屏幕截图
@@ -194,12 +202,13 @@ from agentscope_runtime.sandbox import BrowserSandbox
 
 with BrowserSandbox() as box:
     # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-browser:latest` 镜像
+    print(box.list_tools()) # 列出所有可用工具
     print(box.desktop_url)  # 浏览器桌面访问链接
     box.browser_navigate("https://www.google.com/")  # 打开网页
     input("按 Enter 键继续...")
 ```
 
-#### Filesystem Sandbox
+#### 文件系统沙箱 （Filesystem Sandbox）
 
 基于 GUI 的隔离沙箱，可进行文件系统操作，如创建、读取和删除文件。
 
@@ -210,6 +219,7 @@ from agentscope_runtime.sandbox import FilesystemSandbox
 
 with FilesystemSandbox() as box:
     # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-filesystem:latest` 镜像
+    print(box.list_tools()) # 列出所有可用工具
     print(box.desktop_url)  # 桌面访问链接
     box.create_directory("test")  # 创建目录
     input("按 Enter 键继续...")

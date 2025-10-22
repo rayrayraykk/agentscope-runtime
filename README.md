@@ -28,6 +28,12 @@
 
 ---
 
+## 🆕 NEWS
+
+* **[2025-10]**  **GUI Sandbox** is added with support for virtual desktop environments, mouse, keyboard, and screen operations.  Introduced the **`desktop_url`** property for GUI Sandbox, Browser Sandbox, and Filesystem Sandbox — allowing direct access to the virtual desktop via your browser.  Check our [cookbook](https://runtime.agentscope.io/en/sandbox.html#sandbox-usage) for more details.
+
+---
+
 ## ✨ Key Features
 
 - **🏗️ Deployment Infrastructure**: Built-in services for session management, memory, and sandbox environment control
@@ -164,6 +170,7 @@ from agentscope_runtime.sandbox import BaseSandbox
 
 with BaseSandbox() as box:
     # By default, pulls `agentscope/runtime-sandbox-base:latest` from DockerHub
+    print(box.list_tools()) # List all available tools
     print(box.run_ipython_cell(code="print('hi')"))  # Run Python code
     print(box.run_shell_command(command="echo hello"))  # Run shell command
     input("Press Enter to continue...")
@@ -180,6 +187,7 @@ from agentscope_runtime.sandbox import GuiSandbox
 
 with GuiSandbox() as box:
     # By default, pulls `agentscope/runtime-sandbox-gui:latest` from DockerHub
+    print(box.list_tools()) # List all available tools
     print(box.desktop_url)  # Web desktop access URL
     print(box.computer_use(action="get_cursor_position"))  # Get mouse cursor position
     print(box.computer_use(action="get_screenshot"))       # Capture screenshot
@@ -197,6 +205,7 @@ from agentscope_runtime.sandbox import BrowserSandbox
 
 with BrowserSandbox() as box:
     # By default, pulls `agentscope/runtime-sandbox-browser:latest` from DockerHub
+    print(box.list_tools()) # List all available tools
     print(box.desktop_url)  # Web desktop access URL
     box.browser_navigate("https://www.google.com/")  # Open a webpage
     input("Press Enter to continue...")
@@ -213,6 +222,7 @@ from agentscope_runtime.sandbox import FilesystemSandbox
 
 with FilesystemSandbox() as box:
     # By default, pulls `agentscope/runtime-sandbox-filesystem:latest` from DockerHub
+    print(box.list_tools()) # List all available tools
     print(box.desktop_url)  # Web desktop access URL
     box.create_directory("test")  # Create a directory
     input("Press Enter to continue...")

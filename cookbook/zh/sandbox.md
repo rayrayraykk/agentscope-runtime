@@ -286,52 +286,63 @@ bound_tool = original_tool.bind(sandbox=my_sandbox)
 
 您可以通过`sandbox` SDK创建不同类型的沙箱：
 
-* **BaseSandbox**：用于Python代码执行和shell命令的基础沙箱。
+* **基础沙箱（Base Sandbox）**：用于在隔离环境中运行 **Python 代码** 或 **Shell 命令**。
 
 ```{code-cell}
 from agentscope_runtime.sandbox import BaseSandbox
 
-# 创建基础沙箱
 with BaseSandbox() as box:
-    print(box.list_tools())
+    # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-base:latest` 镜像
+    print(box.list_tools()) # 列出所有可用工具
     print(box.run_ipython_cell(code="print('hi')"))
     print(box.run_shell_command(command="echo hello"))
+    input("按 Enter 键继续...")
 ```
 
-* **GuiSandbox**： 用于计算机的图形界面沙盒。
+* **GUI 沙箱 （GUI Sandbox）**： 提供**可视化桌面环境**，可执行鼠标、键盘以及屏幕相关操作。
+
+  <img src="https://img.alicdn.com/imgextra/i2/O1CN01df5SaM1xKFQP4KGBW_!!6000000006424-2-tps-2958-1802.png" alt="GUI Sandbox" width="800" height="500">
 
 ```{code-cell}
 from agentscope_runtime.sandbox import GuiSandbox
 
-# Create a base sandbox
 with GuiSandbox() as box:
-    print(box.list_tools())
-    print(box.computer_use(action="get_cursor_position"))
-    print(box.computer_use(action="get_screenshot"))
+    # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-gui:latest` 镜像
+    print(box.list_tools()) # 列出所有可用工具
+    print(box.desktop_url)  # 桌面访问链接
+    print(box.computer_use(action="get_cursor_position"))  # 获取鼠标位置
+    print(box.computer_use(action="get_screenshot"))       # 获取屏幕截图
+    input("按 Enter 键继续...")
 ```
 
-* **FilesystemSandbox**：支持文件系统操作的沙箱。
+* **文件系统沙箱 （Filesystem Sandbox）**：基于 GUI 的隔离沙箱，可进行文件系统操作，如创建、读取和删除文件。
+
+  <img src="https://img.alicdn.com/imgextra/i3/O1CN01VocM961vK85gWbJIy_!!6000000006153-2-tps-2730-1686.png" alt="GUI Sandbox" width="800" height="500">
 
 ```{code-cell}
 from agentscope_runtime.sandbox import FilesystemSandbox
 
-# 创建文件系统沙箱
 with FilesystemSandbox() as box:
-    print(box.list_tools())
-    print(box.create_directory("test"))
-    print(box.list_allowed_directories())
+    # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-filesystem:latest` 镜像
+    print(box.list_tools()) # 列出所有可用工具
+    print(box.desktop_url)  # 桌面访问链接
+    box.create_directory("test")  # 创建目录
+    input("按 Enter 键继续...")
 ```
 
-* **BrowserSandbox**: 用于Web操作和浏览器控制的沙箱。
+* **浏览器沙箱（Browser Sandbox）**: 基于 GUI 的沙箱，可进行浏览器操作。
+
+  <img src="https://img.alicdn.com/imgextra/i4/O1CN01OIq1dD1gAJMcm0RFR_!!6000000004101-2-tps-2734-1684.png" alt="GUI Sandbox" width="800" height="500">
 
 ```{code-cell}
 from agentscope_runtime.sandbox import BrowserSandbox
 
-# 创建浏览器沙箱
 with BrowserSandbox() as box:
-    print(box.list_tools())
-    print(box.browser_navigate("https://www.example.com/"))
-    print(box.browser_snapshot())
+    # 默认从 DockerHub 拉取 `agentscope/runtime-sandbox-browser:latest` 镜像
+    print(box.list_tools()) # 列出所有可用工具
+    print(box.desktop_url)  # 浏览器桌面访问链接
+    box.browser_navigate("https://www.google.com/")  # 打开网页
+    input("按 Enter 键继续...")
 ```
 
 * **TrainingSandbox**：训练评估沙箱，详情请参考：{doc}`training_sandbox`。

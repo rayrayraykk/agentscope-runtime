@@ -284,52 +284,63 @@ The previous section introduced tool-centered usage methods, while this section 
 
 You can create different types of sandboxes via `sandbox` sdk:
 
-* **BaseSandbox**: Basic sandbox for Python code execution and shell commands.
+* **Base Sandbox**: Use for running **Python code** or **shell commands** in an isolated environment.
 
 ```{code-cell}
 from agentscope_runtime.sandbox import BaseSandbox
 
-# Create a base sandbox
 with BaseSandbox() as box:
-    print(box.list_tools())
-    print(box.run_ipython_cell(code="print('hi')"))
-    print(box.run_shell_command(command="echo hello"))
+    # By default, pulls `agentscope/runtime-sandbox-base:latest` from DockerHub
+    print(box.list_tools()) # List all available tools
+    print(box.run_ipython_cell(code="print('hi')"))  # Run Python code
+    print(box.run_shell_command(command="echo hello"))  # Run shell command
+    input("Press Enter to continue...")
 ```
 
-* **GuiSandbox**: GUI sandbox for computer use.
+* **GUI Sandbox**: Provides a **virtual desktop** environment for mouse, keyboard, and screen operations.
+
+  <img src="https://img.alicdn.com/imgextra/i2/O1CN01df5SaM1xKFQP4KGBW_!!6000000006424-2-tps-2958-1802.png" alt="GUI Sandbox" width="800" height="500">
 
 ```{code-cell}
 from agentscope_runtime.sandbox import GuiSandbox
 
-# Create a base sandbox
 with GuiSandbox() as box:
-    print(box.list_tools())
-    print(box.computer_use(action="get_cursor_position"))
-    print(box.computer_use(action="get_screenshot"))
+    # By default, pulls `agentscope/runtime-sandbox-gui:latest` from DockerHub
+    print(box.list_tools()) # List all available tools
+    print(box.desktop_url)  # Web desktop access URL
+    print(box.computer_use(action="get_cursor_position"))  # Get mouse cursor position
+    print(box.computer_use(action="get_screenshot"))       # Capture screenshot
+    input("Press Enter to continue...")
 ```
 
-* **FilesystemSandbox**: Sandbox with file system operations support.
+* **Filesystem Sandbox**: A GUI-based sandbox with **file system operations** such as creating, reading, and deleting files.
+
+  <img src="https://img.alicdn.com/imgextra/i3/O1CN01VocM961vK85gWbJIy_!!6000000006153-2-tps-2730-1686.png" alt="GUI Sandbox" width="800" height="500">
 
 ```{code-cell}
 from agentscope_runtime.sandbox import FilesystemSandbox
 
-# Create a filesystem sandbox
 with FilesystemSandbox() as box:
-    print(box.list_tools())
-    print(box.create_directory("test"))
-    print(box.list_allowed_directories())
+    # By default, pulls `agentscope/runtime-sandbox-filesystem:latest` from DockerHub
+    print(box.list_tools()) # List all available tools
+    print(box.desktop_url)  # Web desktop access URL
+    box.create_directory("test")  # Create a directory
+    input("Press Enter to continue...")
 ```
 
-* **BrowserSandbox**: Sandbox for web operations and browser control.
+* **Browser Sandbox**: A GUI-based sandbox with **browser operations** inside an isolated sandbox.
+
+  <img src="https://img.alicdn.com/imgextra/i4/O1CN01OIq1dD1gAJMcm0RFR_!!6000000004101-2-tps-2734-1684.png" alt="GUI Sandbox" width="800" height="500">
 
 ```{code-cell}
 from agentscope_runtime.sandbox import BrowserSandbox
 
-# Create a browser sandbox
 with BrowserSandbox() as box:
-    print(box.list_tools())
-    print(box.browser_navigate("https://www.example.com/"))
-    print(box.browser_snapshot())
+    # By default, pulls `agentscope/runtime-sandbox-browser:latest` from DockerHub
+    print(box.list_tools()) # List all available tools
+    print(box.desktop_url)  # Web desktop access URL
+    box.browser_navigate("https://www.google.com/")  # Open a webpage
+    input("Press Enter to continue...")
 ```
 
 * **TrainingSandbox**: Sandbox for training and evaluation，please refer to {doc}`training_sandbox` for details.
