@@ -416,7 +416,7 @@ CMD ["/bin/sh", "-c", "envsubst '$SECRET_TOKEN' < /etc/nginx/nginx.conf.template
 After preparing your Dockerfile and custom sandbox class, use the built-in builder tool to build your custom sandbox image:
 
 ```bash
-runtime-sandbox-builder my_custom_sandbox --dockerfile_path examples/custom_sandbox/Dockerfile --extention PATH_TO_YOUR_SANDBOX_MODULE
+runtime-sandbox-builder my_custom_sandbox --dockerfile_path examples/custom_sandbox/Dockerfile --extension PATH_TO_YOUR_SANDBOX_MODULE
 ```
 
 **Command Parameters:**
