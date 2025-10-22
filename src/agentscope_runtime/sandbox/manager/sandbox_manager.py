@@ -594,9 +594,10 @@ class SandboxManager:
             )
             return container_name
         except Exception as e:
-            logger.error(
-                f"Failed to create container: {e}: {traceback.format_exc()}",
+            logger.warning(
+                f"Failed to create container: {e}",
             )
+            logger.debug(f"{traceback.format_exc()}")
             self.release(identity=container_name)
             return None
 
@@ -644,10 +645,10 @@ class SandboxManager:
 
             return True
         except Exception as e:
-            logger.error(
-                f"Failed to destroy container: {e}: "
-                f"{traceback.format_exc()}",
+            logger.warning(
+                f"Failed to destroy container: {e}",
             )
+            logger.debug(f"{traceback.format_exc()}")
             return False
 
     @remote_wrapper()
