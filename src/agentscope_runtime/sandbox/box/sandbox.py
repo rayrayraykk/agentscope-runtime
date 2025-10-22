@@ -115,8 +115,11 @@ class Sandbox:
                 # Clean the specific sandbox
                 self.manager_api.release(self.sandbox_id)
         except Exception as e:
+            import traceback
+
             logger.error(
-                f"Cleanup {self.sandbox_id} error: {e}",
+                f"Cleanup {self.sandbox_id} error: {e}\n"
+                f"{traceback.format_exc()}",
             )
 
     def __enter__(self):

@@ -20,6 +20,8 @@ class InMemoryMapping(Mapping):
 
     def scan(self, prefix: str = None):
         if prefix is None:
-            yield from self.store.keys()
+            yield from list(self.store.keys())
         else:
-            yield from (key for key in self.store if key.startswith(prefix))
+            yield from list(
+                key for key in self.store if key.startswith(prefix)
+            )
