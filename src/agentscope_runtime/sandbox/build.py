@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=too-many-statements
+# pylint: disable=too-many-statements,too-many-branches
 import argparse
 import logging
 import os
 import socket
 import subprocess
 import time
+import platform
 
 import requests
 
@@ -15,6 +16,18 @@ from .utils import dynamic_import
 
 
 logger = logging.getLogger(__name__)
+
+DOCKER_PLATFORMS = [
+    "linux/amd64",
+    "linux/arm64",
+]
+
+
+def get_default_platform():
+    machine = platform.machine().lower()
+    if "arm" in machine or "aarch64" in machine:
+        return "linux/arm64"
+    return "linux/amd64"
 
 
 def find_free_port(start_port, end_port):
@@ -55,7 +68,19 @@ def check_health(url, secret_token, timeout=120, interval=5):
     return False
 
 
-def build_image(build_type, dockerfile_path=None):
+def build_image(
+    build_type,
+    dockerfile_path=None,
+    platform_choice="linux/amd64",
+):
+    assert platform_choice in DOCKER_PLATFORMS, "Invalid platform"
+
+    platform_tag = ""
+    if platform_choice == "linux/arm64":
+        platform_tag = "-arm64"
+
+    buildx_enable = platform_choice != get_default_platform()
+
     if dockerfile_path is None:
         dockerfile_path = (
             f"src/agentscope_runtime/sandbox/box/{build_type}/Dockerfile"
@@ -71,7 +96,9 @@ def build_image(build_type, dockerfile_path=None):
     )
 
     secret_token = "secret_token123"
-    image_name = SandboxRegistry.get_image_by_type(build_type)
+
+    # Add platform tag
+    image_name = SandboxRegistry.get_image_by_type(build_type) + platform_tag
 
     logger.info(f"Building Docker image {image_name}...")
 
@@ -101,39 +128,79 @@ def build_image(build_type, dockerfile_path=None):
         )
 
     # Build Docker image
-    subprocess.run(
-        [
-            "docker",
-            "build",
-            "-f",
-            dockerfile_path,
-            "-t",
-            f"{image_name}dev",
-            ".",
-        ],
-        check=False,
-    )
+    if not buildx_enable:
+        subprocess.run(
+            [
+                "docker",
+                "build",
+                "-f",
+                dockerfile_path,
+                "-t",
+                f"{image_name}dev",
+                ".",
+            ],
+            check=False,
+        )
+    else:
+        subprocess.run(
+            [
+                "docker",
+                "buildx",
+                "build",
+                "--platform",
+                platform_choice,
+                "-f",
+                dockerfile_path,
+                "-t",
+                f"{image_name}dev",
+                "--load",
+                ".",
+            ],
+            check=False,
+        )
+
     logger.info(f"Docker image {image_name}dev built successfully.")
 
     logger.info(f"Start to build image {image_name}.")
 
     # Run the container with port mapping and environment variable
     free_port = find_free_port(8080, 8090)
-    result = subprocess.run(
-        [
-            "docker",
-            "run",
-            "-d",
-            "-p",
-            f"{free_port}:80",
-            "-e",
-            f"SECRET_TOKEN={secret_token}",
-            f"{image_name}dev",
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+
+    if not buildx_enable:
+        result = subprocess.run(
+            [
+                "docker",
+                "run",
+                "-d",
+                "-p",
+                f"{free_port}:80",
+                "-e",
+                f"SECRET_TOKEN={secret_token}",
+                f"{image_name}dev",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    else:
+        result = subprocess.run(
+            [
+                "docker",
+                "run",
+                "--platform",
+                platform_choice,
+                "-d",
+                "-p",
+                f"{free_port}:80",
+                "-e",
+                f"SECRET_TOKEN={secret_token}",
+                f"{image_name}dev",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
     container_id = result.stdout.strip()
     logger.info(f"Running container {container_id} on port {free_port}")
 
@@ -194,6 +261,14 @@ def main():
         help="Path to a Python file or module name to load as an extension",
     )
 
+    parser.add_argument(
+        "--platform",
+        default=get_default_platform(),
+        choices=DOCKER_PLATFORMS,
+        help="Specify target platform for Docker image (default: current "
+        f"system platform: {get_default_platform()})",
+    )
+
     args = parser.parse_args()
 
     if args.extension:
@@ -217,7 +292,11 @@ def main():
             assert (
                 args.dockerfile_path is not None
             ), "Dockerfile path is required for custom images"
-        build_image(args.build_type, args.dockerfile_path)
+        build_image(
+            args.build_type,
+            args.dockerfile_path,
+            platform_choice=args.platform,
+        )
 
 
 if __name__ == "__main__":

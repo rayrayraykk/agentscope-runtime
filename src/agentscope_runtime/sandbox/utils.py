@@ -69,7 +69,7 @@ def build_image_uri(
     # Adjust tag based on ARM64 compatibility
     if not arm64_compatible:
         machine = platform.machine().lower()
-        if machine in ("arm64", "aarch64", "armv7l", "armv8"):
+        if "arm" in machine or "aarch64" in machine:
             final_tag = f"{final_tag}-arm64"
 
     return f"{reg}{final_namespace}/{image_name}:{final_tag}"
