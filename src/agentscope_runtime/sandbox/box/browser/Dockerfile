@@ -29,8 +29,6 @@ RUN apt-get update && apt-get install -y --fix-missing \
     fonts-wqy-microhei
 
 RUN apt-get update && apt-get install -y --fix-missing \
-    chromium \
-    chromium-sandbox \
     libx11-xcb1 \
     libxcomposite1 \
     libxdamage1 \
@@ -45,6 +43,16 @@ RUN apt-get update && apt-get install -y --fix-missing \
     libasound2 \
     fonts-liberation \
     libu2f-udev
+
+RUN apt-get update && apt-get install -y --fix-missing \
+    gnupg  \
+    wget  \
+    ca-certificates \
+    && wget -qO - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable chromium-driver \
+    && google-chrome --version && chromedriver --version
 
 RUN sed -i 's/^CHROMIUM_FLAGS=""/CHROMIUM_FLAGS="--no-sandbox"/' /usr/bin/chromium
 
