@@ -4,7 +4,7 @@ from typing import Optional, Union, Tuple, List
 
 from urllib.parse import urljoin, urlencode
 
-from ...utils import build_image_uri
+from ...utils import build_image_uri, get_platform
 from ...registry import SandboxRegistry
 from ...enums import SandboxType
 from ...box.base import BaseSandbox
@@ -55,15 +55,15 @@ class GuiSandbox(GUIMixin, BaseSandbox):
             bearer_token,
             sandbox_type,
         )
-
-        logger.warning(
-            "\nCompatibility Notice: This GUI Sandbox may have issues on "
-            "arm64 CPU architectures, due to the computer-use-mcp does not "
-            "provide linux/arm64 compatibility. It has been tested to work "
-            "on Apple M4 chips with Rosetta enabled. However, on M1, M2, "
-            "and M3 chips, chromium browser might crash due to the missing "
-            "SSE3 instruction set.",
-        )
+        if get_platform() == "linux/arm64":
+            logger.warning(
+                "\nCompatibility Notice: This GUI Sandbox may have issues on "
+                "arm64 CPU architectures, due to the computer-use-mcp does "
+                "not provide linux/arm64 compatibility. It has been tested "
+                "to work on Apple M4 chips with Rosetta enabled. However, "
+                "on M1, M2, and M3 chips, chromium browser might crash due "
+                "to the missing SSE3 instruction set.",
+            )
 
     def computer_use(
         self,

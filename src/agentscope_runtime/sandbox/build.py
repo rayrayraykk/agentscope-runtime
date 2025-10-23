@@ -6,13 +6,12 @@ import os
 import socket
 import subprocess
 import time
-import platform
 
 import requests
 
 from .enums import SandboxType
 from .registry import SandboxRegistry
-from .utils import dynamic_import
+from .utils import dynamic_import, get_platform
 
 
 logger = logging.getLogger(__name__)
@@ -21,13 +20,6 @@ DOCKER_PLATFORMS = [
     "linux/amd64",
     "linux/arm64",
 ]
-
-
-def get_default_platform():
-    machine = platform.machine().lower()
-    if "arm" in machine or "aarch64" in machine:
-        return "linux/arm64"
-    return "linux/amd64"
 
 
 def find_free_port(start_port, end_port):
@@ -82,7 +74,7 @@ def build_image(
     if platform_choice == "linux/arm64":
         platform_tag = "-arm64"
 
-    buildx_enable = platform_choice != get_default_platform()
+    buildx_enable = platform_choice != get_platform()
 
     if dockerfile_path is None:
         dockerfile_path = (
@@ -266,10 +258,10 @@ def main():
 
     parser.add_argument(
         "--platform",
-        default=get_default_platform(),
+        default=get_platform(),
         choices=DOCKER_PLATFORMS,
         help="Specify target platform for Docker image (default: current "
-        f"system platform: {get_default_platform()})",
+        f"system platform: {get_platform()})",
     )
 
     args = parser.parse_args()

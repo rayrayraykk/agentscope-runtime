@@ -66,6 +66,7 @@ def build_image_uri(
     final_namespace = namespace if namespace is not None else IMAGE_NAMESPACE
     final_tag = tag or IMAGE_TAG
 
+    # TODO: make manifest compatible and remove this
     # Adjust tag based on ARM64 compatibility
     if not arm64_compatible:
         machine = platform.machine().lower()
@@ -114,3 +115,10 @@ def http_to_ws(url, use_localhost=True):
 
     ws_url = urlunparse(parsed._replace(scheme=ws_scheme, netloc=new_netloc))
     return ws_url
+
+
+def get_platform():
+    machine = platform.machine().lower()
+    if "arm" in machine or "aarch64" in machine:
+        return "linux/arm64"
+    return "linux/amd64"
