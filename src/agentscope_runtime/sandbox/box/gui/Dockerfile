@@ -17,9 +17,7 @@ RUN apt-get update && apt-get install -y --fix-missing \
     supervisor  \
     vim  \
     nginx \
-    gettext-base
-
-RUN apt-get update && apt-get install -y --fix-missing \
+    gettext-base \
     xfce4 \
     xfce4-terminal \
     x11vnc \
