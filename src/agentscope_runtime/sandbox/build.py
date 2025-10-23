@@ -73,7 +73,10 @@ def build_image(
     dockerfile_path=None,
     platform_choice="linux/amd64",
 ):
-    assert platform_choice in DOCKER_PLATFORMS, "Invalid platform"
+    assert platform_choice in DOCKER_PLATFORMS, (
+        f"Invalid platform: {platform_choice}. Valid options:"
+        f" {DOCKER_PLATFORMS}"
+    )
 
     platform_tag = ""
     if platform_choice == "linux/arm64":

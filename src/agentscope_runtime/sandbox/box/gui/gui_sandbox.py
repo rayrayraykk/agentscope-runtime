@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 from typing import Optional, Union, Tuple, List
 
 from urllib.parse import urljoin, urlencode
@@ -7,6 +8,8 @@ from ...utils import build_image_uri
 from ...registry import SandboxRegistry
 from ...enums import SandboxType
 from ...box.base import BaseSandbox
+
+logger = logging.getLogger(__name__)
 
 
 class GUIMixin:
@@ -51,6 +54,15 @@ class GuiSandbox(GUIMixin, BaseSandbox):
             base_url,
             bearer_token,
             sandbox_type,
+        )
+
+        logger.warning(
+            "\nCompatibility Notice: This GUI Sandbox may have issues on "
+            "arm64 CPU architectures, due to the computer-use-mcp does not "
+            "provide linux/arm64 compatibility. It has been tested to work "
+            "on Apple M4 chips with Rosetta enabled. However, on M1, M2, "
+            "and M3 chips, chromium browser might crash due to the missing "
+            "SSE3 instruction set.",
         )
 
     def computer_use(
