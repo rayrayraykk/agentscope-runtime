@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y --fix-missing \
     fonts-wqy-microhei
 
 RUN apt-get update && apt-get install -y --fix-missing \
-    chromium \
+    chromium=115.0.5790.170-1~deb11 \ \
     chromium-sandbox \
     libx11-xcb1 \
     libxcomposite1 \
