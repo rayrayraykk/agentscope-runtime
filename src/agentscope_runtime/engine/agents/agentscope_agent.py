@@ -4,6 +4,7 @@
 import copy
 import logging
 import json
+import traceback
 from functools import partial
 from typing import Optional, Type, List
 
@@ -160,10 +161,12 @@ class AgentScopeContextAdapter:
         # Deepcopy to avoid modify the original toolkit
         try:
             toolkit = copy.deepcopy(toolkit)
-        except Exception:
-            # TODO: when toolkit contains live sessions, deepcopy fails,
-            #  need further fixed in AgentScope
-            pass
+        except Exception as e:
+            logger.warning(
+                f"Failed to deepcopy toolkit for agent "
+                f"'{self.attr.get('agent_config', {}).get('name')}' "
+                f"Error: {e}\nTraceback:\n{traceback.format_exc()}",
+            )
 
         tools = self.attr["tools"]
 
