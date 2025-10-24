@@ -5,7 +5,7 @@ import copy
 import logging
 import json
 from functools import partial
-from typing import Optional, Type
+from typing import Optional, Type, List
 
 from agentscope import setup_logger
 from agentscope.agent import AgentBase, ReActAgent
@@ -156,10 +156,15 @@ class AgentScopeContextAdapter:
             )
 
         toolkit = self.attr["agent_config"].get("toolkit", Toolkit())
+
         # Deepcopy to avoid modify the original toolkit
-        # TODO: when toolkit contains live sessions, deepcopy fails,
-        #  need further fixed in AgentScope
-        toolkit = copy.deepcopy(toolkit)
+        try:
+            toolkit = copy.deepcopy(toolkit)
+        except Exception:
+            # TODO: when toolkit contains live sessions, deepcopy fails,
+            #  need further fixed in AgentScope
+            pass
+
         tools = self.attr["tools"]
 
         # in case, tools is None and tools == []
@@ -272,9 +277,6 @@ class AgentScopeAgent(Agent):
         yield message.in_progress()
         index = None
 
-        print(as_context.new_message)
-        input("Press Enter to continue...")
-
         # Run agent
         async for msg, last in stream_printing_messages(
             agents=[_agent],
@@ -285,15 +287,17 @@ class AgentScopeAgent(Agent):
             print("*********")
 
             # Filter out unfinished tool_use messages
-            # if not last:
-            #     new_blocks = []
-            #     if isinstance(msg.content, List):
-            #         for block in msg.content:
-            #             print("!!!", block.get("type", ""))
-            #             if block.get("type", "") != "tool_use":
-            #                 new_blocks.append(block)
-            #         msg.content = new_blocks
+            if not last:
+                new_blocks = []
+                if isinstance(msg.content, List):
+                    for block in msg.content:
+                        if block.get("type", "") != "tool_use":
+                            new_blocks.append(block)
+                    msg.content = new_blocks
 
+            # TODO: filter empty message
+
+            # TODO: make this as a message converter
             if msg:
                 content = msg.content
                 if isinstance(content, str):
@@ -406,4 +410,3 @@ class AgentScopeAgent(Agent):
     ):
         async for event in self.run(context):
             yield event
-        print("000000000000")
