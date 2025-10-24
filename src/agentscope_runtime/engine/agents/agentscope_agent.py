@@ -261,7 +261,11 @@ class AgentScopeAgent(Agent):
 
         return _agent
 
-    async def run(self, context):
+    async def run_async(
+        self,
+        context,
+        **kwargs,
+    ):
         as_context = AgentScopeContextAdapter(context=context, attr=self._attr)
         await as_context.initialize()
         local_truncate_memory = ""
@@ -399,11 +403,3 @@ class AgentScopeAgent(Agent):
             )
             yield text_delta_content
             yield message.completed()
-
-    async def run_async(
-        self,
-        context,
-        **kwargs,
-    ):
-        async for event in self.run(context):
-            yield event
