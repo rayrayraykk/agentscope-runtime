@@ -282,9 +282,8 @@ class AgentScopeAgent(Agent):
             agents=[_agent],
             coroutine_task=_agent(as_context.new_message),
         ):
-            print("*********")
-            print(msg, last)
-            print("*********")
+            # Note: Do not modify this
+            msg = copy.deepcopy(msg)
 
             # Filter out unfinished tool_use messages
             if not last:
