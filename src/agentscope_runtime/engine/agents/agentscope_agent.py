@@ -340,7 +340,10 @@ class AgentScopeAgent(Agent):
                                     new_content=text_delta_content,
                                 )
                                 index = text_delta_content.index
-                                yield text_delta_content
+
+                                # Only yield valid text
+                                if text_delta_content.text:
+                                    yield text_delta_content
 
                                 if last:
                                     yield message.completed()
