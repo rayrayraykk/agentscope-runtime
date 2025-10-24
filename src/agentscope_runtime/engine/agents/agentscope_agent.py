@@ -35,9 +35,9 @@ from agentscope.tool import (
 from agentscope.tool._toolkit import RegisteredToolFunction
 
 
-from ..utils import build_agent
-from ...agents import Agent
-from ...schemas.agent_schemas import (
+from .utils import build_agent
+from ..agents import Agent
+from ..schemas.agent_schemas import (
     Message,
     TextContent,
     DataContent,
@@ -45,7 +45,7 @@ from ...schemas.agent_schemas import (
     FunctionCallOutput,
     MessageType,
 )
-from ...schemas.context import Context
+from ..schemas.context import Context
 
 # Disable logging from agentscope
 setup_logger(level="CRITICAL")
@@ -176,7 +176,7 @@ class AgentScopeContextAdapter:
             activated_tools = self.context.activate_tools
         else:
             # Lazy import
-            from ....sandbox.tools.utils import setup_tools
+            from ...sandbox.tools.utils import setup_tools
 
             activated_tools = setup_tools(
                 tools=self.attr["tools"],
@@ -293,8 +293,6 @@ class AgentScopeAgent(Agent):
                         if block.get("type", "") != "tool_use":
                             new_blocks.append(block)
                     msg.content = new_blocks
-
-            # TODO: filter empty message
 
             # TODO: make this as a message converter
             if msg:
