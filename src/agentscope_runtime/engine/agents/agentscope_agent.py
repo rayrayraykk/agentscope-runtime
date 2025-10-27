@@ -19,7 +19,16 @@ from agentscope.formatter import (
     GeminiChatFormatter,
 )
 from agentscope.memory import InMemoryMemory
-from agentscope.message import Msg, ToolUseBlock, ToolResultBlock
+from agentscope.message import (
+    Msg,
+    ToolUseBlock,
+    ToolResultBlock,
+    TextBlock,
+    ImageBlock,
+    AudioBlock,
+    VideoBlock,
+    URLSource,
+)
 from agentscope.model import (
     ChatModelBase,
     DashScopeChatModel,
@@ -83,16 +92,18 @@ class AgentScopeContextAdapter:
         return memory
 
     @staticmethod
-    def converter(message: Message):
-        # TODO: support more message type
+    def converter(message: Message) -> Msg:
         if message.role not in ["user", "system", "assistant"]:
             role_label = "user"
         else:
             role_label = message.role
+
         result = {
             "name": message.role,
             "role": role_label,
+            "invocation_id": message.id,
         }
+
         if message.type in (
             MessageType.PLUGIN_CALL,
             MessageType.FUNCTION_CALL,
@@ -121,14 +132,37 @@ class AgentScopeContextAdapter:
                 ),
             ]
         else:
-            result["content"] = (
-                message.content[0].text if message.content else ""
-            )
-        return result
+            type_mapping = {
+                "text": (TextBlock, "text", None),
+                "image": (ImageBlock, "image_url", True),
+                "audio": (AudioBlock, "audio_url", True),  # TODO: support
+                "video": (VideoBlock, "video_url", True),  # TODO: support
+            }
+
+            msg_content = []
+            for cnt in message.content:
+                cnt_type = cnt.type or "text"
+
+                if cnt_type not in type_mapping:
+                    raise ValueError(f"Unsupported message type: {cnt_type}")
+
+                block_cls, attr_name, is_url = type_mapping[cnt_type]
+                value = getattr(cnt, attr_name)
+
+                if is_url:
+                    url_source = URLSource(type="url", url=value)
+                    msg_content.append(
+                        block_cls(type=cnt_type, source=url_source),
+                    )
+                else:
+                    msg_content.append(block_cls(type=cnt_type, text=value))
+
+            result["content"] = msg_content
+        return Msg(**result)
 
     async def adapt_new_message(self):
         last_message = self.context.session.messages[-1]
-        return Msg(**AgentScopeContextAdapter.converter(last_message))
+        return AgentScopeContextAdapter.converter(last_message)
 
     async def adapt_model(self):
         model = self.attr["model"]
