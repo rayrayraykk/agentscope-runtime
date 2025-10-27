@@ -323,7 +323,8 @@ class AgentScopeAgent(Agent):
             agents=[_agent],
             coroutine_task=_agent(as_context.new_message),
         ):
-            # Note: Do not modify this
+            # deepcopy required to avoid modifying the original message object
+            # which may be used elsewhere in the streaming pipeline
             msg = copy.deepcopy(msg)
 
             # Filter out unfinished tool_use messages

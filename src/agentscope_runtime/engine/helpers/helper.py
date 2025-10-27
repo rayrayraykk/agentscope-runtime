@@ -174,6 +174,6 @@ async def simple_call_agent_tool_wo_env(agent, query):
             ):
                 all_result = message.content[0].text
 
-            logger.info(message.model_dump())
+            logger.debug(message.model_dump())
 
     return all_result
