@@ -87,7 +87,8 @@ class AgentScopeContextAdapter:
         for msg in self.context.session.messages[:-1]:  # Exclude the last one
             messages.append(AgentScopeContextAdapter.converter(msg))
 
-        memory.load_state_dict({"content": messages})
+        state_dict = {"content": [_.to_dict() for _ in messages]}
+        memory.load_state_dict(state_dict)
 
         return memory
 
