@@ -25,8 +25,8 @@ from agentscope.message import (
     ToolResultBlock,
     TextBlock,
     ImageBlock,
-    AudioBlock,
-    VideoBlock,
+    # AudioBlock,  # TODO: support
+    # VideoBlock,  # TODO: support
     URLSource,
 )
 from agentscope.model import (
@@ -135,8 +135,8 @@ class AgentScopeContextAdapter:
             type_mapping = {
                 "text": (TextBlock, "text", None),
                 "image": (ImageBlock, "image_url", True),
-                "audio": (AudioBlock, "audio_url", True),  # TODO: support
-                "video": (VideoBlock, "video_url", True),  # TODO: support
+                # "audio": (AudioBlock, "audio_url", True),  # TODO: support
+                # "video": (VideoBlock, "video_url", True),  # TODO: support
             }
 
             msg_content = []
