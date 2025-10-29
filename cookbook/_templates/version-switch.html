@@ -4,27 +4,45 @@
     top: 0;
     left: 0;
     width: 100%;
-    background-color: #fff7e6;
+    background-color: #fff8e7;
     color: #333;
     text-align: center;
-    padding: 10px 40px;
+    padding: 12px 50px;
     font-size: 14px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     z-index: 9999;
     animation: slideDown 0.3s ease;
-    line-height: 1.4em;
+    line-height: 1.5em;
+    border-bottom: 1px solid #f0e4d5;
 }
 .preview-banner strong {
     color: #d9534f;
 }
 .preview-banner-close {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
+    position: fixed;
+    right: 20px;
+    top: 10px;
     cursor: pointer;
+    font-size: 14px;
     font-weight: bold;
-    font-size: 16px;
+    color: #d9534f;
+    background-color: #fff;
+    border: 1px solid #f0d9c3;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+    z-index: 10000;
+}
+
+.preview-banner-close:hover {
+    background-color: #d9534f;
+    color: #fff;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
 }
 @keyframes slideDown {
     from { transform: translateY(-100%); }
