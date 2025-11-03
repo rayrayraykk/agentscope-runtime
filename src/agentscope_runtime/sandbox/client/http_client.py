@@ -11,6 +11,8 @@ from pydantic import Field
 from ..model import ContainerModel
 
 
+DEFAULT_TIMEOUT = 60
+
 logging.getLogger("httpx").setLevel(logging.CRITICAL)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -68,8 +70,8 @@ class SandboxHttpClient:
     def __init__(
         self,
         model: Optional[ContainerModel] = None,
-        timeout: int = 60,
         domain: str = "localhost",
+        **kwargs,
     ) -> None:
         """
         Initialize the Python client.
@@ -84,7 +86,7 @@ class SandboxHttpClient:
             "fastapi",
         )
 
-        self.timeout = timeout
+        self.timeout = model.timeout or DEFAULT_TIMEOUT
         self.session = requests.Session()
         self.built_in_tools = []
         self.secret = model.runtime_token
