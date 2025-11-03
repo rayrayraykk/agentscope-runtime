@@ -291,7 +291,7 @@ agentscope-registry.ap-southeast-1.cr.aliyuncs.com/myteam/runtime-sandbox-base:p
 
 ---
 
-## 🔌 智能体框架集成
+## 🔌 其他智能体框架集成
 
 ### Agno集成
 

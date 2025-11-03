@@ -293,7 +293,7 @@ agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-ba
 
 ---
 
-## 🔌 Agent Framework Integration
+## 🔌 Other Agent Framework Integration
 
 ### Agno Integration
 
