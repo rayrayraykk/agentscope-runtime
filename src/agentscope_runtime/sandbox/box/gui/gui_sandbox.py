@@ -8,7 +8,7 @@ from ...utils import build_image_uri, get_platform
 from ...registry import SandboxRegistry
 from ...enums import SandboxType
 from ...box.base import BaseSandbox
-from ..constant import TIMEOUT
+from ...constant import TIMEOUT
 
 logger = logging.getLogger(__name__)
 

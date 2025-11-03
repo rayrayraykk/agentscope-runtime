@@ -4,7 +4,7 @@ from typing import Optional
 from ...registry import SandboxRegistry
 from ...enums import SandboxType
 from ...box.sandbox import Sandbox
-from ..constant import TIMEOUT
+from ...constant import TIMEOUT
 
 
 @SandboxRegistry.register(

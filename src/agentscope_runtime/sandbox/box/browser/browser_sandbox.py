@@ -8,7 +8,7 @@ from ...registry import SandboxRegistry
 from ...enums import SandboxType
 from ...box.base import BaseSandbox
 from ...box.gui import GUIMixin
-from ..constant import TIMEOUT
+from ...constant import TIMEOUT
 
 
 def http_to_ws(url, use_localhost=True):
