@@ -75,6 +75,8 @@ export KUBECONFIG="/path/to/your/kubeconfig"
 - OSS (Object Storage Service) access
 - ModelStudio workspace configured
 
+(common-agent-setup)=
+
 ## Common Agent Setup
 
 All deployment methods share the same agent and endpoint configuration. Let's first create our base agent and define the endpoints:
@@ -158,7 +160,7 @@ print("✅ Agent and endpoints configured successfully")
 
 ### Implementation
 
-Using the agent and endpoints defined in the [Common Agent Setup](#common-agent-setup) section:
+Using the agent and endpoints defined in the {ref}`Common Agent Setup<common-agent-setup>` section:
 
 ```{code-cell}
 # daemon_deploy.py
@@ -233,7 +235,7 @@ print(response)
 
 ### Implementation
 
-Using the agent and endpoints defined in the [Common Agent Setup](#common-agent-setup) section:
+Using the agent and endpoints defined in the {ref}`Common Agent Setup<common-agent-setup>` section:
 
 ```{code-cell}
 # detached_deploy.py
@@ -329,7 +331,7 @@ docker login  your-registry
 
 ### Implementation
 
-Using the agent and endpoints defined in the [Common Agent Setup](#common-agent-setup) section:
+Using the agent and endpoints defined in the {ref}`Common Agent Setup<common-agent-setup>` section:
 
 ```{code-cell}
 # k8s_deploy.py
@@ -422,7 +424,7 @@ export OSS_ACCESS_KEY_SECRET="your-oss-access-key-secret"
 
 ### Implementation
 
-Using the agent and endpoints defined in the [Common Agent Setup](#common-agent-setup) section:
+Using the agent and endpoints defined in the {ref}`Common Agent Setup<common-agent-setup>` section:
 
 ```{code-cell}
 # modelstudio_deploy.py

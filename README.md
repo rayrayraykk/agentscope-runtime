@@ -32,7 +32,7 @@
 
 ## 🆕 NEWS
 
-* **[2025-10]** We released `v0.2.0` — introducing **`AgentApp` API server support**, enabling easy use of agent applications and custom API endpoints through synchronous, asynchronous, and streaming interfaces. Check our [cookbook](https://runtime.agentscope.io/en/advanced_deployment.html) for more details.
+* **[2025-10]** We released `v0.2.0` — introducing **`AgentApp` API server support**, enabling easy use of agent applications and custom API endpoints through synchronous, asynchronous, and streaming interfaces. Check our [cookbook](https://runtime.agentscope.io/en/agent_app.html) for more details.
 * **[2025-10]**  **GUI Sandbox** is added with support for virtual desktop environments, mouse, keyboard, and screen operations.  Introduced the **`desktop_url`** property for GUI Sandbox, Browser Sandbox, and Filesystem Sandbox — allowing direct access to the virtual desktop via your browser.  Check our [cookbook](https://runtime.agentscope.io/en/sandbox.html#sandbox-usage) for more details.
 
 ---

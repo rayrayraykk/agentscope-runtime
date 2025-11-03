@@ -32,7 +32,7 @@
 
 ## 🆕 新闻
 
-* **[2025-10]** 我们发布了 `v0.2.0` ——新增了 **`AgentApp` API 服务器支持**，支持通过同步、异步和流式接口轻松使用智能体应用和自定义API入口。更多详情请查看我们的[cookbook](https://runtime.agentscope.io/zh/advanced_deployment.html)。
+* **[2025-10]** 我们发布了 `v0.2.0` ——新增了 **`AgentApp` API 服务器支持**，支持通过同步、异步和流式接口轻松使用智能体应用和自定义API入口。更多详情请查看我们的[cookbook](https://runtime.agentscope.io/zh/agent_app.html)。
 * **[2025-10]** 添加了 **GUI Sandbox**，支持虚拟桌面环境、鼠标、键盘以及屏幕操作。引入了 **`desktop_url`** 属性，适用于 GUI Sandbox、Browser Sandbox 和 Filesystem Sandbox —— 允许通过浏览器直接访问虚拟桌面。详情请参阅我们的 [cookbook](https://runtime.agentscope.io/zh/sandbox.html#id18)。
 
 ---

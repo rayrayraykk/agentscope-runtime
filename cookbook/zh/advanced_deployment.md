@@ -69,6 +69,8 @@ export KUBECONFIG="/path/to/your/kubeconfig"
 - 已配置kubectl
 - 容器镜像仓库访问权限（用于推送镜像）
 
+(zh-common-agent-setup)=
+
 ## 通用智能体配置
 
 所有部署方法共享相同的智能体和端点配置。让我们首先创建基础智能体并定义端点：
@@ -152,7 +154,7 @@ print("✅ 智能体和端点配置成功")
 
 ### 实现
 
-使用[通用智能体配置](#通用智能体配置)部分定义的智能体和端点：
+使用 {ref}`通用智能体配置<zh-common-agent-setup>` 部分定义的智能体和端点：
 
 ```{code-cell}
 # daemon_deploy.py
@@ -227,7 +229,7 @@ print(response)
 
 ### 实现
 
-使用[通用智能体配置](#通用智能体配置)部分定义的智能体和端点：
+使用 {ref}`通用智能体配置<zh-common-agent-setup>` 部分定义的智能体和端点：
 
 ```{code-cell}
 # detached_deploy.py
@@ -323,7 +325,7 @@ docker login your-registry
 
 ### 实现
 
-使用[通用智能体配置](#通用智能体配置)部分定义的智能体和端点：
+使用 {ref}`通用智能体配置<zh-common-agent-setup>` 部分定义的智能体和端点：
 
 ```{code-cell}
 # k8s_deploy.py
@@ -416,7 +418,7 @@ export OSS_ACCESS_KEY_SECRET="your-oss-access-key-secret"
 
 ### 实现
 
-使用[通用智能体配置](#通用智能体配置)部分定义的智能体和端点：
+使用 {ref}`通用智能体配置<zh-common-agent-setup>` 部分定义的智能体和端点：
 
 ```{code-cell}
 # modelstudio_deploy.py
