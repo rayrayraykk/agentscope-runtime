@@ -118,6 +118,16 @@ class AgentApp(BaseApp):
         embed_task_processor=False,
         **kwargs,
     ):
+        # Add custom endpoints
+        for ep in self.custom_endpoints:
+            self.add_api_route(
+                ep["path"],
+                ep["handler"],
+                methods=ep["methods"],
+            )
+
+        # TODO: add main entrypoint
+
         try:
             loop = asyncio.get_event_loop()
             if self._runner is not None:
