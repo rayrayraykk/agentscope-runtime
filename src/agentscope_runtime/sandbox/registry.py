@@ -13,7 +13,7 @@ class SandboxConfig:
     sandbox_type: SandboxType | str
     resource_limits: Optional[Dict] = None
     security_level: str = "medium"
-    timeout: int = 300  # Default timeout of 5 minutes
+    timeout: int = 60  # Default timeout of 5 minutes
     description: str = ""
     environment: Optional[Dict] = None
     runtime_config: Optional[Dict] = None
@@ -42,7 +42,7 @@ class SandboxRegistry:
         sandbox_type: SandboxType | str,
         resource_limits: Dict = None,
         security_level: str = "medium",  # Not used for now
-        timeout: int = 300,
+        timeout: int = 60,
         description: str = "",
         environment: Dict = None,
         runtime_config: Optional[Dict] = None,
