@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=too-many-branches,too-many-statements
-import os
 import time
 import hashlib
 import traceback
@@ -628,9 +627,7 @@ class KubernetesClient(BaseClient):
     def _get_pod_node_ip(self, pod_name):
         """Get the IP of the node where the pod is running"""
 
-        # Check if we are running in Colima, where pod runs in VM
-        docker_host = os.getenv("DOCKER_HOST", "")
-        if "colima" in docker_host.lower():
+        if self._is_local_cluster():
             return "localhost"
 
         try:
