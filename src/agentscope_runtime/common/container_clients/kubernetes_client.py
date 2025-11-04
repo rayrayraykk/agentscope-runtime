@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=too-many-branches, self-assigning-variable
-# pylint: disable=too-many-statements
-
-import hashlib
-import logging
+# pylint: disable=too-many-branches,too-many-statements
+import os
 import time
+import hashlib
 import traceback
+import logging
+
 from typing import Optional, Tuple
 
 from kubernetes import client
@@ -16,14 +16,12 @@ from .base_client import BaseClient
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_IMAGE_REGISTRY = "agentscope-registry.ap-southeast-1.cr.aliyuncs.com"
-
 
 class KubernetesClient(BaseClient):
     def __init__(
         self,
         config=None,
-        image_registry: Optional[str] = DEFAULT_IMAGE_REGISTRY,
+        image_registry: Optional[str] = None,
     ):
         self.config = config
         namespace = self.config.k8s_namespace
@@ -157,11 +155,7 @@ class KubernetesClient(BaseClient):
         container_name = name or "main-container"
 
         # Container specification
-        # TODO: use image from docker registry first
-
-        if not self.image_registry:
-            image = image
-        else:
+        if self.image_registry:
             image = f"{self.image_registry}/{image}"
 
         container = client.V1Container(
@@ -634,8 +628,9 @@ class KubernetesClient(BaseClient):
     def _get_pod_node_ip(self, pod_name):
         """Get the IP of the node where the pod is running"""
 
-        # Check if we are using a local Kubernetes cluster
-        if self._is_local_cluster():
+        # Check if we are running in Colima, where pod runs in VM
+        docker_host = os.getenv("DOCKER_HOST", "")
+        if "colima" in docker_host.lower():
             return "localhost"
 
         try:
