@@ -28,6 +28,24 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Cleanup disk space before pulling images
+        run: |
+          echo "Before cleanup:"
+          df -h
+
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+
+          docker system prune -af || true
+          docker volume prune -f || true
+
+          pip cache purge || true
+
+          rm -rf /tmp/* || true
+
+          echo "After cleanup:"
+          df -h
+
       - name: Pull Docker images
         run: |
           DOCKER_IMAGES=(
