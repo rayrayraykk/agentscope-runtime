@@ -61,7 +61,7 @@ jobs:
       - name: Install dependencies
         run: |
           export PIP_DEFAULT_TIMEOUT=300
-          pip install -q -e "."
+          pip install -q -e ".[dev]"
 
       - name: Run tests with coverage
         run: |
