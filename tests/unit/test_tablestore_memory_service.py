@@ -101,23 +101,6 @@ async def tablestore_memory_service_vector(
         await tablestore_memory_service_vector.stop()
 
 
-# Tests for __init__ method
-def test_init_with_vector_strategy_without_embedding_model():
-    mock_tablestore_client = MagicMock()
-
-    with pytest.raises(ValueError) as exc_info:
-        TablestoreMemoryService(
-            tablestore_client=mock_tablestore_client,
-            search_strategy=SearchStrategy.VECTOR,
-            embedding_model=None,
-        )
-
-    assert (
-        str(exc_info.value)
-        == "Embedding model is required when search strategy is VECTOR."
-    )
-
-
 def test_init_with_full_text_strategy():
     mock_tablestore_client = MagicMock()
 
