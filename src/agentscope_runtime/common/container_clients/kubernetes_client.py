@@ -627,6 +627,7 @@ class KubernetesClient(BaseClient):
     def _get_pod_node_ip(self, pod_name):
         """Get the IP of the node where the pod is running"""
 
+        # Check if we are using a local Kubernetes cluster
         if self._is_local_cluster():
             return "localhost"
 
