@@ -68,4 +68,3 @@ class SandboxType(DynamicEnum):
     GUI = "gui"
     APPWORLD = "appworld"
     BFCL = "bfcl"
-    WEBSHOP = "webshop"

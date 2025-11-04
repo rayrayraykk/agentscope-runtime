@@ -1,14 +1,17 @@
-name: Unit Tests
-
+name: Unit Tests for Training Sandbox
 
 on:
   push:
     branches:
       - 'main'
-
+  pull_request:
+    branches:
+      - 'main'
 
 jobs:
   test:
+    if: ${{ !(github.event_name == 'pull_request' && startsWith(github.event.pull_request.title, 'docs:')) }}
+
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -30,9 +33,6 @@ jobs:
           DOCKER_IMAGES=(
             "agentscope/runtime-sandbox-bfcl:latest"
             "agentscope/runtime-sandbox-appworld:latest"
-            "agentscope/runtime-sandbox-base:latest"
-            "agentscope/runtime-sandbox-browser:latest"
-            "agentscope/runtime-sandbox-filesystem:latest"
           )
 
           for img in "${DOCKER_IMAGES[@]}"; do
@@ -61,14 +61,11 @@ jobs:
       - name: Install dependencies
         run: |
           export PIP_DEFAULT_TIMEOUT=300
-          pip install -q -e ".[dev,langgraph,agno,a2a,autogen,langchain_rag,llamaindex_rag,aliyun_tablestore_ext,memory_ext]"
+          pip install -q -e "."
 
       - name: Run tests with coverage
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
         run: |
-          coverage run -m pytest tests
+          coverage run -m pytest tests/sandbox/test_sandbox_appworld.py tests/sandbox/test_sandbox_bfcl.py
 
       - name: Generate coverage report
         run: |
