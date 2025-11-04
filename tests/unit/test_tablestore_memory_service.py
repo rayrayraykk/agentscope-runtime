@@ -49,13 +49,13 @@ def mock_knowledge_store():
         yield instance
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mock_embedding_model():
     with patch(
-        "agentscope_runtime.engine.services."
-        "tablestore_memory_service.DashScopeEmbeddings",
-    ) as mock:
-        instance = mock.return_value
+        "agentscope_runtime.engine.services.tablestore_memory_service"
+        ".DashScopeEmbeddings",
+    ) as mock_cls:
+        instance = mock_cls.return_value
         instance.embed_documents = MagicMock(
             side_effect=lambda texts: [[0.1, 0.2, 0.3] for _ in texts],
         )

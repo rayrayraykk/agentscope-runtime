@@ -58,7 +58,7 @@ langgraph = [
 ]
 
 agno = [
-    "agno>=1.7.5,<2.0.0",
+    "agno>=2.0.0",
 ]
 autogen = [
     "autogen-agentchat>=0.7.4",
