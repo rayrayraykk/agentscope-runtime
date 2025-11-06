@@ -389,6 +389,7 @@ class AgentScopeAgent(Agent):
                 for element in content:
                     if isinstance(element, str) and element:
                         if should_start_message:
+                            index = None
                             yield message.in_progress()
                             should_start_message = False
                         text_delta_content = TextContent(
@@ -409,6 +410,7 @@ class AgentScopeAgent(Agent):
                             )
                             if text:
                                 if should_start_message:
+                                    index = None
                                     yield message.in_progress()
                                     should_start_message = False
 
@@ -499,6 +501,7 @@ class AgentScopeAgent(Agent):
                             )
                             if reasoning:
                                 if should_start_reasoning_message:
+                                    index = None
                                     yield reasoning_message.in_progress()
                                     should_start_reasoning_message = False
                                 text_delta_content = TextContent(
@@ -533,6 +536,7 @@ class AgentScopeAgent(Agent):
                                     index = None
                         else:
                             if should_start_message:
+                                index = None
                                 yield message.in_progress()
                                 should_start_message = False
 
@@ -549,8 +553,8 @@ class AgentScopeAgent(Agent):
 
         if last_content:
             if should_start_message:
-                yield message.in_progress()
                 index = None
+                yield message.in_progress()
             text_delta_content = TextContent(
                 delta=True,
                 index=index,
