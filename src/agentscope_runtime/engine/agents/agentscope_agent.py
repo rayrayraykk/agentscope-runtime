@@ -57,6 +57,7 @@ from ..schemas.agent_schemas import (
     FunctionCall,
     FunctionCallOutput,
     MessageType,
+    RunStatus,
 )
 from ..schemas.context import Context
 
@@ -390,6 +391,7 @@ class AgentScopeAgent(Agent):
                         if should_start_message:
                             yield message.in_progress()
                             should_start_message = False
+                            index = None
                         text_delta_content = TextContent(
                             delta=True,
                             index=index,
@@ -410,6 +412,7 @@ class AgentScopeAgent(Agent):
                                 if should_start_message:
                                     yield message.in_progress()
                                     should_start_message = False
+                                    index = None
                                 text_delta_content = TextContent(
                                     delta=True,
                                     index=index,
@@ -437,8 +440,20 @@ class AgentScopeAgent(Agent):
                                         role="assistant",
                                     )
                                     index = None
+                                    should_start_message = True
 
                         elif element.get("type") == "tool_use":
+                            if (
+                                reasoning_message.status
+                                == RunStatus.InProgress
+                            ):
+                                yield reasoning_message.completed()
+                                reasoning_message = Message(
+                                    type=MessageType.REASONING,
+                                    role="assistant",
+                                )
+                                index = None
+
                             json_str = json.dumps(element.get("input"))
                             data_delta_content = DataContent(
                                 index=index,
@@ -509,6 +524,7 @@ class AgentScopeAgent(Agent):
                                 if text_delta_content.text:
                                     yield text_delta_content
 
+                                # The last won't happen in the thinking message
                                 if last:
                                     yield reasoning_message.completed()
                                     reasoning_message = Message(
@@ -520,6 +536,7 @@ class AgentScopeAgent(Agent):
                             if should_start_message:
                                 yield message.in_progress()
                                 should_start_message = False
+                                index = None
                             text_delta_content = TextContent(
                                 delta=True,
                                 index=index,
@@ -534,6 +551,7 @@ class AgentScopeAgent(Agent):
         if last_content:
             if should_start_message:
                 yield message.in_progress()
+                index = None
             text_delta_content = TextContent(
                 delta=True,
                 index=index,
