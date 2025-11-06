@@ -10,7 +10,7 @@ import pytest
 
 from agentscope.agent import ReActAgent
 from agentscope.model import DashScopeChatModel
-from agentscope.tool import Toolkit, dashscope_text_to_image
+from agentscope.tool import Toolkit, execute_python_code
 
 from agentscope_runtime.engine import AgentApp
 from agentscope_runtime.engine.agents.agentscope_agent import AgentScopeAgent
@@ -21,12 +21,12 @@ PORT = 8090
 def run_app():
     """Start AgentApp with streaming output enabled."""
     toolkit = Toolkit()
-    toolkit.register_tool_function(dashscope_text_to_image)
+    toolkit.register_tool_function(execute_python_code)
 
     agent = AgentScopeAgent(
         name="Friday",
         model=DashScopeChatModel(
-            "qwen-max",
+            "qwen-turbo",
             api_key=os.getenv("DASHSCOPE_API_KEY"),
             enable_thinking=True,
         ),

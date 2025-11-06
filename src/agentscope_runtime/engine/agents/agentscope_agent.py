@@ -130,7 +130,7 @@ class AgentScopeContextAdapter:
                     type="tool_result",
                     id=message.content[0].data["call_id"],
                     name=message.role,
-                    output=message.content[0].data["output"],
+                    output=json.loads(message.content[0].data["output"]),
                 ),
             ]
         else:
@@ -440,11 +440,12 @@ class AgentScopeAgent(Agent):
                             )
                             yield plugin_call_message.completed()
                         elif element.get("type") == "tool_result":
+                            json_str = json.dumps(element.get("output"))
                             data_delta_content = DataContent(
                                 index=index,
                                 data=FunctionCallOutput(
                                     call_id=element.get("id"),
-                                    output=json.dumps(element.get("output")),
+                                    output=json_str,
                                 ).model_dump(),
                             )
                             plugin_output_message = Message(
