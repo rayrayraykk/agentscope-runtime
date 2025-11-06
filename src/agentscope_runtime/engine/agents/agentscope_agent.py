@@ -391,7 +391,6 @@ class AgentScopeAgent(Agent):
                         if should_start_message:
                             yield message.in_progress()
                             should_start_message = False
-                            index = None
                         text_delta_content = TextContent(
                             delta=True,
                             index=index,
@@ -412,7 +411,7 @@ class AgentScopeAgent(Agent):
                                 if should_start_message:
                                     yield message.in_progress()
                                     should_start_message = False
-                                    index = None
+
                                 text_delta_content = TextContent(
                                     delta=True,
                                     index=index,
@@ -536,7 +535,7 @@ class AgentScopeAgent(Agent):
                             if should_start_message:
                                 yield message.in_progress()
                                 should_start_message = False
-                                index = None
+
                             text_delta_content = TextContent(
                                 delta=True,
                                 index=index,

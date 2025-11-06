@@ -175,5 +175,7 @@ async def simple_call_agent_tool_wo_env(agent, query):
                 all_result = message.content[0].text
 
             logger.debug(message.model_dump())
+            print(type(message), message)
+            input("Press Enter to continue...")
 
     return all_result
