@@ -54,7 +54,7 @@ class AgentScopeSessionHistoryMemory(InMemoryMemory):
         """
         Check if the session exists in the backend.
         """
-        # Always check for session for stay in sync with backend
+        # Always check for session to stay in sync with backend
         self._session = await self._service.get_session(
             self.user_id,
             self.session_id,
@@ -123,7 +123,7 @@ class AgentScopeSessionHistoryMemory(InMemoryMemory):
         current_message = self._session.messages
         agentscope_msg = message_to_agentscope_msg(current_message)
 
-        invalid_index = [_ for _ in index if 0 > _ or _ >= len(agentscope_msg)]
+        invalid_index = [_ for _ in index if _ < 0 or _ >= len(agentscope_msg)]
 
         if invalid_index:
             raise IndexError(

@@ -25,7 +25,7 @@ class ContextComposer:
     def __init__(self):
         warnings.warn(
             "ContextComposer is deprecated and will be removed in version "
-            "1.0. ",
+            "v1.0.",
             DeprecationWarning,
             stacklevel=2,
         )
