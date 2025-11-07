@@ -7,7 +7,6 @@ import json
 import traceback
 from functools import partial
 from typing import Optional, Type, List
-from urllib.parse import urlparse
 
 from agentscope import setup_logger
 from agentscope.agent import AgentBase, ReActAgent
@@ -20,18 +19,7 @@ from agentscope.formatter import (
     GeminiChatFormatter,
 )
 from agentscope.memory import InMemoryMemory
-from agentscope.message import (
-    Msg,
-    ToolUseBlock,
-    ToolResultBlock,
-    TextBlock,
-    ThinkingBlock,
-    ImageBlock,
-    AudioBlock,
-    # VideoBlock,  # TODO: support
-    URLSource,
-    Base64Source,
-)
+from agentscope.message import Msg
 from agentscope.model import (
     ChatModelBase,
     DashScopeChatModel,
@@ -60,6 +48,7 @@ from ..schemas.agent_schemas import (
     RunStatus,
 )
 from ..schemas.context import Context
+from ...adapters.agentscope.message import message_to_agentscope_msg
 
 # Disable logging from agentscope
 setup_logger(level="CRITICAL")
@@ -98,98 +87,9 @@ class AgentScopeContextAdapter:
 
     @staticmethod
     def converter(message: Message) -> Msg:
-        if message.role not in ["user", "system", "assistant"]:
-            role_label = "user"
-        else:
-            role_label = message.role
+        return message_to_agentscope_msg(message)
 
-        result = {
-            "name": message.role,  # TODO: protocol support
-            "role": role_label,
-            "invocation_id": message.id,
-        }
-
-        if message.type in (
-            MessageType.PLUGIN_CALL,
-            MessageType.FUNCTION_CALL,
-        ):
-            # convert PLUGIN_CALL, FUNCTION_CALL to ToolUseBlock
-            result["content"] = [
-                ToolUseBlock(
-                    type="tool_use",
-                    id=message.content[0].data["call_id"],
-                    name=message.content[0].data["name"],
-                    input=json.loads(message.content[0].data["arguments"]),
-                ),
-            ]
-        elif message.type in (
-            MessageType.PLUGIN_CALL_OUTPUT,
-            MessageType.FUNCTION_CALL_OUTPUT,
-        ):
-            # convert PLUGIN_CALL_OUTPUT, FUNCTION_CALL_OUTPUT to
-            # ToolResultBlock
-            result["content"] = [
-                ToolResultBlock(
-                    type="tool_result",
-                    id=message.content[0].data["call_id"],
-                    name=message.role,  # TODO: match id of ToolUseBlock
-                    output=json.loads(message.content[0].data["output"]),
-                ),
-            ]
-        elif message.type in (MessageType.REASONING,):
-            result["content"] = [
-                ThinkingBlock(
-                    type="thinking",
-                    thinking=message.content[0].text,
-                ),
-            ]
-        else:
-            type_mapping = {
-                "text": (TextBlock, "text", None),
-                "image": (ImageBlock, "image_url", True),
-                "audio": (AudioBlock, "data", None),
-                # "video": (VideoBlock, "video_url", True),  # TODO: support
-            }
-
-            msg_content = []
-            for cnt in message.content:
-                cnt_type = cnt.type or "text"
-
-                if cnt_type not in type_mapping:
-                    raise ValueError(f"Unsupported message type: {cnt_type}")
-
-                block_cls, attr_name, is_url = type_mapping[cnt_type]
-                value = getattr(cnt, attr_name)
-                if cnt_type == "audio":
-                    result = urlparse(value)
-                    is_url = all([result.scheme, result.netloc])
-                if is_url:
-                    url_source = URLSource(type="url", url=value)
-                    msg_content.append(
-                        block_cls(type=cnt_type, source=url_source),
-                    )
-                else:
-                    if cnt_type == "audio":
-                        audio_format = getattr(cnt, "format")
-                        base64_source = Base64Source(
-                            type="base64",
-                            media_type=audio_format,
-                            data=value,
-                        )
-                        msg_content.append(
-                            block_cls(
-                                type=cnt_type,
-                                source=base64_source,
-                            ),
-                        )
-                    else:
-                        msg_content.append(
-                            block_cls(type=cnt_type, text=value),
-                        )
-
-            result["content"] = msg_content
-        return Msg(**result)
-
+    # TODO: IMPORTANT: save query to session should be done in agent!
     async def adapt_new_message(self):
         last_message = self.context.session.messages[-1]
         return AgentScopeContextAdapter.converter(last_message)
@@ -360,6 +260,7 @@ class AgentScopeAgent(Agent):
 
         index = None
 
+        # TODO: refactor with builder
         # Run agent
         async for msg, last in stream_printing_messages(
             agents=[_agent],
@@ -381,7 +282,6 @@ class AgentScopeAgent(Agent):
             if not msg.content:
                 continue
 
-            # TODO: make this as a message converter
             content = msg.content
             if isinstance(content, str):
                 last_content = content
