@@ -169,6 +169,8 @@ class Runner:
 
         session_id = request.session_id or str(uuid.uuid4())
         request_input = request.input
+
+        # TODO: `compose_session` will be removed in v1.0
         session = await self._context_manager.compose_session(
             user_id=user_id,
             session_id=session_id,
@@ -212,7 +214,7 @@ class Runner:
             request_input=request_input,
         )
 
-        async for event in context.agent.run_async(context):
+        async for event in self._agent.run_async(context):
             if (
                 event.status == RunStatus.Completed
                 and event.object == "message"
@@ -239,7 +241,6 @@ class Runner:
     #     """
     #     return self._agent.query(message, session_id)
 
-    # TODO: should be sync method?
     async def stop(
         self,
         deploy_id: str,

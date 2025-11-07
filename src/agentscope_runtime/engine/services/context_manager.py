@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import warnings
+
 from contextlib import asynccontextmanager
 from typing import List
 
@@ -20,6 +22,15 @@ from ..schemas.agent_schemas import (
 
 
 class ContextComposer:
+    def __init__(self):
+        warnings.warn(
+            "ContextComposer is deprecated and will be removed in version "
+            "1.0. ",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__()
+
     @staticmethod
     async def compose(
         request_input: List[Message],  # current input

@@ -18,8 +18,6 @@ from agentscope.formatter import (
     OllamaChatFormatter,
     GeminiChatFormatter,
 )
-from agentscope.memory import InMemoryMemory
-from agentscope.message import Msg
 from agentscope.model import (
     ChatModelBase,
     DashScopeChatModel,
@@ -49,6 +47,7 @@ from ..schemas.agent_schemas import (
 )
 from ..schemas.context import Context
 from ...adapters.agentscope.message import message_to_agentscope_msg
+from ...adapters.agentscope.memory import AgentScopeSessionHistoryMemory
 
 # Disable logging from agentscope
 setup_logger(level="CRITICAL")
@@ -73,26 +72,19 @@ class AgentScopeContextAdapter:
         self.toolkit = await self.adapt_tools()
 
     async def adapt_memory(self):
-        memory = self.attr["agent_config"].get("memory", InMemoryMemory())
-        messages = []
-
-        # Build context
-        for msg in self.context.session.messages[:-1]:  # Exclude the last one
-            messages.append(AgentScopeContextAdapter.converter(msg))
-
-        state_dict = {"content": [_.to_dict() for _ in messages]}
-        memory.load_state_dict(state_dict)
+        memory = AgentScopeSessionHistoryMemory(
+            service=self.context.context_manager._session_history_service,
+            user_id=self.context.session.user_id,
+            session_id=self.context.session.id,
+        )
 
         return memory
 
-    @staticmethod
-    def converter(message: Message) -> Msg:
-        return message_to_agentscope_msg(message)
-
-    # TODO: IMPORTANT: save query to session should be done in agent!
     async def adapt_new_message(self):
-        last_message = self.context.session.messages[-1]
-        return AgentScopeContextAdapter.converter(last_message)
+        return message_to_agentscope_msg(
+            self.context.current_messages,
+            merge=True,
+        )
 
     async def adapt_model(self):
         model = self.attr["model"]

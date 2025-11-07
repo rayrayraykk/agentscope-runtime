@@ -226,12 +226,14 @@ def agentscope_msg_to_message(
 
 def message_to_agentscope_msg(
     messages: Union[Message, List[Message]],
+    merge: bool = False,
 ) -> Union[Msg, List[Msg]]:
     """
     Convert AgentScope runtime Message(s) to AgentScope Msg(s).
 
     Args:
         messages: A single AgentScope runtime Message or list of Messages.
+        merge: If True and messages is a list, merge all contents into one Msg.
 
     Returns:
         A single Msg object or a list of Msg objects.
@@ -336,7 +338,28 @@ def message_to_agentscope_msg(
     if isinstance(messages, Message):
         return _convert_one(messages)
     elif isinstance(messages, list):
-        return [_convert_one(m) for m in messages]
+        converted_list = [_convert_one(m) for m in messages]
+        if merge:
+            merged_content = []
+            name = None
+            role = None
+            invocation_id = None
+
+            for i, msg in enumerate(converted_list):
+                if i == 0:
+                    name = msg.name
+                    role = msg.role
+                    invocation_id = msg.invocation_id
+                merged_content.extend(msg.content)
+
+            return Msg(
+                name=name,
+                role=role,
+                invocation_id=invocation_id,
+                content=merged_content,
+            )
+
+        return converted_list
     else:
         raise TypeError(
             f"Expected Message or list[Message], got {type(messages)}",
