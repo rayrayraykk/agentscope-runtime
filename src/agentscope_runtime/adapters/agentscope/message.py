@@ -71,7 +71,10 @@ def agentscope_msg_to_message(
         current_type = None
 
         for block in msg.content:
-            btype = getattr(block, "type", "text")
+            if isinstance(block, dict):
+                btype = block.get("type", "text")
+            else:
+                continue
 
             if btype == "text":
                 # Create/continue MESSAGE type
@@ -86,7 +89,7 @@ def agentscope_msg_to_message(
                     )
                     current_type = MessageType.MESSAGE
                 cb = current_mb.create_content_builder(content_type="text")
-                cb.set_text(getattr(block, "text", ""))
+                cb.set_text(block.get("text", ""))
                 cb.complete()
 
             elif btype == "thinking":
@@ -102,7 +105,7 @@ def agentscope_msg_to_message(
                     )
                     current_type = MessageType.REASONING
                 cb = current_mb.create_content_builder(content_type="text")
-                cb.set_text(getattr(block, "thinking", ""))
+                cb.set_text(block.get("thinking", ""))
                 cb.complete()
 
             elif btype == "tool_use":
@@ -118,9 +121,9 @@ def agentscope_msg_to_message(
                 current_type = MessageType.PLUGIN_CALL
                 cb = current_mb.create_content_builder(content_type="data")
                 call_data = FunctionCall(
-                    call_id=block.id,
-                    name=block.name,
-                    arguments=json.dumps(block.input),
+                    call_id=block.get("id"),
+                    name=block.get("name"),
+                    arguments=json.dumps(block.get("input")),
                 ).model_dump()
                 cb.set_data(call_data)
                 cb.complete()
@@ -138,8 +141,8 @@ def agentscope_msg_to_message(
                 current_type = MessageType.PLUGIN_CALL_OUTPUT
                 cb = current_mb.create_content_builder(content_type="data")
                 output_data = FunctionCallOutput(
-                    call_id=block.id,
-                    output=json.dumps(block.output),
+                    call_id=block.get("id"),
+                    output=json.dumps(block.get("output")),
                 ).model_dump()
                 cb.set_data(output_data)
                 cb.complete()
@@ -159,10 +162,10 @@ def agentscope_msg_to_message(
                 cb = current_mb.create_content_builder(content_type="image")
 
                 if (
-                    isinstance(block.source, dict)
-                    and block.source.get("type") == "url"
+                    isinstance(block.get("source"), dict)
+                    and block.get("source", {}).get("type") == "url"
                 ):
-                    cb.set_image_url(block.source.url)
+                    cb.set_image_url(block.get("source", {}).get("url"))
 
                 cb.complete()
 
@@ -181,23 +184,23 @@ def agentscope_msg_to_message(
                 cb = current_mb.create_content_builder(content_type="audio")
                 # URLSource runtime check (dict with type == "url")
                 if (
-                    isinstance(block.source, dict)
-                    and block.source.get(
+                    isinstance(block.get("source"), dict)
+                    and block.get("source", {}).get(
                         "type",
                     )
                     == "url"
                 ):
-                    cb.content.data = block.source.get("url")
+                    cb.content.data = block.get("source", {}).get("url")
 
                 # Base64Source runtime check (dict with type == "base64")
                 elif (
-                    isinstance(block.source, dict)
-                    and block.source.get(
+                    isinstance(block.get("source"), dict)
+                    and block.get("source").get(
                         "type",
                     )
                     == "base64"
                 ):
-                    cb.content.data = block.source.get("data")
+                    cb.content.data = block.get("source", {}).get("data")
                 cb.complete()
 
             else:
@@ -358,7 +361,6 @@ def message_to_agentscope_msg(
                 invocation_id=invocation_id,
                 content=merged_content,
             )
-
         return converted_list
     else:
         raise TypeError(
