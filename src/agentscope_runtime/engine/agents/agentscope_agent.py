@@ -48,6 +48,7 @@ from ..schemas.agent_schemas import (
 from ..schemas.context import Context
 from ...adapters.agentscope.message import message_to_agentscope_msg
 from ...adapters.agentscope.memory import AgentScopeSessionHistoryMemory
+from ...adapters.agentscope.long_term_memory import AgentScopeLongTermMemory
 
 # Disable logging from agentscope
 setup_logger(level="CRITICAL")
@@ -68,6 +69,7 @@ class AgentScopeContextAdapter:
     async def initialize(self):
         self.model, self.formatter = await self.adapt_model()
         self.memory = await self.adapt_memory()
+        self.long_term_memory = await self.adapt_long_term_memory()
         self.new_message = await self.adapt_new_message()
         self.toolkit = await self.adapt_tools()
 
@@ -79,6 +81,15 @@ class AgentScopeContextAdapter:
         )
 
         return memory
+
+    async def adapt_long_term_memory(self):
+        long_term_memory = AgentScopeLongTermMemory(
+            service=self.context.context_manager._memory_service,
+            user_id=self.context.session.user_id,
+            session_id=self.context.session.id,
+        )
+
+        return long_term_memory
 
     async def adapt_new_message(self):
         return message_to_agentscope_msg(
@@ -214,13 +225,16 @@ class AgentScopeAgent(Agent):
                     as_context.formatter,
                 ),
                 "memory": as_context.memory,
+                "long_term_memory": as_context.long_term_memory,
                 "toolkit": as_context.toolkit,
             },
         }
 
         builder_cls = self._attr["agent_builder"]
         _agent = build_agent(builder_cls, params)
-        _agent.set_console_output_enabled(False)
+
+        if hasattr(_agent, "set_console_output_enabled"):
+            _agent.set_console_output_enabled(False)
 
         return _agent
 

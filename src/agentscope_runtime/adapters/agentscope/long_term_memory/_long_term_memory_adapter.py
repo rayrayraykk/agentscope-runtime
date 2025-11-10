@@ -11,7 +11,7 @@ from ..message import agentscope_msg_to_message
 from ....engine.services.memory_service import MemoryService
 
 
-class AgentScopeLongMemory(LongTermMemoryBase):
+class AgentScopeLongTermMemory(LongTermMemoryBase):
     """
     AgentScope Long Memory subclass based on LongTermMemoryBase.
 
