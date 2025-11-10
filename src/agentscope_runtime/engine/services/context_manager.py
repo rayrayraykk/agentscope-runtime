@@ -7,6 +7,7 @@ from typing import List
 from .manager import ServiceManager
 from .memory_service import MemoryService, InMemoryMemoryService
 from .rag_service import RAGService
+from .state_service import StateService
 from .session_history_service import (
     SessionHistoryService,
     Session,
@@ -91,11 +92,13 @@ class ContextManager(ServiceManager):
         session_history_service: SessionHistoryService = None,
         memory_service: MemoryService = None,
         rag_service: RAGService = None,
+        state_service: StateService = None,
     ):
         self._context_composer_cls = context_composer_cls
         self._session_history_service = session_history_service
         self._memory_service = memory_service
         self._rag_service = rag_service
+        self.state_service = state_service
         super().__init__()
 
     def _register_default_services(self):
@@ -105,10 +108,15 @@ class ContextManager(ServiceManager):
         )
         self._memory_service = self._memory_service or InMemoryMemoryService()
 
+        # Default services
         self.register_service("session", self._session_history_service)
         self.register_service("memory", self._memory_service)
+
+        # Optional services
         if self._rag_service:
             self.register_service("rag", self._rag_service)
+        if self._rag_service:
+            self.register_service("state", self.state_service)
 
     async def compose_context(
         self,
