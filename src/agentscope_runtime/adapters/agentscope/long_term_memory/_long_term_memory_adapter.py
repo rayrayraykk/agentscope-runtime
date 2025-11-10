@@ -39,6 +39,21 @@ class AgentScopeLongTermMemory(LongTermMemoryBase):
         msgs: list[Msg | None],
         **kwargs: Any,
     ) -> None:
+        """
+        Record a list of messages into the memory service.
+
+        Args:
+            msgs (list[Msg | None]):
+                A list of AgentScope `Msg` objects to store. `None` entries
+                in the list will be ignored. If the list is empty, nothing
+                will be recorded.
+            **kwargs (Any):
+                Additional keyword arguments, currently unused but kept for
+                compatibility/future extensions.
+
+        Returns:
+            None
+        """
         if not msgs:
             return
 
@@ -54,6 +69,25 @@ class AgentScopeLongTermMemory(LongTermMemoryBase):
         msg: Msg | list[Msg] | None,
         **kwargs: Any,
     ) -> str:
+        """
+        Retrieve related memories from the memory service based on a query
+        message.
+
+        Args:
+            msg (Msg | list[Msg] | None):
+                A single message or list of messages representing the
+                search query. If `None`, an empty assistant message will
+                be used as the query.
+            **kwargs (Any):
+                Optional search parameters:
+                - limit (int): If provided, limits the number of returned
+                  results (`top_k` search).
+
+        Returns:
+            str:
+                A string representation of the retrieved search results.
+        """
+
         if not msg:
             # Build a none message
             msg = [
