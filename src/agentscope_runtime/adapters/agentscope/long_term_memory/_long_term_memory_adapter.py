@@ -101,39 +101,49 @@ class AgentScopeLongTermMemory(LongTermMemoryBase):
                 The content to remember, which is a list of strings.
         """
         # Building agentscope msgs
-        thinking_blocks = [
-            ThinkingBlock(
-                type="thinking",
-                thinking=thinking,
-            ),
-        ]
+        try:
+            thinking_blocks = [
+                ThinkingBlock(
+                    type="thinking",
+                    thinking=thinking,
+                ),
+            ]
 
-        text_blocks = [
-            TextBlock(
-                type="text",
-                text=cnt,
-            )
-            for cnt in content
-        ]
-
-        msgs = [
-            Msg(
-                name="assistant",
-                content=thinking_blocks + text_blocks,
-                role="assistant",
-            ),
-        ]
-
-        await self.record(msgs)
-
-        return ToolResponse(
-            content=[
+            text_blocks = [
                 TextBlock(
                     type="text",
-                    text="Successfully recorded content to memory",
+                    text=cnt,
+                )
+                for cnt in content
+            ]
+
+            msgs = [
+                Msg(
+                    name="assistant",
+                    content=thinking_blocks + text_blocks,
+                    role="assistant",
                 ),
-            ],
-        )
+            ]
+
+            await self.record(msgs)
+
+            return ToolResponse(
+                content=[
+                    TextBlock(
+                        type="text",
+                        text="Successfully recorded content to memory",
+                    ),
+                ],
+            )
+        except Exception as e:
+            return ToolResponse(
+                content=[
+                    TextBlock(
+                        type="text",
+                        text=f"Error recording content to memory: {str(e)}",
+                    ),
+                ],
+            )
 
     async def retrieve_from_memory(
         self,
