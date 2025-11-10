@@ -42,9 +42,6 @@ class SessionHistoryService(ServiceWithLifecycleManager):
     async def stop(self) -> None:
         pass
 
-    async def health(self) -> bool:
-        return True
-
     @abstractmethod
     async def create_session(
         self,
@@ -130,7 +127,24 @@ class InMemorySessionHistoryService(SessionHistoryService):
 
     def __init__(self) -> None:
         """Initializes the InMemorySessionHistoryService."""
-        self._sessions: Dict[str, Dict[str, Session]] = {}
+        self._sessions: Optional[Dict[str, Dict[str, Session]]] = None
+        self._health = False
+
+    async def start(self) -> None:
+        """Initialize the in-memory store."""
+        if self._sessions is None:
+            self._sessions = {}
+        self._health = True
+
+    async def stop(self) -> None:
+        """Clear all in-memory data."""
+        if self._sessions is not None:
+            self._sessions.clear()
+        self._health = False
+
+    async def health(self) -> bool:
+        """Service health check: always True."""
+        return self._health
 
     async def create_session(
         self,
@@ -185,6 +199,9 @@ class InMemorySessionHistoryService(SessionHistoryService):
             user_id: The identifier for the user.
             session_id: The identifier for the session to delete.
         """
+        if self._sessions is None:
+            raise RuntimeError("Service not started")
+
         if user_id in self._sessions and session_id in self._sessions[user_id]:
             del self._sessions[user_id][session_id]
 
@@ -200,6 +217,9 @@ class InMemorySessionHistoryService(SessionHistoryService):
         Returns:
             A list of Session objects belonging to the user, without history.
         """
+        if self._sessions is None:
+            raise RuntimeError("Service not started")
+
         user_sessions = self._sessions.get(user_id, {})
         # Return sessions without their potentially large history for
         # efficiency.

@@ -67,25 +67,29 @@ class AgentScopeLongTermMemory(LongTermMemoryBase):
     async def retrieve(
         self,
         msg: Msg | list[Msg] | None,
+        limit: int = 5,
         **kwargs: Any,
     ) -> str:
-        """
-        Retrieve related memories from the memory service based on a query
-        message.
+        """Retrieve the content from the long-term memory.
 
         Args:
-            msg (Msg | list[Msg] | None):
-                A single message or list of messages representing the
-                search query. If `None`, an empty assistant message will
-                be used as the query.
-            **kwargs (Any):
-                Optional search parameters:
-                - limit (int): If provided, limits the number of returned
-                  results (`top_k` search).
+            msg (`Msg | list[Msg] | None`):
+                The message to search for in the memory, which should be
+                specific and concise, e.g. the person's name, the date, the
+                location, etc.
+            limit (`int`, optional):
+                The maximum number of memories to retrieve per search, i.e.,
+                the number of memories to retrieve for the message. if the
+                message is a list of messages, the limit will be applied to
+                each message. If the message is a single message, then the
+                limit is the total number of memories to retrieve for the
+                message.
+            **kwargs (`Any`):
+                Additional keyword arguments.
 
         Returns:
-            str:
-                A string representation of the retrieved search results.
+            `str`:
+                The retrieved memory
         """
 
         if not msg:
@@ -103,20 +107,18 @@ class AgentScopeLongTermMemory(LongTermMemoryBase):
                 ),
             ]
 
-        messages = agentscope_msg_to_message(msg)
+        results = []
 
-        search_params = {
-            "user_id": self.user_id,
-            "messages": messages,
-        }
-
-        if "limit" in kwargs:
-            search_params["filters"] = {"top_k": kwargs["limit"]}
-
-        results = await self._service.search_memory(**search_params)
+        for m in msg:
+            result = await self._service.search_memory(
+                user_id=self.user_id,
+                messages=agentscope_msg_to_message(m),
+                filters={"top_k": limit},
+            )
+            results.append("\n".join(result))
 
         # Convert results to string
-        return str(results)
+        return "\n".join(results)
 
     async def record_to_memory(
         self,
@@ -182,48 +184,54 @@ class AgentScopeLongTermMemory(LongTermMemoryBase):
     async def retrieve_from_memory(
         self,
         keywords: list[str],
+        limit: int = 5,
         **kwargs: Any,
     ) -> ToolResponse:
         """Retrieve the memory based on the given keywords.
 
         Args:
             keywords (`list[str]`):
-                The keywords to search for in the memory, which should be
-                specific and concise, e.g. the person's name, the date, the
-                location, etc.
-
+                Concise search cues—such as a person's name, a specific date,
+                a location, or a short description of the memory you want to
+                retrieve. Each keyword is executed as an independent query
+                against the memory store.
+            limit (`int`, optional):
+                The maximum number of memories to retrieve per search, i.e.,
+                the number of memories to retrieve for each keyword.
         Returns:
-            `list[Msg]`:
-                A list of messages that match the keywords.
+            `ToolResponse`:
+                A ToolResponse containing the retrieved memories as JSON text.
         """
-        keyword = "\n".join(keywords)
 
         try:
-            text_blocks = [
-                TextBlock(
-                    type="text",
-                    text=keyword,
-                ),
-            ]
+            results = []
 
-            msgs = [
-                Msg(
-                    name="assistant",
-                    content=text_blocks,
-                    role="assistant",
-                ),
-            ]
+            for keyword in keywords:
+                msgs = [
+                    Msg(
+                        name="assistant",
+                        content=[
+                            TextBlock(
+                                type="text",
+                                text=keyword,
+                            ),
+                        ],
+                        role="assistant",
+                    ),
+                ]
 
-            result = await self.retrieve(
-                msgs,
-                **kwargs,
-            )
+                result = await self.retrieve(
+                    msgs,
+                    limit=limit,
+                    **kwargs,
+                )
+                results.append(result)
 
             return ToolResponse(
                 content=[
                     TextBlock(
                         type="text",
-                        text=result,
+                        text="\n".join(results),
                     ),
                 ],
             )
