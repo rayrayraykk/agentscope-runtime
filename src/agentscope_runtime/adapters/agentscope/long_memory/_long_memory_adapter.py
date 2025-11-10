@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint:disable=protected-access,unused-argument
-"""AgentScope Memory implementation based on SessionHistoryService."""
+"""AgentScope Long Memory implementation based on MemoryService."""
 from typing import Any
 
 from agentscope.memory import LongTermMemoryBase
