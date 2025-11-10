@@ -109,7 +109,9 @@ class AgentScopeSessionHistoryMemory(InMemoryMemory):
 
         # Convert Msg -> backend Message
         backend_messages = agentscope_msg_to_message(memories)
-        await self._service.append_message(self._session, backend_messages)
+
+        if self._session:
+            await self._service.append_message(self._session, backend_messages)
 
     @ensure_session
     async def delete(self, index: Union[list[int], int]) -> None:
