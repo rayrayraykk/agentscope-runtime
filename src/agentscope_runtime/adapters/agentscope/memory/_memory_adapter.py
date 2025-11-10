@@ -65,14 +65,11 @@ class AgentScopeSessionHistoryMemory(InMemoryMemory):
                 self.session_id,
             )
 
-    def state_dict(self) -> dict:
+    def state_dict(self):
         """
         Get current memory state as a dictionary.
         Always fetch from backend to ensure consistency.
         """
-        raise NotImplementedError(
-            "Exporting state dict is not supported for SessionHistoryMemory.",
-        )
 
     def load_state_dict(
         self,
@@ -82,9 +79,6 @@ class AgentScopeSessionHistoryMemory(InMemoryMemory):
         """
         Load memory state from a dictionary into backend storage.
         """
-        raise NotImplementedError(
-            "Loading state dict is not supported for SessionHistoryMemory.",
-        )
 
     @ensure_session
     async def size(self) -> int:

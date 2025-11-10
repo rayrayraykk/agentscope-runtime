@@ -14,6 +14,7 @@ from agentscope.message import (
     ThinkingBlock,
     ImageBlock,
     AudioBlock,
+    VideoBlock,
     URLSource,
     Base64Source,
 )
@@ -25,6 +26,13 @@ from ...engine.schemas.agent_schemas import (
     MessageType,
 )
 from ...engine.helpers.agent_api_builder import ResponseBuilder
+
+
+def matches_typed_dict_structure(obj, typed_dict_cls):
+    if not isinstance(obj, dict):
+        return False
+    expected_keys = set(typed_dict_cls.__annotations__.keys())
+    return expected_keys == set(obj.keys())
 
 
 def agentscope_msg_to_message(
@@ -247,7 +255,7 @@ def message_to_agentscope_msg(
         if message.role == "tool":
             role_label = "system"  # AgentScope do not support tool as role
         else:
-            role_label = message.role
+            role_label = message.role or "assistant"
 
         result = {
             "name": getattr(message, "name", message.role),
@@ -274,12 +282,19 @@ def message_to_agentscope_msg(
         ):
             # convert PLUGIN_CALL_OUTPUT, FUNCTION_CALL_OUTPUT to
             # ToolResultBlock
+            blk = json.loads(message.content[0].data["output"])
+            if not any(
+                matches_typed_dict_structure(blk, cls)
+                for cls in (TextBlock, ImageBlock, AudioBlock, VideoBlock)
+            ):
+                blk = str(blk)
+
             result["content"] = [
                 ToolResultBlock(
                     type="tool_result",
                     id=message.content[0].data["call_id"],
                     name=message.role,  # TODO: match id of ToolUseBlock
-                    output=json.loads(message.content[0].data["output"]),
+                    output=blk,
                 ),
             ]
         elif message.type in (MessageType.REASONING,):

@@ -233,9 +233,6 @@ class AgentScopeAgent(Agent):
         builder_cls = self._attr["agent_builder"]
         _agent = build_agent(builder_cls, params)
 
-        if hasattr(_agent, "set_console_output_enabled"):
-            _agent.set_console_output_enabled(False)
-
         return _agent
 
     async def run_async(
@@ -252,6 +249,20 @@ class AgentScopeAgent(Agent):
         # the agent
         _agent = self.build(as_context)
 
+        # Restore state from state service
+        state_service = context.context_manager._state_service
+
+        if hasattr(_agent, "load_state_dict") and state_service:
+            state = await state_service.export_state(
+                user_id=context.session.user_id,
+                session_id=context.session.id,
+            )
+            if state:
+                _agent.load_state_dict(state)
+
+        if hasattr(_agent, "set_console_output_enabled"):
+            _agent.set_console_output_enabled(False)
+
         # Yield new Msg instances as they are logged
         last_content = ""
 
@@ -266,7 +277,6 @@ class AgentScopeAgent(Agent):
 
         index = None
 
-        # TODO: refactor with builder
         # Run agent
         async for msg, last in stream_printing_messages(
             agents=[_agent],
@@ -471,3 +481,12 @@ class AgentScopeAgent(Agent):
             )
             yield text_delta_content
             yield message.completed()
+
+        if state_service:
+            state = _agent.state_dict()
+
+            await state_service.save_state(
+                user_id=context.session.user_id,
+                session_id=context.session.id,
+                state=state,
+            )

@@ -98,7 +98,7 @@ class ContextManager(ServiceManager):
         self._session_history_service = session_history_service
         self._memory_service = memory_service
         self._rag_service = rag_service
-        self.state_service = state_service
+        self._state_service = state_service
         super().__init__()
 
     def _register_default_services(self):
@@ -115,8 +115,8 @@ class ContextManager(ServiceManager):
         # Optional services
         if self._rag_service:
             self.register_service("rag", self._rag_service)
-        if self._rag_service:
-            self.register_service("state", self.state_service)
+        if self._state_service:
+            self.register_service("state", self._state_service)
 
     async def compose_context(
         self,

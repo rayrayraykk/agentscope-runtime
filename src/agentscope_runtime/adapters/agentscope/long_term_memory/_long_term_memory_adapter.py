@@ -107,6 +107,9 @@ class AgentScopeLongTermMemory(LongTermMemoryBase):
                 ),
             ]
 
+        if isinstance(msg, Msg):
+            msg = [msg]
+
         results = []
 
         for m in msg:
@@ -115,7 +118,7 @@ class AgentScopeLongTermMemory(LongTermMemoryBase):
                 messages=agentscope_msg_to_message(m),
                 filters={"top_k": limit},
             )
-            results.append("\n".join(result))
+            results.append("\n".join(str(msg) for msg in result))
 
         # Convert results to string
         return "\n".join(results)
