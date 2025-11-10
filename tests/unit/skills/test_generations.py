@@ -2,6 +2,7 @@
 # pylint:disable=redefined-outer-name
 
 import asyncio
+import os
 import time
 
 import pytest
@@ -10,8 +11,16 @@ from agentscope_runtime.common.skills.generations import (
     ImageEditInput,
 )
 from agentscope_runtime.common.skills.generations import (
+    ImageEditWan25,
+    ImageEditWan25Input,
+)
+from agentscope_runtime.common.skills.generations import (
     ImageGeneration,
     ImageGenInput,
+)
+from agentscope_runtime.common.skills.generations import (
+    ImageGenerationWan25,
+    ImageGenerationWan25Input,
 )
 from agentscope_runtime.common.skills.generations import (
     ImageStyleRepaint,
@@ -26,6 +35,12 @@ from agentscope_runtime.common.skills.generations import (
     ImageToVideoSubmitInput,
     ImageToVideoFetch,
     ImageToVideoFetchInput,
+)
+from agentscope_runtime.common.skills.generations import (
+    ImageToVideoWan25Submit,
+    ImageToVideoWan25SubmitInput,
+    ImageToVideoWan25Fetch,
+    ImageToVideoWan25FetchInput,
 )
 from agentscope_runtime.common.skills.generations import (
     QwenImageEdit,
@@ -59,11 +74,18 @@ from agentscope_runtime.common.skills.generations import (
     TextToVideoFetch,
     TextToVideoFetchInput,
 )
-
+from agentscope_runtime.common.skills.generations import (
+    TextToVideoWan25Submit,
+    TextToVideoWan25SubmitInput,
+    TextToVideoWan25Fetch,
+    TextToVideoWan25FetchInput,
+)
 
 # ============================================================================
 # Image to Video Tests (Async API - Submit/Fetch Pattern)
 # ============================================================================
+
+LONGRUN_TEST = os.getenv("LONGRUN_TEST", "false") == "true"
 
 
 @pytest.fixture
@@ -77,7 +99,10 @@ def image_to_video_fetch():
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="take more than 5 mins, skip for saving time")
+@pytest.mark.skipif(
+    LONGRUN_TEST,
+    reason="take more than 5 mins, skip for " "saving time",
+)
 async def test_async_image_to_video(
     image_to_video_submit,
     image_to_video_fetch,
@@ -202,7 +227,10 @@ def speech_to_video_fetch():
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="take more than 5 mins, skip for saving time")
+@pytest.mark.skipif(
+    LONGRUN_TEST,
+    reason="take more than 5 mins, skip for saving time",
+)
 async def test_async_speech_to_video(
     speech_to_video_submit,
     speech_to_video_fetch,
@@ -328,7 +356,10 @@ def text_to_video_fetch():
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="take more than 5 mins, skip for saving time")
+@pytest.mark.skipif(
+    LONGRUN_TEST,
+    reason="take more than 5 mins, skip for saving time",
+)
 async def test_async_text_to_video(
     text_to_video_submit,
     text_to_video_fetch,
@@ -527,7 +558,10 @@ def image_to_video():
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="take more than 5 mins, skip for saving time")
+@pytest.mark.skipif(
+    LONGRUN_TEST,
+    reason="take more than 5 mins, skip for saving time",
+)
 async def test_image_to_video(image_to_video):
     """Test image to video generation with concurrent execution"""
     image_url = (
@@ -591,8 +625,8 @@ def qwen_image_edit():
 async def test_qwen_image_edit(qwen_image_edit):
     """Test Qwen image editing"""
     base_image_url = (
-        "https://dashscope.oss-cn-beijing.aliyuncs.com/"
-        "images/dog_and_girl.jpeg"
+        "https://dashscope.oss-cn-beijing.aliyuncs.com/images"
+        "/dog_and_girl.jpeg"
     )
 
     test_inputs = [
@@ -733,6 +767,306 @@ async def test_qwen_text_to_speech(qwen_text_to_speech):
 
 
 # ============================================================================
+# WAN25 Skills Tests
+# ============================================================================
+
+
+@pytest.fixture
+def image_edit_wan25():
+    return ImageEditWan25()
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(LONGRUN_TEST, reason="requires DASHSCOPE_API_KEY")
+async def test_image_edit_wan25(image_edit_wan25):
+    """Test WAN25 image editing functionality"""
+    images = [
+        "https://img.alicdn.com/imgextra/i4/O1CN01TlDlJe1LR9zso3xAC_"
+        "!!6000000001295-2-tps-1104-1472.png",
+        "https://img.alicdn.com/imgextra/i4/O1CN01M9azZ41YdblclkU6Z_"
+        "!!6000000003082-2-tps-1696-960.png",
+    ]
+
+    image_edit_input = ImageEditWan25Input(
+        images=images,
+        prompt="将图1中的闹钟放置到图2的餐桌的花瓶旁边位置",
+        n=1,
+    )
+
+    result = await image_edit_wan25.arun(image_edit_input)
+
+    assert result.results
+    assert isinstance(result.results, list)
+    assert len(result.results) > 0
+    assert result.request_id
+    assert image_edit_wan25.function_schema.model_dump()
+
+
+@pytest.fixture
+def image_generation_wan25():
+    return ImageGenerationWan25()
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(LONGRUN_TEST, reason="requires DASHSCOPE_API_KEY")
+async def test_image_generation_wan25(image_generation_wan25):
+    """Test WAN25 image generation functionality"""
+    image_gen_input = ImageGenerationWan25Input(
+        prompt="帮我画一个国宝熊猫,",
+    )
+
+    result = await image_generation_wan25.arun(image_gen_input)
+
+    assert result.results
+    assert isinstance(result.results, list)
+    assert len(result.results) > 0
+    assert result.request_id
+    assert image_generation_wan25.function_schema.model_dump()
+
+
+@pytest.fixture
+def image_to_video_wan25_submit():
+    return ImageToVideoWan25Submit()
+
+
+@pytest.fixture
+def image_to_video_wan25_fetch():
+    return ImageToVideoWan25Fetch()
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(
+    LONGRUN_TEST,
+    reason="take more than 5 mins, skip for saving time and requires API key",
+)
+async def test_async_image_to_video_wan25(
+    image_to_video_wan25_submit,
+    image_to_video_wan25_fetch,
+):
+    """Test async WAN25 image to video generation"""
+    audio_url = (
+        "https://help-static-aliyun-doc.aliyuncs.com/file-manage-files"
+        "/zh-CN/20250923/hbiayh/%E4%BB%8E%E5%86%9B%E8%A1%8C.mp3"
+    )
+
+    image_url = (
+        "https://dashscope.oss-cn-beijing.aliyuncs.com"
+        "/images/dog_and_girl.jpeg"
+    )
+
+    test_inputs = [
+        ImageToVideoWan25SubmitInput(
+            image_url=image_url,
+            prompt="女孩把小狗抱起来",
+            audio_url=audio_url,
+            watermark=True,
+        ),
+    ]
+
+    start_time = time.time()
+
+    try:
+        # Step 1: Submit async tasks concurrently
+        submit_tasks = [
+            image_to_video_wan25_submit.arun(test_input)
+            for test_input in test_inputs
+        ]
+
+        submit_results = await asyncio.gather(
+            *submit_tasks,
+            return_exceptions=True,
+        )
+
+        # Step 2: Extract task_ids from successful submissions
+        task_ids = []
+        for result in submit_results:
+            if not isinstance(result, Exception):
+                task_ids.append(result.task_id)
+                assert result.task_id
+                assert result.task_status
+
+        assert len(task_ids) > 0
+
+        # Step 3: Poll for task completion using ImageToVideoWan25Fetch
+        max_wait_time = 600  # 10 minutes timeout
+        poll_interval = 5  # 5 seconds polling interval
+        completed_tasks = {}
+
+        poll_start_time = time.time()
+
+        while len(completed_tasks) < len(task_ids):
+            await asyncio.sleep(poll_interval)
+
+            remaining_task_ids = [
+                task_id
+                for task_id in task_ids
+                if task_id not in completed_tasks
+            ]
+
+            if not remaining_task_ids:
+                break
+
+            fetch_tasks = [
+                image_to_video_wan25_fetch.arun(
+                    ImageToVideoWan25FetchInput(task_id=task_id),
+                )
+                for task_id in remaining_task_ids
+            ]
+
+            fetch_results = await asyncio.gather(
+                *fetch_tasks,
+                return_exceptions=True,
+            )
+
+            for task_id, fetch_result in zip(
+                remaining_task_ids,
+                fetch_results,
+            ):
+                if isinstance(fetch_result, Exception):
+                    continue
+
+                status = fetch_result.task_status
+                if status == "SUCCEEDED":
+                    completed_tasks[task_id] = fetch_result
+                    assert fetch_result.video_url
+                    assert fetch_result.request_id
+                elif status in ["FAILED", "CANCELED"]:
+                    completed_tasks[task_id] = fetch_result
+
+            if time.time() - poll_start_time > max_wait_time:
+                break
+
+        end_time = time.time()
+        total_time = end_time - start_time
+        assert total_time > 0
+
+        # Verify at least some tasks completed
+        assert len(completed_tasks) > 0
+
+    except Exception as e:
+        pytest.fail(f"Unexpected error during execution: {str(e)}")
+
+
+@pytest.fixture
+def text_to_video_wan25_submit():
+    return TextToVideoWan25Submit()
+
+
+@pytest.fixture
+def text_to_video_wan25_fetch():
+    return TextToVideoWan25Fetch()
+
+
+@pytest.mark.asyncio
+@pytest.mark.skipif(
+    LONGRUN_TEST,
+    reason="take more than 5 mins, skip for saving time and requires API key",
+)
+async def test_async_text_to_video_wan25(
+    text_to_video_wan25_submit,
+    text_to_video_wan25_fetch,
+):
+    """Test async WAN25 text to video generation"""
+    audio_url = (
+        "https://help-static-aliyun-doc.aliyuncs.com/file-manage-files"
+        "/zh-CN/20250923/hbiayh/%E4%BB%8E%E5%86%9B%E8%A1%8C.mp3"
+    )
+
+    test_inputs = [
+        TextToVideoWan25SubmitInput(
+            prompt="A cute panda playing in a bamboo forest, "
+            "peaceful nature scene",
+            audio_url=audio_url,
+        ),
+    ]
+
+    start_time = time.time()
+
+    try:
+        # Step 1: Submit async tasks concurrently
+        submit_tasks = [
+            text_to_video_wan25_submit.arun(
+                test_input,
+                model_name="wan2.5-t2v-preview",
+            )
+            for test_input in test_inputs
+        ]
+
+        submit_results = await asyncio.gather(
+            *submit_tasks,
+            return_exceptions=True,
+        )
+
+        # Step 2: Extract task_ids from successful submissions
+        task_ids = []
+        for result in submit_results:
+            if not isinstance(result, Exception):
+                task_ids.append(result.task_id)
+                assert result.task_id
+                assert result.task_status
+
+        assert len(task_ids) > 0
+
+        # Step 3: Poll for task completion using TextToVideoWan25Fetch
+        max_wait_time = 600  # 10 minutes timeout
+        poll_interval = 5  # 5 seconds polling interval
+        completed_tasks = {}
+
+        poll_start_time = time.time()
+
+        while len(completed_tasks) < len(task_ids):
+            await asyncio.sleep(poll_interval)
+
+            remaining_task_ids = [
+                task_id
+                for task_id in task_ids
+                if task_id not in completed_tasks
+            ]
+
+            if not remaining_task_ids:
+                break
+
+            fetch_tasks = [
+                text_to_video_wan25_fetch.arun(
+                    TextToVideoWan25FetchInput(task_id=task_id),
+                )
+                for task_id in remaining_task_ids
+            ]
+
+            fetch_results = await asyncio.gather(
+                *fetch_tasks,
+                return_exceptions=True,
+            )
+
+            for task_id, fetch_result in zip(
+                remaining_task_ids,
+                fetch_results,
+            ):
+                if isinstance(fetch_result, Exception):
+                    continue
+
+                status = fetch_result.task_status
+                if status == "SUCCEEDED":
+                    completed_tasks[task_id] = fetch_result
+                    assert fetch_result.video_url
+                elif status in ["FAILED", "CANCELED"]:
+                    completed_tasks[task_id] = fetch_result
+
+            if time.time() - poll_start_time > max_wait_time:
+                break
+
+        end_time = time.time()
+        total_time = end_time - start_time
+        assert total_time > 0
+
+        # Verify at least some tasks completed
+        assert len(completed_tasks) > 0
+
+    except Exception as e:
+        pytest.fail(f"Unexpected error during execution: {str(e)}")
+
+
+# ============================================================================
 # Speech to Text Tests
 # ============================================================================
 
@@ -803,7 +1137,10 @@ def speech_to_video():
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="take more than 5 mins, skip for saving time")
+@pytest.mark.skipif(
+    LONGRUN_TEST,
+    reason="take more than 5 mins, skip for " "saving time",
+)
 async def test_speech_to_video(speech_to_video):
     """Test speech to video generation with concurrent execution"""
     image_url = (

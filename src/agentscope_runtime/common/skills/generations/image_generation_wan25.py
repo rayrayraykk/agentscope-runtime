@@ -199,22 +199,3 @@ class ImageGenerationWan25(Skill[ImageGenInput, ImageGenOutput]):
             for result in res.output.results:
                 results.append(result.url)
         return ImageGenOutput(results=results, request_id=request_id)
-
-
-if __name__ == "__main__":
-    image_generation = ImageGenerationWan25()
-
-    image_gent_input = ImageGenInput(
-        prompt="帮我画一个国宝熊猫,",
-        # watermark=True
-    )
-
-    async def main() -> None:
-        image_gent_output = await image_generation.arun(
-            image_gent_input,
-            # model_name="wan2.5-t2i-preview",
-        )
-        print(image_gent_output)
-        print(image_generation.function_schema.model_dump())
-
-    asyncio.run(main())

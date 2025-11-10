@@ -2,20 +2,17 @@
 # pylint:disable=abstract-method, deprecated-module, wrong-import-order
 # pylint:disable=too-many-nested-blocks, too-many-branches, unused-import
 
-import asyncio
 import os
 import uuid
 from typing import Any, Optional
 
 from dashscope import AioMultiModalConversation
-from distutils.util import strtobool
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
 from .._base import Skill
 from ..utils.api_key_util import get_api_key, ApiNames
-from ..utils.mcp_util import get_mcp_dash_request_id
-from ....engine.tracing import trace
+from ....engine.tracing import trace, TracingUtil
 
 
 class QwenImageEditInput(BaseModel):
@@ -36,6 +33,10 @@ class QwenImageEditInput(BaseModel):
     negative_prompt: Optional[str] = Field(
         default=None,
         description="反向提示词，用来描述不希望在画面中看到的内容，可以对画面进行限制，超过500个字符自动截断",
+    )
+    watermark: Optional[bool] = Field(
+        default=None,
+        description="是否添加水印，默认不设置",
     )
     ctx: Optional[Context] = Field(
         default=None,
@@ -97,7 +98,7 @@ class QwenImageEdit(Skill[QwenImageEditInput, QwenImageEditOutput]):
         """
 
         trace_event = kwargs.pop("trace_event", None)
-        request_id = get_mcp_dash_request_id(args.ctx)
+        request_id = TracingUtil.get_request_id()
 
         try:
             api_key = get_api_key(ApiNames.dashscope_api_key, **kwargs)
@@ -108,11 +109,6 @@ class QwenImageEdit(Skill[QwenImageEditInput, QwenImageEditOutput]):
             "model_name",
             os.getenv("QWEN_IMAGE_EDIT_MODEL_NAME", "qwen-image-edit"),
         )
-        watermark_env = os.getenv("QWEN_IMAGE_EDIT_ENABLE_WATERMARK")
-        if watermark_env is not None:
-            watermark = strtobool(watermark_env)
-        else:
-            watermark = kwargs.pop("watermark", True)
 
         # Prepare messages in the format expected by MultiModalConversation
         messages = [
@@ -128,8 +124,8 @@ class QwenImageEdit(Skill[QwenImageEditInput, QwenImageEditOutput]):
         parameters = {}
         if args.negative_prompt:
             parameters["negative_prompt"] = args.negative_prompt
-        if watermark is not None:
-            parameters["watermark"] = watermark
+        if args.watermark is not None:
+            parameters["watermark"] = args.watermark
 
         # Call the AioMultiModalConversation API asynchronously
         try:
@@ -145,14 +141,8 @@ class QwenImageEdit(Skill[QwenImageEditInput, QwenImageEditOutput]):
             ) from e
 
         # Check response status
-        if response.status_code != 200:
-            error_msg = (
-                f"HTTP status code: {response.status_code}, "
-                f"Error code: {getattr(response, 'code', 'Unknown')}, "
-                f"Error message:"
-                f" {getattr(response, 'message', 'Unknown error')}"
-            )
-            raise RuntimeError(f"Qwen Image Edit API error: {error_msg}")
+        if response.status_code != 200 or not response.output:
+            raise RuntimeError(f"Failed to generate: {response}")
 
         # Extract the edited image URLs from response
         try:

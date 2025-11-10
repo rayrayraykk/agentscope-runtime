@@ -10,14 +10,12 @@ from http import HTTPStatus
 from typing import Any, Optional
 
 from dashscope.aigc.image_synthesis import AioImageSynthesis
-from distutils.util import strtobool
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
 from .._base import Skill
 from ..utils.api_key_util import get_api_key, ApiNames
-from ..utils.mcp_util import get_mcp_dash_request_id
-from ....engine.tracing import trace
+from ....engine.tracing import trace, TracingUtil
 
 
 class ImageGenInput(BaseModel):
@@ -48,11 +46,15 @@ class ImageGenInput(BaseModel):
     )
     prompt: str = Field(
         ...,
-        description="正向提示词，用来描述生成图像中期望包含的元素和视觉特点," "超过800自动截断",
+        description="正向提示词，用来描述生成图像中期望包含的元素和视觉特点, 超过800自动截断",
     )
     n: Optional[int] = Field(
         default=1,
         description="生成图片的数量。取值范围为1~4张 默认1",
+    )
+    watermark: Optional[bool] = Field(
+        default=None,
+        description="是否添加水印，默认不设置",
     )
     ctx: Optional[Context] = Field(
         default=None,
@@ -105,7 +107,7 @@ class ImageEdit(Skill[ImageGenInput, ImageGenOutput]):
         """
 
         trace_event = kwargs.pop("trace_event", None)
-        request_id = get_mcp_dash_request_id(args.ctx)
+        request_id = TracingUtil.get_request_id()
 
         try:
             api_key = get_api_key(ApiNames.dashscope_api_key, **kwargs)
@@ -117,17 +119,11 @@ class ImageEdit(Skill[ImageGenInput, ImageGenOutput]):
             os.getenv("IMAGE_EDIT_MODEL_NAME", "wanx2.1-imageedit"),
         )
 
-        watermark_env = os.getenv("IMAGE_EDIT_ENABLE_WATERMARK")
-        if watermark_env is not None:
-            watermark = strtobool(watermark_env)
-        else:
-            watermark = kwargs.pop("watermark", True)
-
         parameters = {}
         if args.n is not None:
             parameters["n"] = args.n
-        if watermark is not None:
-            parameters["watermark"] = watermark
+        if args.watermark is not None:
+            parameters["watermark"] = args.watermark
 
         # 🔄 使用DashScope异步任务API实现真正的并发
         # 1. 提交异步任务
@@ -140,6 +136,12 @@ class ImageEdit(Skill[ImageGenInput, ImageGenOutput]):
             mask_image_url=args.mask_image_url,
             **parameters,
         )
+
+        if (
+            task_response.status_code != HTTPStatus.OK
+            or not task_response.output
+        ):
+            raise RuntimeError(f"Failed to submit task: {task_response}")
 
         # 2. 循环异步查询任务状态
         max_wait_time = 300  # 5分钟超时
@@ -156,16 +158,25 @@ class ImageEdit(Skill[ImageGenInput, ImageGenOutput]):
                 task=task_response,
             )
 
+            if (
+                res.status_code != HTTPStatus.OK
+                or not res.output
+                or (
+                    hasattr(res.output, "task_status")
+                    and res.output.task_status in ["FAILED", "CANCELED"]
+                )
+            ):
+                raise RuntimeError(f"Failed to fetch result: {res}")
+
             # 检查任务是否完成
             if res.status_code == HTTPStatus.OK:
                 if hasattr(res.output, "task_status"):
                     if res.output.task_status == "SUCCEEDED":
                         break
                     elif res.output.task_status in ["FAILED", "CANCELED"]:
-                        raise RuntimeError(
-                            f"Image editing failed: {res.output.task_status}",
-                        )
+                        raise RuntimeError(f"Failed to generate: {res}")
                 else:
+                    # 如果没有task_status字段，认为已完成
                     break
 
             # 超时检查

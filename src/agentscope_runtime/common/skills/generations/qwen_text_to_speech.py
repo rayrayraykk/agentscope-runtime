@@ -11,8 +11,7 @@ from pydantic import BaseModel, Field
 
 from .._base import Skill
 from ..utils.api_key_util import get_api_key, ApiNames
-from ..utils.mcp_util import get_mcp_dash_request_id
-from ....engine.tracing import trace
+from ....engine.tracing import trace, TracingUtil
 
 
 class QwenTextToSpeechInput(BaseModel):
@@ -85,7 +84,7 @@ class QwenTextToSpeech(
         """
 
         trace_event = kwargs.pop("trace_event", None)
-        request_id = get_mcp_dash_request_id(args.ctx)
+        request_id = TracingUtil.get_request_id()
 
         try:
             api_key = get_api_key(ApiNames.dashscope_api_key, **kwargs)
@@ -108,14 +107,8 @@ class QwenTextToSpeech(
             raise RuntimeError(f"Failed to call Qwen TTS API: {str(e)}") from e
 
         # Check response status
-        if response.status_code != 200:
-            error_msg = (
-                f"HTTP status code: {response.status_code}, "
-                f"Error code: {getattr(response, 'code', 'Unknown')}, "
-                f"Error message:"
-                f" {getattr(response, 'message', 'Unknown error')}"
-            )
-            raise RuntimeError(f"Qwen TTS API error: {error_msg}")
+        if response.status_code != 200 or not response.output:
+            raise RuntimeError(f"Failed to generate: {response}")
 
         # Extract the edited image URLs from response
         try:

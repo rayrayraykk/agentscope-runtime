@@ -11,14 +11,12 @@ from typing import Any, Optional
 
 from dashscope.client.base_api import BaseAsyncApi
 from dashscope.utils.oss_utils import check_and_upload_local
-from distutils.util import strtobool
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
 from .._base import Skill
 from ..utils.api_key_util import get_api_key, ApiNames
-from ..utils.mcp_util import get_mcp_dash_request_id
-from ....engine.tracing import trace
+from ....engine.tracing import trace, TracingUtil
 
 
 class ImageStyleRepaintInput(BaseModel):
@@ -41,6 +39,11 @@ class ImageStyleRepaintInput(BaseModel):
     style_ref_url: Optional[str] = Field(
         default=None,
         description="风格参考图像的URL地址。当参数style_index等于-1时，必须传入，" "其他风格无需传入。",
+    )
+
+    watermark: Optional[bool] = Field(
+        default=None,
+        description="是否添加水印，默认不设置",
     )
 
     ctx: Optional[Context] = Field(
@@ -111,7 +114,7 @@ class ImageStyleRepaint(
         """
 
         trace_event = kwargs.pop("trace_event", None)
-        request_id = get_mcp_dash_request_id(args.ctx)
+        request_id = TracingUtil.get_request_id()
 
         try:
             api_key = get_api_key(ApiNames.dashscope_api_key, **kwargs)
@@ -125,11 +128,6 @@ class ImageStyleRepaint(
                 "wanx-style-repaint-v1",
             ),
         )
-        watermark_env = os.getenv("IMAGE_STYLE_REPAINT_ENABLE_WATERMARK")
-        if watermark_env is not None:
-            watermark = strtobool(watermark_env)
-        else:
-            watermark = kwargs.pop("watermark", True)
 
         has_uploaded = False
 
@@ -163,8 +161,8 @@ class ImageStyleRepaint(
                 "style_index": args.style_index,
                 "style_ref_url": style_ref_url,
             }
-            if watermark is not None:
-                input["watermark"] = watermark
+            if args.watermark is not None:
+                input["watermark"] = args.watermark
             return BaseAsyncApi.call(
                 model=model_name,
                 input=input,
@@ -179,6 +177,9 @@ class ImageStyleRepaint(
             self._executor,
             _sync_style_repaint_call,
         )
+
+        if res.status_code != HTTPStatus.OK or not res.output:
+            raise RuntimeError(f"Failed to generate image: {res}")
 
         if request_id == "":
             request_id = (

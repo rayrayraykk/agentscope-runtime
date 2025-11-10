@@ -2,7 +2,6 @@
 # pylint:disable=abstract-method, redefined-builtin, too-many-branches
 # pylint:disable=unused-import
 
-import asyncio
 import os
 import uuid
 from http import HTTPStatus
@@ -14,8 +13,7 @@ from pydantic import BaseModel, Field
 
 from .._base import Skill
 from ..utils.api_key_util import get_api_key, ApiNames
-from ..utils.mcp_util import get_mcp_dash_request_id
-from ....engine.tracing import trace
+from ....engine.tracing import trace, TracingUtil
 
 
 class SpeechToVideoSubmitInput(BaseModel):
@@ -155,7 +153,7 @@ class SpeechToVideoSubmit(
             RuntimeError: If task submission fails
         """
         trace_event = kwargs.pop("trace_event", None)
-        request_id = get_mcp_dash_request_id(args.ctx)
+        request_id = TracingUtil.get_request_id()
 
         try:
             api_key = get_api_key(ApiNames.dashscope_api_key, **kwargs)
@@ -192,6 +190,13 @@ class SpeechToVideoSubmit(
                     },
                 },
             )
+
+        if (
+            response.status_code != HTTPStatus.OK
+            or not response.output
+            or response.output.task_status in ["FAILED", "CANCELED"]
+        ):
+            raise RuntimeError(f"Failed to submit task: {response}")
 
         if not request_id:
             request_id = (
@@ -333,7 +338,7 @@ class SpeechToVideoFetch(
             RuntimeError: If video fetch fails or response status is not OK
         """
         trace_event = kwargs.pop("trace_event", None)
-        request_id = get_mcp_dash_request_id(args.ctx)
+        request_id = TracingUtil.get_request_id()
 
         try:
             api_key = get_api_key(ApiNames.dashscope_api_key, **kwargs)
@@ -344,9 +349,6 @@ class SpeechToVideoFetch(
             api_key=api_key,
             task=args.task_id,
         )
-
-        if response.status_code != HTTPStatus.OK:
-            raise RuntimeError(f"Failed to get video URL: {response}")
 
         # Log trace event if provided
         if trace_event:
@@ -360,6 +362,13 @@ class SpeechToVideoFetch(
                     },
                 },
             )
+
+        if (
+            response.status_code != HTTPStatus.OK
+            or not response.output
+            or response.output.task_status in ["FAILED", "CANCELED"]
+        ):
+            raise RuntimeError(f"Failed to fetch result: {response}")
 
         # Handle request ID
         if not request_id:

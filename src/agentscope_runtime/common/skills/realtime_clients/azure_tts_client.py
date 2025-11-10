@@ -4,7 +4,6 @@
 import json
 import logging
 import os
-import threading
 import time
 from typing import Optional, Callable, Any
 
@@ -31,6 +30,7 @@ class AzureTtsCallbacks(BaseModel):
     on_complete: Optional[Callable] = None
     on_canceled: Optional[Callable] = None
     on_data: Optional[Callable] = None
+    on_synthesizing: Optional[Callable] = None
 
 
 class PushStreamCallback(speech_sdk.audio.PushAudioOutputStreamCallback):
@@ -131,15 +131,6 @@ class AzureTtsClient(TtsClient):
         )
         self.tts_task = self.synthesizer.speak_async(self.tts_request)
 
-        # pre warm
-        if not self.pre_warmed:
-            logger.info(
-                f"tts_pre_warm: chat_id={self.config.chat_id},"
-                f" object={id(self)}",
-            )
-            self.tts_request.input_stream.write(" ")
-            self.pre_warmed = True
-
         self.state = RealtimeState.RUNNING
 
         logger.info(
@@ -156,9 +147,18 @@ class AzureTtsClient(TtsClient):
             f" tts_request_id={self.tts_request_id}, object={id(self)}",
         )
 
-        self.tts_request.input_stream.close()
+        try:
+            self.tts_request.input_stream.close()
+        except Exception as e:
+            logger.warning(f"Error closing TTS input stream: {e}")
 
-        self.wait_all_tasks_completed()
+        # Use try-except to safely wait for tasks completion
+        try:
+            self.wait_all_tasks_completed()
+        except Exception as e:
+            logger.warning(
+                f"Error waiting for TTS tasks: {e}",
+            )
 
         logger.info(
             f"tts_stop end: chat_id={self.config.chat_id},"
@@ -174,9 +174,13 @@ class AzureTtsClient(TtsClient):
         if self.state == RealtimeState.IDLE:
             return
 
-        self.tts_request.input_stream.close()
+        try:
+            self.tts_request.input_stream.close()
+        except Exception as e:
+            logger.warning(f"Error closing TTS input stream: {e}")
 
-        threading.Thread(target=self.wait_all_tasks_completed).start()
+        # Don't wait for tasks in a new thread to avoid Azure SDK
+        # thread-safety issues. The synthesizer will handle cleanup.
 
         logger.info(
             f"tts_async_stop end: chat_id={self.config.chat_id},"
@@ -191,9 +195,16 @@ class AzureTtsClient(TtsClient):
         if self.state == RealtimeState.IDLE:
             return
 
-        self.tts_request.input_stream.close()
+        try:
+            self.tts_request.input_stream.close()
+        except Exception as e:
+            logger.warning(f"Error closing TTS input stream: {e}")
 
-        self.synthesizer.stop_speaking_async()
+        try:
+            self.synthesizer.stop_speaking_async()
+        except Exception as e:
+            logger.warning(f"Error stopping TTS synthesizer: {e}")
+
         logger.info(
             f"tts_close end: chat_id={self.config.chat_id},"
             f" tts_request_id={self.tts_request_id}, object={id(self)}",
@@ -221,23 +232,31 @@ class AzureTtsClient(TtsClient):
                 PropertyId.SpeechServiceResponse_SynthesisFirstByteLatencyMs
             )
             logger.info(
-                f"tts stats: first_byte_client_latency: {int(properties.get_property(prop_id))}",  # noqa
+                f"tts stats: first_byte_client_latency: "
+                f"{int(properties.get_property(prop_id))}",
+                # noqa
             )
             prop_id = PropertyId.SpeechServiceResponse_SynthesisFinishLatencyMs
             logger.info(
-                f"tts stats: finished_client_latency: {int(properties.get_property(prop_id))}",  # noqa
+                f"tts stats: finished_client_latency: "
+                f"{int(properties.get_property(prop_id))}",
+                # noqa
             )
             prop_id = (
                 PropertyId.SpeechServiceResponse_SynthesisNetworkLatencyMs
             )
             logger.info(
-                f"tts stats: network_latency: {int(properties.get_property(prop_id))}",  # noqa
+                f"tts stats: network_latency: "
+                f"{int(properties.get_property(prop_id))}",
+                # noqa
             )
             prop_id = (
                 PropertyId.SpeechServiceResponse_SynthesisServiceLatencyMs
             )
             logger.info(
-                f"tts stats: first_byte_service_latency: {int(properties.get_property(prop_id))}",  # noqa
+                f"tts stats: first_byte_service_latency: "
+                f"{int(properties.get_property(prop_id))}",
+                # noqa
             )
 
     def on_started(self, event: SpeechSynthesisEventArgs) -> None:
@@ -311,7 +330,8 @@ class AzureTtsClient(TtsClient):
             logger.info(
                 f"tts_first_delay: "
                 f"chat_id={self.config.chat_id}, object={id(self)},"
-                f" delay={int(round(time.time() * 1000)) - self.first_request_time}",  # noqa
+                f" delay="
+                f"{int(round(time.time() * 1000)) - self.first_request_time}",
             )
             self.is_first_audio_data = False
 

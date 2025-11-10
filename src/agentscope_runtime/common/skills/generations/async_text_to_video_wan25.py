@@ -15,37 +15,36 @@ from ..utils.api_key_util import get_api_key, ApiNames
 from ....engine.tracing import trace, TracingUtil
 
 
-class ImageToVideoSubmitInput(BaseModel):
+class TextToVideoWan25SubmitInput(BaseModel):
     """
-    Input model for image-to-video generation submission.
-
-    This model defines the input parameters required for submitting an
-    image-to-video generation task to the DashScope API.
+    Text to video generation input model
     """
 
-    image_url: str = Field(
+    prompt: str = Field(
         ...,
-        description="输入图像，支持公网URL、Base64编码或本地文件路径",
-    )
-    prompt: Optional[str] = Field(
-        default=None,
-        description="正向提示词，用来描述生成视频中期望包含的元素和视觉特点",
+        description="正向提示词，用来描述生成视频中期望包含的元素和视觉特点, 超过800个字符自动截断",
     )
     negative_prompt: Optional[str] = Field(
         default=None,
-        description="反向提示词，用来描述不希望在视频画面中看到的内容",
+        description="反向提示词，用来描述不希望在视频画面中看到的内容，可以对视频画面进行限制，超过500个字符自动截断",
     )
-    template: Optional[str] = Field(
+    audio_url: Optional[str] = Field(
         default=None,
-        description="视频特效模板，可选值：squish（解压捏捏）、flying（魔法悬浮）、carousel（时光木马）等",
+        description="自定义音频文件URL，模型将使用该音频生成视频。"
+        "参数优先级：audio_url > audio，仅在 audio_url 为空时audio生效。",
     )
-    resolution: Optional[str] = Field(
+    audio: Optional[bool] = Field(
+        default=None,
+        description="是否自动生成音频。"
+        "参数优先级：audio_url > audio，仅在 audio_url 为空时audio生效。",
+    )
+    size: Optional[str] = Field(
         default=None,
         description="视频分辨率，默认不设置",
     )
     duration: Optional[int] = Field(
         default=None,
-        description="视频生成时长，单位为秒，通常为5秒",
+        description="视频生成时长，单位为秒",
     )
     prompt_extend: Optional[bool] = Field(
         default=None,
@@ -62,12 +61,9 @@ class ImageToVideoSubmitInput(BaseModel):
     )
 
 
-class ImageToVideoSubmitOutput(BaseModel):
+class TextToVideoWan25SubmitOutput(BaseModel):
     """
-    Output model for image-to-video generation submission.
-
-    This model contains the response data after successfully submitting
-    an image-to-video generation task.
+    Text to video generation output model
     """
 
     task_id: str = Field(
@@ -88,51 +84,48 @@ class ImageToVideoSubmitOutput(BaseModel):
     )
 
 
-class ImageToVideoSubmit(
-    Skill[ImageToVideoSubmitInput, ImageToVideoSubmitOutput],
+class TextToVideoWan25Submit(
+    Skill[TextToVideoWan25SubmitInput, TextToVideoWan25SubmitOutput],
 ):
     """
-    Service for submitting image-to-video generation tasks.
-
-    This Skill provides functionality to submit asynchronous
-    image-to-video generation tasks using DashScope's VideoSynthesis API.
-    It supports various video effects and customization options.
+    Text to video generation service that converts text into videos
+    using DashScope's VideoSynthesis API.
     """
 
-    name: str = "modelstudio_image_to_video_submit_task"
+    name: str = "modelstudio_text_to_video_wan25_submit_task"
     description: str = (
-        "通义万相-图生视频模型的异步任务提交工具。根据首帧图像和文本提示词，生成时长为5秒的无声视频。"
-        "同时支持特效模板，可添加“魔法悬浮”、“气球膨胀”等效果，适用于创意视频制作、娱乐特效展示等场景。"
+        "通义万相-文生视频模型的异步任务提交工具。可根据文本生成5秒或10秒有声视频，支持 480P、720P、1080P 多种分辨率档位，"
+        "支持自动配音，或传入自定义音频文件，实现音画同步。"
     )
 
-    @trace(trace_type="AIGC", trace_name="image_to_video_submit")
+    @trace(trace_type="AIGC", trace_name="text_to_video_wan25_submit")
     async def arun(
         self,
-        args: ImageToVideoSubmitInput,
+        args: TextToVideoWan25SubmitInput,
         **kwargs: Any,
-    ) -> ImageToVideoSubmitOutput:
+    ) -> TextToVideoWan25SubmitOutput:
         """
-        Submit an image-to-video generation task using DashScope API.
+        Generate video from text prompt using DashScope VideoSynthesis
 
-        This method asynchronously submits an image-to-video generation task
-        to DashScope's VideoSynthesis service. It supports various video
-        effects, resolution settings, and prompt enhancements.
+        This method wraps DashScope's VideoSynthesis service to generate videos
+        based on text descriptions. It uses async call pattern for better
+        performance and supports polling for task completion.
 
         Args:
-            args: ImageToVideoSubmitInput containing required image_url and
-                  optional parameters for video generation
+            args: TextToVideoWan25SubmitInput containing optional parameters
             **kwargs: Additional keyword arguments including:
                 - request_id: Optional request ID for tracking
-                - model_name: Model name (defaults to wan2.2-i2v-flash)
+                - model_name: Model name to use (defaults to wan2.2-t2v-plus)
                 - api_key: DashScope API key for authentication
 
         Returns:
-            ImageToVideoSubmitOutput containing the task ID, current status,
-            and request ID for tracking the submission
+            TextToVideoWan25SubmitOutput containing the generated video URL
+            and request ID
 
         Raises:
             ValueError: If DASHSCOPE_API_KEY is not set or invalid
-            RuntimeError: If video generation submission fails
+            TimeoutError: If video generation takes too long
+            RuntimeError: If video generation fails
         """
         trace_event = kwargs.pop("trace_event", None)
         request_id = TracingUtil.get_request_id()
@@ -144,16 +137,18 @@ class ImageToVideoSubmit(
 
         model_name = kwargs.get(
             "model_name",
-            os.getenv("IMAGE_TO_VIDEO_MODEL_NAME", "wan2.2-i2v-flash"),
+            os.getenv("TEXT_TO_VIDEO_MODEL_NAME", "wan2.5-t2v-preview"),
         )
 
         parameters = {}
-        if args.resolution:
-            parameters["resolution"] = args.resolution
-        if args.duration is not None:
-            parameters["duration"] = args.duration
         if args.prompt_extend is not None:
             parameters["prompt_extend"] = args.prompt_extend
+        if args.audio is not None:
+            parameters["audio"] = args.audio
+        if args.size:
+            parameters["size"] = args.size
+        if args.duration is not None:
+            parameters["duration"] = args.duration
         if args.watermark is not None:
             parameters["watermark"] = args.watermark
 
@@ -164,13 +159,11 @@ class ImageToVideoSubmit(
         response = await aio_video_synthesis.async_call(
             model=model_name,
             api_key=api_key,
-            img_url=args.image_url,
             prompt=args.prompt,
             negative_prompt=args.negative_prompt,
-            template=args.template,
+            audio_url=args.audio_url,
             **parameters,
         )
-
         # Log trace event if provided
         if trace_event:
             trace_event.on_log(
@@ -198,7 +191,7 @@ class ImageToVideoSubmit(
                 else str(uuid.uuid4())
             )
 
-        result = ImageToVideoSubmitOutput(
+        result = TextToVideoWan25SubmitOutput(
             request_id=request_id,
             task_id=response.output.task_id,
             task_status=response.output.task_status,
@@ -206,12 +199,9 @@ class ImageToVideoSubmit(
         return result
 
 
-class ImageToVideoFetchInput(BaseModel):
+class TextToVideoWan25FetchInput(BaseModel):
     """
-    Input model for fetching image-to-video generation results.
-
-    This model defines the input parameters required for retrieving
-    the status and results of a previously submitted video generation task.
+    Text to video fetch task input model
     """
 
     task_id: str = Field(
@@ -225,12 +215,9 @@ class ImageToVideoFetchInput(BaseModel):
     )
 
 
-class ImageToVideoFetchOutput(BaseModel):
+class TextToVideoWan25FetchOutput(BaseModel):
     """
-    Output model for fetching image-to-video generation results.
-
-    This model contains the response data including video URL, task status,
-    and other metadata after fetching a video generation task result.
+    Text to video fetch task output model
     """
 
     video_url: str = Field(
@@ -256,41 +243,38 @@ class ImageToVideoFetchOutput(BaseModel):
     )
 
 
-class ImageToVideoFetch(
-    Skill[ImageToVideoFetchInput, ImageToVideoFetchOutput],
+class TextToVideoWan25Fetch(
+    Skill[TextToVideoWan25FetchInput, TextToVideoWan25FetchOutput],
 ):
     """
-    Service for fetching image-to-video generation results.
-
-    This Skill provides functionality to retrieve the status and
-    results of asynchronous image-to-video generation tasks using
-    DashScope's VideoSynthesis API.
+    Text to video fetch service that retrieves video generation results
+    using DashScope's VideoSynthesis API.
     """
 
-    name: str = "modelstudio_image_to_video_fetch_result"
-    description: str = "通义万相-图生视频模型的异步任务结果查询工具，根据Task ID查询任务结果。"
+    name: str = "modelstudio_text_to_video_wan25_fetch_result"
+    description: str = "通义万相-文生视频模型的异步任务结果查询工具，根据Task ID查询任务结果。"
 
-    @trace(trace_type="AIGC", trace_name="image_to_video_fetch")
+    @trace(trace_type="AIGC", trace_name="text_to_video_wan25_fetch")
     async def arun(
         self,
-        args: ImageToVideoFetchInput,
+        args: TextToVideoWan25FetchInput,
         **kwargs: Any,
-    ) -> ImageToVideoFetchOutput:
+    ) -> TextToVideoWan25FetchOutput:
         """
-        Fetch the results of an image-to-video generation task.
+        Fetch video generation result using DashScope VideoSynthesis
 
-        This method asynchronously retrieves the status and results of a
-        previously submitted image-to-video generation task using the
-        task ID returned from the submission.
+        This method wraps DashScope's VideoSynthesis fetch service to retrieve
+        video generation results based on task ID. It uses async call pattern
+        for better performance.
 
         Args:
-            args: ImageToVideoFetchInput containing the task_id parameter
+            args: TextToVideoWan25FetchInput containing task_id parameter
             **kwargs: Additional keyword arguments including:
                 - api_key: DashScope API key for authentication
 
         Returns:
-            ImageToVideoFetchOutput containing the video URL, current task
-            status, and request ID
+            TextToVideoWan25FetchOutput containing the video URL, task status
+            and request ID
 
         Raises:
             ValueError: If DASHSCOPE_API_KEY is not set or invalid
@@ -340,7 +324,7 @@ class ImageToVideoFetch(
                 else str(uuid.uuid4())
             )
 
-        result = ImageToVideoFetchOutput(
+        result = TextToVideoWan25FetchOutput(
             video_url=response.output.video_url,
             task_id=response.output.task_id,
             task_status=response.output.task_status,

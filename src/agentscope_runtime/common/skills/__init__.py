@@ -46,6 +46,20 @@ from .generations.async_speech_to_video import (
     SpeechToVideoSubmit,
     SpeechToVideoFetch,
 )
+from .generations.async_image_to_video_wan25 import (
+    ImageToVideoWan25Fetch,
+    ImageToVideoWan25Submit,
+)
+from .generations.async_text_to_video_wan25 import (
+    TextToVideoWan25Submit,
+    TextToVideoWan25Fetch,
+)
+from .generations.image_edit_wan25 import (
+    ImageEditWan25,
+)
+from .generations.image_generation_wan25 import (
+    ImageGenerationWan25,
+)
 
 
 class McpServerMeta(BaseModel):

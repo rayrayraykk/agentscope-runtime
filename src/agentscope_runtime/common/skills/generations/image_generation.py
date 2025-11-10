@@ -10,14 +10,12 @@ from http import HTTPStatus
 from typing import Any, Optional
 
 from dashscope.aigc.image_synthesis import AioImageSynthesis
-from distutils.util import strtobool
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
 from .._base import Skill
 from ..utils.api_key_util import get_api_key, ApiNames
-from ..utils.mcp_util import get_mcp_dash_request_id
-from ....engine.tracing import trace
+from ....engine.tracing import trace, TracingUtil
 
 
 class ImageGenInput(BaseModel):
@@ -44,6 +42,10 @@ class ImageGenInput(BaseModel):
     n: Optional[int] = Field(
         default=1,
         description="生成图片的数量。取值范围为1~4张 默认1",
+    )
+    watermark: Optional[bool] = Field(
+        default=None,
+        description="是否添加水印，默认不设置",
     )
     ctx: Optional[Context] = Field(
         default=None,
@@ -99,7 +101,7 @@ class ImageGeneration(Skill[ImageGenInput, ImageGenOutput]):
         """
 
         trace_event = kwargs.pop("trace_event", None)
-        request_id = get_mcp_dash_request_id(args.ctx)
+        request_id = TracingUtil.get_request_id()
 
         try:
             api_key = get_api_key(ApiNames.dashscope_api_key, **kwargs)
@@ -110,13 +112,6 @@ class ImageGeneration(Skill[ImageGenInput, ImageGenOutput]):
             "model_name",
             os.getenv("IMAGE_GENERATION_MODEL_NAME", "wan2.2-t2i-flash"),
         )
-        watermark_env = os.getenv("IMAGE_GENERATION_ENABLE_WATERMARK")
-        if watermark_env is not None:
-            watermark = strtobool(watermark_env)
-        else:
-            watermark = kwargs.pop("watermark", True)
-        # 🔄 使用DashScope的异步任务API实现真正的并发
-        # 1. 提交异步任务
 
         parameters = {}
         if args.size:
@@ -125,8 +120,8 @@ class ImageGeneration(Skill[ImageGenInput, ImageGenOutput]):
             parameters["prompt_extend"] = args.prompt_extend
         if args.n is not None:
             parameters["n"] = args.n
-        if watermark is not None:
-            parameters["watermark"] = watermark
+        if args.watermark is not None:
+            parameters["watermark"] = args.watermark
 
         task_response = await AioImageSynthesis.async_call(
             model=model_name,
@@ -135,6 +130,12 @@ class ImageGeneration(Skill[ImageGenInput, ImageGenOutput]):
             negative_prompt=args.negative_prompt,
             **parameters,
         )
+
+        if (
+            task_response.status_code != HTTPStatus.OK
+            or not task_response.output
+        ):
+            raise RuntimeError(f"Failed to submit task: {task_response}")
 
         # 2. 循环异步查询任务状态
         max_wait_time = 300  # 5分钟超时
@@ -151,17 +152,25 @@ class ImageGeneration(Skill[ImageGenInput, ImageGenOutput]):
                 task=task_response,
             )
 
+            if (
+                res.status_code != HTTPStatus.OK
+                or not res.output
+                or (
+                    hasattr(res.output, "task_status")
+                    and res.output.task_status in ["FAILED", "CANCELED"]
+                )
+            ):
+                raise RuntimeError(f"Failed to fetch result: {res}")
+
             # 检查任务是否完成
             if res.status_code == HTTPStatus.OK:
                 if hasattr(res.output, "task_status"):
                     if res.output.task_status == "SUCCEEDED":
                         break
                     elif res.output.task_status in ["FAILED", "CANCELED"]:
-                        raise RuntimeError(
-                            f"Image generation failed: "
-                            f"{res.output.task_status}",
-                        )
+                        raise RuntimeError(f"Failed to generate: {res}")
                 else:
+                    # 如果没有task_status字段，认为已完成
                     break
 
             # 超时检查

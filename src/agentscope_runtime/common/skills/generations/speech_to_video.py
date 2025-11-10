@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint:disable=abstract-method, redefined-builtin, no-else-break
-# pylint:disable=too-many-branches
+# pylint:disable=too-many-branches, too-many-statements
 
 import asyncio
 import os
@@ -15,8 +15,7 @@ from pydantic import BaseModel, Field
 
 from .._base import Skill
 from ..utils.api_key_util import get_api_key, ApiNames
-from ..utils.mcp_util import get_mcp_dash_request_id
-from ....engine.tracing import trace
+from ....engine.tracing import trace, TracingUtil
 
 
 class SpeechToVideoInput(BaseModel):
@@ -176,7 +175,7 @@ class SpeechToVideo(Skill[SpeechToVideoInput, SpeechToVideoOutput]):
             RuntimeError: If video generation fails
         """
         trace_event = kwargs.pop("trace_event", None)
-        request_id = get_mcp_dash_request_id(args.ctx)
+        request_id = TracingUtil.get_request_id()
 
         try:
             api_key = get_api_key(ApiNames.dashscope_api_key, **kwargs)
@@ -201,6 +200,16 @@ class SpeechToVideo(Skill[SpeechToVideoInput, SpeechToVideoOutput]):
             **parameters,
         )
 
+        if (
+            task_response.status_code != HTTPStatus.OK
+            or not task_response.output
+            or (
+                hasattr(task_response.output, "task_status")
+                and task_response.output.task_status in ["FAILED", "CANCELED"]
+            )
+        ):
+            raise RuntimeError(f"Failed to submit task: {task_response}")
+
         # Poll for task completion using async methods
         max_wait_time = 600  # 10 minutes timeout for video generation
         poll_interval = 5  # 5 seconds polling interval
@@ -216,6 +225,16 @@ class SpeechToVideo(Skill[SpeechToVideoInput, SpeechToVideoOutput]):
                 task=task_response,
             )
 
+            if (
+                res.status_code != HTTPStatus.OK
+                or not res.output
+                or (
+                    isinstance(res.output, dict)
+                    and res.output.get("task_status") in ["FAILED", "CANCELED"]
+                )
+            ):
+                raise RuntimeError(f"Failed to fetch result: {res}")
+
             # Check task completion status
             if res.status_code == HTTPStatus.OK:
                 # res.output is a dict when using BaseAsyncAioApi
@@ -226,10 +245,7 @@ class SpeechToVideo(Skill[SpeechToVideoInput, SpeechToVideoOutput]):
                     if res.output["task_status"] == "SUCCEEDED":
                         break
                     elif res.output["task_status"] in ["FAILED", "CANCELED"]:
-                        raise RuntimeError(
-                            f"Video generation failed: task_status="
-                            f"{res.output['task_status']}, response={res}",
-                        )
+                        raise RuntimeError(f"Failed to generate: {res}")
                     # Continue polling for PENDING, RUNNING, etc.
                 else:
                     # If no task_status field, assume completed

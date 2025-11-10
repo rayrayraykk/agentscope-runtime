@@ -104,7 +104,9 @@ class ModelstudioSearch(Skill[SearchInput, SearchOutput]):
     Search Skill that calling dashscope for llm search result.
     """
 
-    description = "中文搜索可用于查询百科知识、时事新闻、天气。但它不适用于解决编程问题。它仅收录中文信息，不收录英文资料。"
+    description = (
+        "中文搜索可用于查询百科知识、时事新闻、天气。但它不适用于解决编程问题。它仅收录中文信息，不收录英文资料。"  # noqa E501
+    )
 
     name = "modelstudio_search_pro"
 

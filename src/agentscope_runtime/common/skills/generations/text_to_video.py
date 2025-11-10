@@ -10,14 +10,12 @@ from http import HTTPStatus
 from typing import Any, Optional
 
 from dashscope.aigc.video_synthesis import AioVideoSynthesis
-from distutils.util import strtobool
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
 from .._base import Skill
 from ..utils.api_key_util import get_api_key, ApiNames
-from ..utils.mcp_util import get_mcp_dash_request_id
-from ....engine.tracing import trace
+from ....engine.tracing import trace, TracingUtil
 
 
 class TextToVideoInput(BaseModel):
@@ -44,6 +42,10 @@ class TextToVideoInput(BaseModel):
     prompt_extend: Optional[bool] = Field(
         default=None,
         description="是否开启prompt智能改写，开启后使用大模型对输入prompt进行智能改写",
+    )
+    watermark: Optional[bool] = Field(
+        default=None,
+        description="是否添加水印，默认不设置",
     )
     ctx: Optional[Context] = Field(
         default=None,
@@ -109,7 +111,7 @@ class TextToVideo(Skill[TextToVideoInput, TextToVideoOutput]):
             RuntimeError: If video generation fails
         """
         trace_event = kwargs.pop("trace_event", None)
-        request_id = get_mcp_dash_request_id(args.ctx)
+        request_id = TracingUtil.get_request_id()
 
         try:
             api_key = get_api_key(ApiNames.dashscope_api_key, **kwargs)
@@ -121,12 +123,6 @@ class TextToVideo(Skill[TextToVideoInput, TextToVideoOutput]):
             os.getenv("TEXT_TO_VIDEO_MODEL_NAME", "wan2.2-t2v-plus"),
         )
 
-        watermark_env = os.getenv("TEXT_TO_VIDEO_ENABLE_WATERMARK")
-        if watermark_env is not None:
-            watermark = strtobool(watermark_env)
-        else:
-            watermark = kwargs.pop("watermark", True)
-
         parameters = {}
         if args.prompt_extend is not None:
             parameters["prompt_extend"] = args.prompt_extend
@@ -134,8 +130,8 @@ class TextToVideo(Skill[TextToVideoInput, TextToVideoOutput]):
             parameters["size"] = args.size
         if args.duration is not None:
             parameters["duration"] = args.duration
-        if watermark is not None:
-            parameters["watermark"] = watermark
+        if args.watermark is not None:
+            parameters["watermark"] = args.watermark
 
         # Create AioVideoSynthesis instance
         aio_video_synthesis = AioVideoSynthesis()
@@ -148,6 +144,13 @@ class TextToVideo(Skill[TextToVideoInput, TextToVideoOutput]):
             negative_prompt=args.negative_prompt,
             **parameters,
         )
+
+        if (
+            task_response.status_code != HTTPStatus.OK
+            or not task_response.output
+            or task_response.output.task_status in ["FAILED", "CANCELED"]
+        ):
+            raise RuntimeError(f"Failed to submit task: {task_response}")
 
         # Poll for task completion using async methods
         max_wait_time = 600  # 10 minutes timeout for video generation
@@ -164,17 +167,22 @@ class TextToVideo(Skill[TextToVideoInput, TextToVideoOutput]):
                 task=task_response,
             )
 
+            if (
+                res.status_code != HTTPStatus.OK
+                or not res.output
+                or res.output.task_status in ["FAILED", "CANCELED"]
+            ):
+                raise RuntimeError(f"Failed to fetch result: {res}")
+
             # Check task completion status
             if res.status_code == HTTPStatus.OK:
                 if hasattr(res.output, "task_status"):
                     if res.output.task_status == "SUCCEEDED":
                         break
                     elif res.output.task_status in ["FAILED", "CANCELED"]:
-                        raise RuntimeError(
-                            f"Video generation failed: task_status="
-                            f"{res.output.task_status}, response={res}",
-                        )
+                        raise RuntimeError(f"Failed to generate: {res}")
                 else:
+                    # If no task_status field, assume completed
                     break
 
             # Check timeout

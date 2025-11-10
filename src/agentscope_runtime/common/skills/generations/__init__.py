@@ -53,3 +53,23 @@ from .speech_to_video import (
     SpeechToVideo,
     SpeechToVideoInput,
 )
+from .async_image_to_video_wan25 import (
+    ImageToVideoWan25Submit,
+    ImageToVideoWan25SubmitInput,
+    ImageToVideoWan25Fetch,
+    ImageToVideoWan25FetchInput,
+)
+from .async_text_to_video_wan25 import (
+    TextToVideoWan25Submit,
+    TextToVideoWan25SubmitInput,
+    TextToVideoWan25Fetch,
+    TextToVideoWan25FetchInput,
+)
+from .image_edit_wan25 import (
+    ImageEditWan25,
+    ImageGenInput as ImageEditWan25Input,
+)
+from .image_generation_wan25 import (
+    ImageGenerationWan25,
+    ImageGenInput as ImageGenerationWan25Input,
+)

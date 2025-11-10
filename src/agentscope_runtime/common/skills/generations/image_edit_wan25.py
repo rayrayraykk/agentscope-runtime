@@ -13,9 +13,8 @@ from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
 from .._base import Skill
-
-from ....engine.tracing import trace, TracingUtil
 from ..utils.api_key_util import ApiNames, get_api_key
+from ....engine.tracing import trace, TracingUtil
 
 
 class ImageGenInput(BaseModel):
@@ -29,7 +28,7 @@ class ImageGenInput(BaseModel):
     )
     prompt: str = Field(
         ...,
-        description="正向提示词，用来描述生成图像中期望包含的元素和视觉特点," "超过2000自动截断",
+        description="正向提示词，用来描述生成图像中期望包含的元素和视觉特点, 超过2000自动截断",
     )
     negative_prompt: Optional[str] = Field(
         default=None,
@@ -69,7 +68,7 @@ class ImageEditWan25(Skill[ImageGenInput, ImageGenOutput]):
     """
 
     name: str = "modelstudio_image_edit_wan25"
-    description: str = "AI图像编辑（图生图）服务，输入原图URL、编辑功能、文本描述和分辨率，" "返回编辑后的图片URL。"
+    description: str = "AI图像编辑（图生图）服务，输入原图URL、编辑功能、文本描述和分辨率，返回编辑后的图片URL。"
 
     @trace(trace_type="AIGC", trace_name="image_edit_wan25")
     async def arun(self, args: ImageGenInput, **kwargs: Any) -> ImageGenOutput:
@@ -192,29 +191,3 @@ class ImageEditWan25(Skill[ImageGenInput, ImageGenOutput]):
             for result in res.output.results:
                 results.append(result.url)
         return ImageGenOutput(results=results, request_id=request_id)
-
-
-if __name__ == "__main__":
-    images = [
-        "https://img.alicdn.com/imgextra/i4/O1CN01TlDlJe1LR9zso3xAC_"
-        "!!6000000001295-2-tps-1104-1472.png",
-        "https://img.alicdn.com/imgextra/i4/O1CN01M9azZ41YdblclkU6Z_"
-        "!!6000000003082-2-tps-1696-960.png",
-    ]
-
-    image_generation = ImageEditWan25()
-
-    image_gent_input = ImageGenInput(
-        images=images,
-        # mask_image_url="https://example.com/mask_image.jpg",
-        prompt="将图1中的闹钟放置到图2的餐桌的花瓶旁边位置",
-        n=1,
-        # watermark=True
-    )
-
-    async def main() -> None:
-        image_gent_output = await image_generation.arun(image_gent_input)
-        print(image_gent_output)
-        print(image_generation.function_schema.model_dump())
-
-    asyncio.run(main())
