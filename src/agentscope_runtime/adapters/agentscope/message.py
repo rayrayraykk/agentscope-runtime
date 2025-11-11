@@ -253,7 +253,7 @@ def message_to_agentscope_msg(
     def _convert_one(message: Message) -> Msg:
         # Normalize role
         if message.role == "tool":
-            role_label = "system"  # AgentScope do not support tool as role
+            role_label = "system"  # AgentScope not support tool as role
         else:
             role_label = message.role or "assistant"
 

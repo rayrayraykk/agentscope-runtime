@@ -65,13 +65,13 @@ class ServiceFactory:
                 InMemoryStateService,
             )
             from ....services.redis_state_service import (
-                RedisMemoryService,
+                RedisStateService,
             )
 
             # Assuming default implementation
             cls._service_registry[ServiceType.STATE] = {
                 ServiceProvider.IN_MEMORY: InMemoryStateService,
-                ServiceProvider.REDIS: RedisMemoryService,
+                ServiceProvider.REDIS: RedisStateService,
             }
 
         except ImportError as e:
