@@ -526,6 +526,7 @@ def message_to_agentscope_msg(
                     name=orig_msg.name,
                     role=orig_msg.role,
                     invocation_id=orig_msg.invocation_id,
+                    metadata=orig_msg.metadata,
                     content=list(orig_msg.content),
                 )
             else:
