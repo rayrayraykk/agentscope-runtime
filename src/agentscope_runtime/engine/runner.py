@@ -28,7 +28,6 @@ from .tracing.message_util import (
     merge_agent_response,
     get_agent_response_finish_reason,
 )
-from .agents.agentscope_agent import AgentScopeAgent
 
 
 class Runner:
@@ -224,6 +223,8 @@ class Runner:
             yield seq_gen.yield_with_sequence(event)
 
         # TODO: remove this after refactoring all agents
+        from .agents.agentscope_agent import AgentScopeAgent
+
         if not isinstance(self._agent, AgentScopeAgent):
             await context.context_manager.append(
                 session=context.session,

@@ -150,6 +150,7 @@ def agentscope_msg_to_message(
                 cb = current_mb.create_content_builder(content_type="data")
                 output_data = FunctionCallOutput(
                     call_id=block.get("id"),
+                    name=block.get("name"),
                     output=json.dumps(block.get("output")),
                 ).model_dump()
                 cb.set_data(output_data)
@@ -174,6 +175,18 @@ def agentscope_msg_to_message(
                     and block.get("source", {}).get("type") == "url"
                 ):
                     cb.set_image_url(block.get("source", {}).get("url"))
+
+                elif (
+                    isinstance(block.get("source"), dict)
+                    and block.get("source").get(
+                        "type",
+                    )
+                    == "base64"
+                ):
+                    cb.content.data = block.get("source", {}).get("data")
+                    cb.content.format = block.get("source", {}).get(
+                        "media_type",
+                    )
 
                 cb.complete()
 
@@ -209,6 +222,9 @@ def agentscope_msg_to_message(
                     == "base64"
                 ):
                     cb.content.data = block.get("source", {}).get("data")
+                    cb.content.format = block.get("source", {}).get(
+                        "media_type",
+                    )
                 cb.complete()
 
             else:
@@ -260,7 +276,7 @@ def message_to_agentscope_msg(
         result = {
             "name": getattr(message, "name", message.role),
             "role": role_label,
-            "invocation_id": getattr(message, "id", None),
+            "invocation_id": getattr(message, "id"),
         }
 
         if message.type in (
@@ -283,17 +299,27 @@ def message_to_agentscope_msg(
             # convert PLUGIN_CALL_OUTPUT, FUNCTION_CALL_OUTPUT to
             # ToolResultBlock
             blk = json.loads(message.content[0].data["output"])
-            if not any(
-                matches_typed_dict_structure(blk, cls)
-                for cls in (TextBlock, ImageBlock, AudioBlock, VideoBlock)
-            ):
+
+            def is_valid_block(obj):
+                return any(
+                    matches_typed_dict_structure(obj, cls)
+                    for cls in (TextBlock, ImageBlock, AudioBlock, VideoBlock)
+                )
+
+            if isinstance(blk, list):
+                if not all(is_valid_block(item) for item in blk):
+                    blk = str(blk)
+            elif isinstance(blk, dict):
+                if not is_valid_block(blk):
+                    blk = str(blk)
+            else:
                 blk = str(blk)
 
             result["content"] = [
                 ToolResultBlock(
                     type="tool_result",
                     id=message.content[0].data["call_id"],
-                    name=message.role,  # TODO: match id of ToolUseBlock
+                    name=message.content[0].data["name"],
                     output=blk,
                 ),
             ]

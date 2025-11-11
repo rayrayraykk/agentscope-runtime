@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint:disable=protected-access,unused-argument
 """AgentScope Long Memory implementation based on MemoryService."""
+import asyncio
+
 from typing import Any
 
 from agentscope.memory import LongTermMemoryBase
@@ -110,18 +112,25 @@ class AgentScopeLongTermMemory(LongTermMemoryBase):
         if isinstance(msg, Msg):
             msg = [msg]
 
-        results = []
-
-        for m in msg:
-            result = await self._service.search_memory(
+        tasks = [
+            self._service.search_memory(
                 user_id=self.user_id,
                 messages=agentscope_msg_to_message(m),
                 filters={"top_k": limit},
             )
-            results.append("\n".join(str(msg) for msg in result))
+            for m in msg
+        ]
+        results_lists = await asyncio.gather(*tasks, return_exceptions=True)
+
+        processed_results = []
+        for result in results_lists:
+            if isinstance(result, Exception):
+                processed_results.append(f"Error: {result}")
+            else:
+                processed_results.append("\n".join(str(r) for r in result))
 
         # Convert results to string
-        return "\n".join(results)
+        return "\n".join(processed_results)
 
     async def record_to_memory(
         self,
@@ -208,9 +217,10 @@ class AgentScopeLongTermMemory(LongTermMemoryBase):
 
         try:
             results = []
+            msgs = []
 
             for keyword in keywords:
-                msgs = [
+                msgs.append(
                     Msg(
                         name="assistant",
                         content=[
@@ -221,20 +231,18 @@ class AgentScopeLongTermMemory(LongTermMemoryBase):
                         ],
                         role="assistant",
                     ),
-                ]
-
-                result = await self.retrieve(
-                    msgs,
-                    limit=limit,
-                    **kwargs,
                 )
-                results.append(result)
+            results = await self.retrieve(
+                msgs,
+                limit=limit,
+                **kwargs,
+            )
 
             return ToolResponse(
                 content=[
                     TextBlock(
                         type="text",
-                        text="\n".join(results),
+                        text=results,
                     ),
                 ],
             )
