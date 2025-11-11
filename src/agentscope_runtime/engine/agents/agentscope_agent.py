@@ -6,7 +6,7 @@ import logging
 import json
 import traceback
 from functools import partial
-from typing import Optional, Type, List
+from typing import Optional, Type, List, Callable
 
 from agentscope import setup_logger
 from agentscope.agent import AgentBase, ReActAgent
@@ -185,6 +185,7 @@ class AgentScopeAgent(Agent):
         tools=None,
         agent_config=None,
         agent_builder: Optional[Type[AgentBase]] = ReActAgent,
+        custom_build_fn: Optional[Callable] = None,
     ):
         super().__init__(name=name, agent_config=agent_config)
         assert isinstance(
@@ -209,6 +210,7 @@ class AgentScopeAgent(Agent):
             "tools": tools,
             "agent_config": self.agent_config,
             "agent_builder": agent_builder,
+            "custom_build_fn": custom_build_fn,
         }
         self.tools = tools
 
@@ -247,7 +249,10 @@ class AgentScopeAgent(Agent):
 
         # We should always build a new agent since the state is manage outside
         # the agent
-        _agent = self.build(as_context)
+        if self._attr.get("custom_build_fn"):
+            _agent = self._attr["custom_build_fn"](as_context, **kwargs)
+        else:
+            _agent = self.build(as_context)
 
         # Restore state from state service
         state_service = context.context_manager._state_service
