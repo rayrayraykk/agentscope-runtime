@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from typing import List
 
 from .manager import ServiceManager
-from .memory_service import MemoryService, InMemoryMemoryService
+from .memory_service import MemoryService
 from .rag_service import RAGService
 from .state_service import StateService
 from .session_history_service import (
@@ -106,13 +106,13 @@ class ContextManager(ServiceManager):
         self._session_history_service = (
             self._session_history_service or InMemorySessionHistoryService()
         )
-        self._memory_service = self._memory_service or InMemoryMemoryService()
 
         # Default services
         self.register_service("session", self._session_history_service)
-        self.register_service("memory", self._memory_service)
 
         # Optional services
+        if self._memory_service:
+            self.register_service("memory", self._memory_service)
         if self._rag_service:
             self.register_service("rag", self._rag_service)
         if self._state_service:
