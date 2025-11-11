@@ -194,7 +194,8 @@ class SpeechToVideoSubmit(
         if (
             response.status_code != HTTPStatus.OK
             or not response.output
-            or response.output.task_status in ["FAILED", "CANCELED"]
+            or response.output.get("task_status", "UNKNOWN")
+            in ["FAILED", "CANCELED"]
         ):
             raise RuntimeError(f"Failed to submit task: {response}")
 
@@ -206,16 +207,8 @@ class SpeechToVideoSubmit(
             )
 
         # Extract task information from response
-        if hasattr(response, "output") and hasattr(response.output, "task_id"):
-            task_id = response.output.task_id
-            task_status = getattr(response.output, "task_status", "PENDING")
-        else:
-            # Handle dict-style response
-            if isinstance(response.output, dict):
-                task_id = response.output.get("task_id")
-                task_status = response.output.get("task_status", "PENDING")
-            else:
-                raise RuntimeError(f"Unexpected response format: {response}")
+        task_id = response.output.get("task_id", "")
+        task_status = response.output.get("task_status", "UNKNOWN")
 
         result = SpeechToVideoSubmitOutput(
             request_id=request_id,
@@ -366,7 +359,8 @@ class SpeechToVideoFetch(
         if (
             response.status_code != HTTPStatus.OK
             or not response.output
-            or response.output.task_status in ["FAILED", "CANCELED"]
+            or response.output.get("task_status", "UNKNOWN")
+            in ["FAILED", "CANCELED"]
         ):
             raise RuntimeError(f"Failed to fetch result: {response}")
 
