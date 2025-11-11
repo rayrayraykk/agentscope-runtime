@@ -203,8 +203,8 @@ class TestContextManager:
             manager._session_history_service,
             InMemorySessionHistoryService,
         )
-        assert isinstance(manager._memory_service, InMemoryMemoryService)
-        assert len(manager.service_instances) == 2
+        assert manager._memory_service is None
+        assert len(manager.service_instances) == 1
 
     @pytest.mark.asyncio
     async def test_compose_context(
@@ -418,7 +418,7 @@ class TestContextManager:
             async with manager:
                 pass
 
-        assert len(manager.service_instances) == 2
+        assert len(manager.service_instances) == 1
 
     def test_getattr_access(self, mocker):
         """Test __getattr__ method for service access."""
@@ -473,7 +473,7 @@ class TestContextManager:
         services = manager.list_services()
         assert "test1" in services
         assert "test2" in services
-        assert len(services) == 4
+        assert len(services) == 3
 
     def test_all_services_property(self, mocker):
         """Test all_services property."""
@@ -486,7 +486,7 @@ class TestContextManager:
         all_services = manager.all_services
         assert all_services["test1"] == mock_service1
         assert all_services["test2"] == mock_service2
-        assert len(all_services) == 4
+        assert len(all_services) == 3
 
         # Ensure it returns a copy
         all_services["test3"] = mocker.Mock()
@@ -553,7 +553,9 @@ class TestCreateContextManager:
     @pytest.mark.asyncio
     async def test_create_context_manager_without_services(self):
         """Test create_context_manager function without services."""
-        async with create_context_manager() as manager:
+        async with create_context_manager(
+            memory_service=InMemoryMemoryService(),
+        ) as manager:
             assert isinstance(manager, ContextManager)
             assert isinstance(
                 manager._session_history_service,
