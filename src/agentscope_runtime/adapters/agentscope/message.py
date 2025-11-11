@@ -71,6 +71,7 @@ def agentscope_msg_to_message(
             mb.message.metadata = {
                 "original_invocation_id": msg.invocation_id,
                 "original_name": msg.name,
+                "metadata": msg.metadata,
             }
             cb = mb.create_content_builder(content_type="text")
             cb.set_text(msg.content)
@@ -105,6 +106,7 @@ def agentscope_msg_to_message(
                     current_mb.message.metadata = {
                         "original_invocation_id": msg.invocation_id,
                         "original_name": msg.name,
+                        "metadata": msg.metadata,
                     }
                     current_type = MessageType.MESSAGE
                 cb = current_mb.create_content_builder(content_type="text")
@@ -126,6 +128,7 @@ def agentscope_msg_to_message(
                     current_mb.message.metadata = {
                         "original_invocation_id": msg.invocation_id,
                         "original_name": msg.name,
+                        "metadata": msg.metadata,
                     }
                     current_type = MessageType.REASONING
                 cb = current_mb.create_content_builder(content_type="text")
@@ -146,6 +149,7 @@ def agentscope_msg_to_message(
                 current_mb.message.metadata = {
                     "original_invocation_id": msg.invocation_id,
                     "original_name": msg.name,
+                    "metadata": msg.metadata,
                 }
                 current_type = MessageType.PLUGIN_CALL
                 cb = current_mb.create_content_builder(content_type="data")
@@ -171,6 +175,7 @@ def agentscope_msg_to_message(
                 current_mb.message.metadata = {
                     "original_invocation_id": msg.invocation_id,
                     "original_name": msg.name,
+                    "metadata": msg.metadata,
                 }
                 current_type = MessageType.PLUGIN_CALL_OUTPUT
                 cb = current_mb.create_content_builder(content_type="data")
@@ -197,6 +202,7 @@ def agentscope_msg_to_message(
                     current_mb.message.metadata = {
                         "original_invocation_id": msg.invocation_id,
                         "original_name": msg.name,
+                        "metadata": msg.metadata,
                     }
                     current_type = MessageType.MESSAGE
                 cb = current_mb.create_content_builder(content_type="image")
@@ -239,6 +245,7 @@ def agentscope_msg_to_message(
                     current_mb.message.metadata = {
                         "original_invocation_id": msg.invocation_id,
                         "original_name": msg.name,
+                        "metadata": msg.metadata,
                     }
                     current_type = MessageType.MESSAGE
                 cb = current_mb.create_content_builder(content_type="audio")
@@ -291,6 +298,7 @@ def agentscope_msg_to_message(
                     current_mb.message.metadata = {
                         "original_invocation_id": msg.invocation_id,
                         "original_name": msg.name,
+                        "metadata": msg.metadata,
                     }
                     current_type = MessageType.MESSAGE
                 cb = current_mb.create_content_builder(content_type="text")
@@ -341,6 +349,8 @@ def message_to_agentscope_msg(
                 ]
             if "original_name" in message.metadata:
                 result["name"] = message.metadata["original_name"]
+            if "metadata" in message.metadata:
+                result["metadata"] = message.metadata["metadata"]
 
         if message.type in (
             MessageType.PLUGIN_CALL,
@@ -488,16 +498,19 @@ def message_to_agentscope_msg(
             name = None
             role = None
             invocation_id = None
+            metadata = None
             for i, msg in enumerate(converted_list):
                 if i == 0:
                     name = msg.name
                     role = msg.role
                     invocation_id = msg.invocation_id
+                    metadata = msg.metadata
                 merged_content.extend(msg.content)
             return Msg(
                 name=name,
                 role=role,
                 invocation_id=invocation_id,
+                metadata=metadata,
                 content=merged_content,
             )
 

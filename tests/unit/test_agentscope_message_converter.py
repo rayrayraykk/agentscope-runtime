@@ -75,6 +75,7 @@ def _check_round_trip(msgs, merge: bool):
         assert converted_msgs.name == original_msgs[0].name
         assert converted_msgs.role == original_msgs[0].role
         assert converted_msgs.invocation_id == original_msgs[0].invocation_id
+        assert converted_msgs.metadata == original_msgs[0].metadata
 
         # Compare all content blocks (flatten original content)
         original_blocks = normalize(
@@ -96,6 +97,7 @@ def _check_round_trip(msgs, merge: bool):
             assert conv.name == orig.name
             assert conv.role == orig.role
             assert conv.invocation_id == orig.invocation_id
+            assert conv.metadata == orig.metadata
 
             # Compare content blocks for each Msg
             orig_blocks = normalize(orig.content)
@@ -115,6 +117,7 @@ def _check_round_trip(msgs, merge: bool):
             name="assistant",
             role="assistant",
             invocation_id="12345",
+            metadata={"testdata": "test"},
             content=[
                 TextBlock(type="text", text="hello world"),
                 ImageBlock(
