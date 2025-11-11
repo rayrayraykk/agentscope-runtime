@@ -183,10 +183,13 @@ def agentscope_msg_to_message(
                     )
                     == "base64"
                 ):
-                    cb.content.data = block.get("source", {}).get("data")
-                    cb.content.format = block.get("source", {}).get(
+                    media_type = block.get("source", {}).get(
                         "media_type",
+                        "image/jpeg",
                     )
+                    base64_data = block.get("source", {}).get("data", "")
+                    url = f"data:{media_type};base64,{base64_data}"
+                    cb.set_image_url(url)
 
                 cb.complete()
 
@@ -211,7 +214,12 @@ def agentscope_msg_to_message(
                     )
                     == "url"
                 ):
-                    cb.content.data = block.get("source", {}).get("url")
+                    url = block.get("source", {}).get("url")
+                    cb.content.data = url
+                    try:
+                        cb.content.format = urlparse(url).path.split(".")[-1]
+                    except (AttributeError, IndexError, ValueError):
+                        cb.content.format = None
 
                 # Base64Source runtime check (dict with type == "base64")
                 elif (
@@ -221,10 +229,15 @@ def agentscope_msg_to_message(
                     )
                     == "base64"
                 ):
-                    cb.content.data = block.get("source", {}).get("data")
-                    cb.content.format = block.get("source", {}).get(
+                    media_type = block.get("source", {}).get(
                         "media_type",
                     )
+                    base64_data = block.get("source", {}).get("data", "")
+                    url = f"data:{media_type};base64,{base64_data}"
+
+                    cb.content.data = url
+                    cb.content.format = media_type
+
                 cb.complete()
 
             else:
@@ -332,9 +345,9 @@ def message_to_agentscope_msg(
             ]
         else:
             type_mapping = {
-                "text": (TextBlock, "text", None),
-                "image": (ImageBlock, "image_url", True),
-                "audio": (AudioBlock, "data", None),
+                "text": (TextBlock, "text"),
+                "image": (ImageBlock, "image_url"),
+                "audio": (AudioBlock, "data"),
                 # "video": (VideoBlock, "video_url", True),
                 # TODO: support video
             }
@@ -346,33 +359,70 @@ def message_to_agentscope_msg(
                 if cnt_type not in type_mapping:
                     raise ValueError(f"Unsupported message type: {cnt_type}")
 
-                block_cls, attr_name, is_url = type_mapping[cnt_type]
+                block_cls, attr_name = type_mapping[cnt_type]
                 value = getattr(cnt, attr_name)
 
-                if cnt_type == "audio":
-                    parsed_url = urlparse(value)
-                    is_url = all([parsed_url.scheme, parsed_url.netloc])
-
-                if is_url:
-                    url_source = URLSource(type="url", url=value)
-                    msg_content.append(
-                        block_cls(type=cnt_type, source=url_source),
-                    )
-                else:
-                    if cnt_type == "audio":
-                        audio_format = getattr(cnt, "format")
+                if cnt_type == "image":
+                    if value and value.startswith("data:"):
+                        mediatype_part = value.split(";")[0].replace(
+                            "data:",
+                            "",
+                        )
+                        base64_data = value.split(",")[1]
                         base64_source = Base64Source(
                             type="base64",
-                            media_type=audio_format,
-                            data=value,
+                            media_type=mediatype_part,
+                            data=base64_data,
+                        )
+                        msg_content.append(
+                            block_cls(type=cnt_type, source=base64_source),
+                        )
+                    elif value:
+                        url_source = URLSource(type="url", url=value)
+                        msg_content.append(
+                            block_cls(type=cnt_type, source=url_source),
+                        )
+
+                elif cnt_type == "audio":
+                    if (
+                        value
+                        and isinstance(value, str)
+                        and value.startswith(
+                            "data:",
+                        )
+                    ):
+                        mediatype_part = value.split(";")[0].replace(
+                            "data:",
+                            "",
+                        )
+                        base64_data = value.split(",")[1]
+                        base64_source = Base64Source(
+                            type="base64",
+                            media_type=mediatype_part,
+                            data=base64_data,
                         )
                         msg_content.append(
                             block_cls(type=cnt_type, source=base64_source),
                         )
                     else:
-                        msg_content.append(
-                            block_cls(type=cnt_type, text=value),
-                        )
+                        parsed_url = urlparse(value)
+                        if parsed_url.scheme and parsed_url.netloc:
+                            url_source = URLSource(type="url", url=value)
+                            msg_content.append(
+                                block_cls(type=cnt_type, source=url_source),
+                            )
+                        else:
+                            audio_extension = getattr(cnt, "format")
+                            base64_source = Base64Source(
+                                type="base64",
+                                media_type=f"audio/{audio_extension}",
+                                data=value,
+                            )
+                            msg_content.append(
+                                block_cls(type=cnt_type, source=base64_source),
+                            )
+                else:
+                    msg_content.append(block_cls(type=cnt_type, text=value))
 
             result["content"] = msg_content
 
