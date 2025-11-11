@@ -6,20 +6,13 @@ from typing import List
 
 from .manager import ServiceManager
 from .memory_service import MemoryService
-from .rag_service import RAGService
 from .state_service import StateService
 from .session_history_service import (
     SessionHistoryService,
     Session,
     InMemorySessionHistoryService,
 )
-from ..schemas.agent_schemas import (
-    Message,
-    MessageType,
-    Role,
-    TextContent,
-    ContentType,
-)
+from ..schemas.agent_schemas import Message
 
 
 class ContextComposer:
@@ -38,7 +31,6 @@ class ContextComposer:
         session: Session,  # session
         memory_service: MemoryService = None,
         session_history_service: SessionHistoryService = None,
-        rag_service: RAGService = None,
     ):
         # session
         if session_history_service:
@@ -62,24 +54,6 @@ class ContextComposer:
             )
             session.messages = memories + session.messages
 
-        # rag
-        if rag_service:
-            query = await rag_service.get_query_text(request_input[-1])
-            docs = await rag_service.retrieve(query=query, k=5)
-            cooked_doc = "\n".join(docs)
-            message = Message(
-                type=MessageType.MESSAGE,
-                role=Role.SYSTEM,
-                content=[TextContent(type=ContentType.TEXT, text=cooked_doc)],
-            )
-            if len(session.messages) >= 1:
-                last_message = session.messages[-1]
-                session.messages.remove(last_message)
-                session.messages.append(message)
-                session.messages.append(last_message)
-            else:
-                session.messages.append(message)
-
 
 class ContextManager(ServiceManager):
     """
@@ -91,13 +65,11 @@ class ContextManager(ServiceManager):
         context_composer_cls=ContextComposer,
         session_history_service: SessionHistoryService = None,
         memory_service: MemoryService = None,
-        rag_service: RAGService = None,
         state_service: StateService = None,
     ):
         self._context_composer_cls = context_composer_cls
         self._session_history_service = session_history_service
         self._memory_service = memory_service
-        self._rag_service = rag_service
         self._state_service = state_service
         super().__init__()
 
@@ -113,8 +85,6 @@ class ContextManager(ServiceManager):
         # Optional services
         if self._memory_service:
             self.register_service("memory", self._memory_service)
-        if self._rag_service:
-            self.register_service("rag", self._rag_service)
         if self._state_service:
             self.register_service("state", self._state_service)
 
@@ -126,7 +96,6 @@ class ContextManager(ServiceManager):
         await self._context_composer_cls.compose(
             memory_service=self._memory_service,
             session_history_service=self._session_history_service,
-            rag_service=self._rag_service,
             session=session,
             request_input=request_input,
         )
@@ -169,13 +138,11 @@ class ContextManager(ServiceManager):
 async def create_context_manager(
     memory_service: MemoryService = None,
     session_history_service: SessionHistoryService = None,
-    rag_service: RAGService = None,
     context_composer_cls=ContextComposer,
 ):
     manager = ContextManager(
         memory_service=memory_service,
         session_history_service=session_history_service,
-        rag_service=rag_service,
         context_composer_cls=context_composer_cls,
     )
 

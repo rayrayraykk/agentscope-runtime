@@ -190,11 +190,11 @@ class ServiceFactory:
                 # Log warning but don't fail
                 print(f"Warning: Failed to create sandbox service: {e}")
 
-        if config.rag:
+        if config.state:
             try:
-                services["rag"] = cls.create_service(
-                    ServiceType.RAG,
-                    config.rag,
+                services["state"] = cls.create_service(
+                    ServiceType.STATE,
+                    config.state,
                 )
             except Exception as e:
                 # Log warning but don't fail
