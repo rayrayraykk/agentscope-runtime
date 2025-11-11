@@ -3,6 +3,7 @@
 # TODO: support file block
 import json
 
+from collections import OrderedDict
 from typing import Union, List
 from urllib.parse import urlparse
 
@@ -487,21 +488,37 @@ def message_to_agentscope_msg(
             name = None
             role = None
             invocation_id = None
-
             for i, msg in enumerate(converted_list):
                 if i == 0:
                     name = msg.name
                     role = msg.role
                     invocation_id = msg.invocation_id
                 merged_content.extend(msg.content)
-
             return Msg(
                 name=name,
                 role=role,
                 invocation_id=invocation_id,
                 content=merged_content,
             )
-        return converted_list
+
+        # Group by original_invocation_id
+        grouped = OrderedDict()
+        for msg, orig_msg in zip(messages, converted_list):
+            orig_id = getattr(msg, "metadata", {}).get(
+                "original_invocation_id",
+                orig_msg.invocation_id,
+            )
+            if orig_id not in grouped:
+                grouped[orig_id] = Msg(
+                    name=orig_msg.name,
+                    role=orig_msg.role,
+                    invocation_id=orig_msg.invocation_id,
+                    content=list(orig_msg.content),
+                )
+            else:
+                grouped[orig_id].content.extend(orig_msg.content)
+
+        return list(grouped.values())
     else:
         raise TypeError(
             f"Expected Message or list[Message], got {type(messages)}",
