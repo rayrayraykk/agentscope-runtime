@@ -110,11 +110,11 @@
 
 ### 百炼ASR使用示例
 ```python
-from agentscope_bricks.Skills.realtime_clients.modelstudio_asr_client import (
+from agentscope_runtime.common.skills.realtime_clients import (
     ModelstudioAsrClient,
     ModelstudioAsrCallbacks,
 )
-from agentscope_bricks.utils.schemas.realtime import ModelstudioAsrConfig
+from agentscope_runtime.engine.schemas.realtime import ModelstudioAsrConfig
 import asyncio
 
 # Configure ASR parameters
@@ -159,11 +159,11 @@ asyncio.run(asr_example())
 
 ### 百炼TTS使用示例
 ```python
-from agentscope_bricks.Skills.realtime_clients.modelstudio_tts_client import (
+from agentscope_runtime.common.skills.realtime_clients import (
     ModelstudioTtsClient,
     ModelstudioTtsCallbacks,
 )
-from agentscope_bricks.utils.schemas.realtime import ModelstudioTtsConfig
+from agentscope_runtime.engine.schemas.realtime import ModelstudioTtsConfig
 import asyncio
 
 # Configure TTS parameters
@@ -197,7 +197,7 @@ async def tts_example():
     tts_client.start()
 
     # Send text for synthesis
-    tts_client.send_text_data("您好，欢迎使用agentscope_bricks框架！")
+    tts_client.send_text_data("您好，欢迎使用agentscope_runtime框架！")
 
     # Stop TTS service
     tts_client.stop()
@@ -214,15 +214,15 @@ asyncio.run(tts_example())
 
 ### Azure语音服务示例
 ```python
-from agentscope_bricks.Skills.realtime_clients.azure_asr_client import (
+from agentscope_runtime.common.skills.realtime_clients import (
     AzureAsrClient,
     AzureAsrCallbacks,
 )
-from agentscope_bricks.components.realtime_clients.azure_tts_client import (
+from agentscope_runtime.common.skills.realtime_clients import (
     AzureTtsClient,
     AzureTtsCallbacks,
 )
-from agentscope_bricks.utils.schemas.realtime import AzureAsrConfig, AzureTtsConfig
+from agentscope_runtime.engine.schemas.realtime import AzureAsrConfig, AzureTtsConfig
 import asyncio
 
 # Azure ASR configuration and example

@@ -3,7 +3,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from .realtime_component import (
+from .realtime_skill import (
     RealtimeComponent,
     RealtimeType,
 )

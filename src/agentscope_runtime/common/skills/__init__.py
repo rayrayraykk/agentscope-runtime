@@ -89,6 +89,17 @@ mcp_server_metas: Dict[str, McpServerMeta] = {
             SpeechToVideoFetch,
         ],
     ),
+    "modelstudio_wan25_media": McpServerMeta(
+        instructions="基于通义万相大模型2.5版本提供的图像和视频生成服务",
+        components=[
+            ImageGenerationWan25,
+            ImageEditWan25,
+            TextToVideoWan25Submit,
+            TextToVideoWan25Fetch,
+            ImageToVideoWan25Submit,
+            ImageToVideoWan25Fetch,
+        ],
+    ),
     "modelstudio_qwen_image": McpServerMeta(
         instructions="基于通义千问大模型的智能图像生成服务，提供高质量的图像处理和编辑功能",
         components=[QwenImageGen, QwenImageEdit],
