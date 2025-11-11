@@ -5,7 +5,7 @@ import functools
 
 from typing import Union
 
-from agentscope.memory import InMemoryMemory
+from agentscope.memory import MemoryBase
 from agentscope.message import Msg
 
 from ..message import agentscope_msg_to_message, message_to_agentscope_msg
@@ -26,9 +26,9 @@ def ensure_session(func):
     return wrapper
 
 
-class AgentScopeSessionHistoryMemory(InMemoryMemory):
+class AgentScopeSessionHistoryMemory(MemoryBase):
     """
-    AgentScope Memory subclass based on InMemoryMemory.
+    AgentScope Memory subclass based on MemoryBase.
 
     This class stores messages in an underlying SessionHistoryService instance.
 
