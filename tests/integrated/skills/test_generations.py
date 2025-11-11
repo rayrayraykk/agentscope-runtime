@@ -85,7 +85,7 @@ from agentscope_runtime.common.skills.generations import (
 # Image to Video Tests (Async API - Submit/Fetch Pattern)
 # ============================================================================
 
-LONGRUN_TEST = os.getenv("LONGRUN_TEST", "false") == "true"
+NO_LONGRUN_TEST = os.getenv("NO_LONGRUN_TEST", "true") == "true"
 
 
 @pytest.fixture
@@ -100,7 +100,7 @@ def image_to_video_fetch():
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
-    LONGRUN_TEST,
+    NO_LONGRUN_TEST,
     reason="take more than 5 mins, skip for " "saving time",
 )
 async def test_async_image_to_video(
@@ -228,7 +228,7 @@ def speech_to_video_fetch():
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
-    LONGRUN_TEST,
+    NO_LONGRUN_TEST,
     reason="take more than 5 mins, skip for saving time",
 )
 async def test_async_speech_to_video(
@@ -357,7 +357,7 @@ def text_to_video_fetch():
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
-    LONGRUN_TEST,
+    NO_LONGRUN_TEST,
     reason="take more than 5 mins, skip for saving time",
 )
 async def test_async_text_to_video(
@@ -559,7 +559,7 @@ def image_to_video():
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
-    LONGRUN_TEST,
+    NO_LONGRUN_TEST,
     reason="take more than 5 mins, skip for saving time",
 )
 async def test_image_to_video(image_to_video):
@@ -777,7 +777,7 @@ def image_edit_wan25():
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(LONGRUN_TEST, reason="requires DASHSCOPE_API_KEY")
+@pytest.mark.skipif(NO_LONGRUN_TEST, reason="requires DASHSCOPE_API_KEY")
 async def test_image_edit_wan25(image_edit_wan25):
     """Test WAN25 image editing functionality"""
     images = [
@@ -808,7 +808,7 @@ def image_generation_wan25():
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(LONGRUN_TEST, reason="requires DASHSCOPE_API_KEY")
+@pytest.mark.skipif(NO_LONGRUN_TEST, reason="requires DASHSCOPE_API_KEY")
 async def test_image_generation_wan25(image_generation_wan25):
     """Test WAN25 image generation functionality"""
     image_gen_input = ImageGenerationWan25Input(
@@ -836,7 +836,7 @@ def image_to_video_wan25_fetch():
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
-    LONGRUN_TEST,
+    NO_LONGRUN_TEST,
     reason="take more than 5 mins, skip for saving time and requires API key",
 )
 async def test_async_image_to_video_wan25(
@@ -959,7 +959,7 @@ def text_to_video_wan25_fetch():
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
-    LONGRUN_TEST,
+    NO_LONGRUN_TEST,
     reason="take more than 5 mins, skip for saving time and requires API key",
 )
 async def test_async_text_to_video_wan25(
@@ -1138,7 +1138,7 @@ def speech_to_video():
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
-    LONGRUN_TEST,
+    NO_LONGRUN_TEST,
     reason="take more than 5 mins, skip for " "saving time",
 )
 async def test_speech_to_video(speech_to_video):

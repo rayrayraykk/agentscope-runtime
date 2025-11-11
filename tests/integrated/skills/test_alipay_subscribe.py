@@ -16,6 +16,10 @@ from agentscope_runtime.common.skills.alipay.subscribe import (
     SubscribeCheckOrInitializeInput,
 )
 
+pytestmark = pytest.mark.skip(
+    reason="Skipping the entire file online for " "security reasons",
+)
+
 
 @pytest.fixture(scope="module")
 def alipay_subscribe_status_check():

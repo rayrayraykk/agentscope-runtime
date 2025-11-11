@@ -17,6 +17,10 @@ from agentscope_runtime.common.skills.alipay.payment import (
     AlipayRefundQuery,
 )
 
+pytestmark = pytest.mark.skip(
+    reason="Skipping the entire file online for " "security reasons",
+)
+
 
 @pytest.fixture(scope="module")
 def alipay_mobile_payment():
