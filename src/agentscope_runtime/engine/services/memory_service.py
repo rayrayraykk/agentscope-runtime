@@ -116,6 +116,7 @@ class InMemoryMemoryService(MemoryService):
         """Stops the service."""
         if self._store is not None:
             self._store.clear()
+        self._store = None
         self._health = False
 
     async def health(self) -> bool:

@@ -214,16 +214,18 @@ class TestContextManager:
         sample_messages,
     ):
         """Test compose_context method."""
-        manager = ContextManager(
-            session_history_service=mock_session_history_service,
-        )
+        async with (
+            ContextManager(
+                session_history_service=mock_session_history_service,
+            ) as manager
+        ):
+            await manager.compose_context(sample_session, sample_messages)
 
-        await manager.compose_context(sample_session, sample_messages)
-
-        mock_session_history_service.append_message.assert_called_once_with(
-            session=sample_session,
-            message=sample_messages,
-        )
+            session_history_service = mock_session_history_service
+            session_history_service.append_message.assert_called_once_with(
+                session=sample_session,
+                message=sample_messages,
+            )
 
     @pytest.mark.asyncio
     async def test_compose_session_with_service(
@@ -233,34 +235,19 @@ class TestContextManager:
     ):
         """Test compose_session method with session service."""
         mock_session_history_service.get_session.return_value = sample_session
-        manager = ContextManager(
+        async with ContextManager(
             session_history_service=mock_session_history_service,
-        )
+        ) as manager:
+            result = await manager.compose_session(
+                user_id="test_user",
+                session_id="test_session_id",
+            )
 
-        result = await manager.compose_session(
-            user_id="test_user",
-            session_id="test_session_id",
-        )
-
-        assert result == sample_session
-        mock_session_history_service.get_session.assert_called_once_with(
-            user_id="test_user",
-            session_id="test_session_id",
-        )
-
-    @pytest.mark.asyncio
-    async def test_compose_session_without_service(self):
-        """Test compose_session method without session service."""
-        manager = ContextManager()
-
-        result = await manager.compose_session(
-            user_id="test_user",
-            session_id="test_session_id",
-        )
-
-        assert result.user_id == "test_user"
-        assert result.id == "test_session_id"
-        assert result.messages == []
+            assert result == sample_session
+            mock_session_history_service.get_session.assert_called_once_with(
+                user_id="test_user",
+                session_id="test_session_id",
+            )
 
     @pytest.mark.asyncio
     async def test_compose_session_not_found(

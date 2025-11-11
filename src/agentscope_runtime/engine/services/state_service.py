@@ -100,6 +100,7 @@ class InMemoryStateService(StateService):
         """Clear all in-memory state data."""
         if self._store is not None:
             self._store.clear()
+        self._store = None
         self._health = False
 
     async def health(self) -> bool:

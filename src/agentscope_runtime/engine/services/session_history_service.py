@@ -121,25 +121,26 @@ class InMemorySessionHistoryService(SessionHistoryService):
     for development, testing, and scenarios where persistence is not required.
 
     Attributes:
-        _sessions: A dictionary holding all session objects, keyed by user ID
+        _store: A dictionary holding all session objects, keyed by user ID
             and then by session ID.
     """
 
     def __init__(self) -> None:
         """Initializes the InMemorySessionHistoryService."""
-        self._sessions: Optional[Dict[str, Dict[str, Session]]] = None
+        self._store: Optional[Dict[str, Dict[str, Session]]] = None
         self._health = False
 
     async def start(self) -> None:
         """Initialize the in-memory store."""
-        if self._sessions is None:
-            self._sessions = {}
+        if self._store is None:
+            self._store = {}
         self._health = True
 
     async def stop(self) -> None:
         """Clear all in-memory data."""
-        if self._sessions is not None:
-            self._sessions.clear()
+        if self._store is not None:
+            self._store.clear()
+        self._store = None
         self._health = False
 
     async def health(self) -> bool:
@@ -160,13 +161,16 @@ class InMemorySessionHistoryService(SessionHistoryService):
         Returns:
             A deep copy of the newly created Session object.
         """
+        if self._store is None:
+            raise RuntimeError("Service not started")
+
         session_id = (
             session_id.strip()
             if session_id and session_id.strip()
             else str(uuid.uuid4())
         )
         session = Session(id=session_id, user_id=user_id)
-        self._sessions.setdefault(user_id, {})[session_id] = session
+        self._store.setdefault(user_id, {})[session_id] = session
         return copy.deepcopy(session)
 
     async def get_session(
@@ -183,11 +187,13 @@ class InMemorySessionHistoryService(SessionHistoryService):
         Returns:
             A deep copy of the Session object if found, otherwise None.
         """
+        if self._store is None:
+            raise RuntimeError("Service not started")
 
-        session = self._sessions.get(user_id, {}).get(session_id)
+        session = self._store.get(user_id, {}).get(session_id)
         if not session:
             session = Session(id=session_id, user_id=user_id)
-            self._sessions.setdefault(user_id, {})[session_id] = session
+            self._store.setdefault(user_id, {})[session_id] = session
         return copy.deepcopy(session) if session else None
 
     async def delete_session(self, user_id: str, session_id: str) -> None:
@@ -199,11 +205,11 @@ class InMemorySessionHistoryService(SessionHistoryService):
             user_id: The identifier for the user.
             session_id: The identifier for the session to delete.
         """
-        if self._sessions is None:
+        if self._store is None:
             raise RuntimeError("Service not started")
 
-        if user_id in self._sessions and session_id in self._sessions[user_id]:
-            del self._sessions[user_id][session_id]
+        if user_id in self._store and session_id in self._store[user_id]:
+            del self._store[user_id][session_id]
 
     async def list_sessions(self, user_id: str) -> list[Session]:
         """Lists all sessions for a given user.
@@ -217,10 +223,10 @@ class InMemorySessionHistoryService(SessionHistoryService):
         Returns:
             A list of Session objects belonging to the user, without history.
         """
-        if self._sessions is None:
+        if self._store is None:
             raise RuntimeError("Service not started")
 
-        user_sessions = self._sessions.get(user_id, {})
+        user_sessions = self._store.get(user_id, {})
         # Return sessions without their potentially large history for
         # efficiency.
         sessions_without_history = []
@@ -252,6 +258,9 @@ class InMemorySessionHistoryService(SessionHistoryService):
             message: The message or list of messages to append to the
                 session's history.
         """
+        if self._store is None:
+            raise RuntimeError("Service not started")
+
         # Normalize to list
         if not isinstance(message, list):
             message = [message]
@@ -265,7 +274,7 @@ class InMemorySessionHistoryService(SessionHistoryService):
         session.messages.extend(norm_message)
 
         # update the in memory copy
-        storage_session = self._sessions.get(session.user_id, {}).get(
+        storage_session = self._store.get(session.user_id, {}).get(
             session.id,
         )
         if storage_session:
