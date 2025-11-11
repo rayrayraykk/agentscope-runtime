@@ -66,6 +66,11 @@ def agentscope_msg_to_message(
                 role=role,
                 message_type=MessageType.MESSAGE,
             )
+            # add meta field to store old id and name
+            mb.message.metadata = {
+                "original_invocation_id": msg.invocation_id,
+                "original_name": msg.name,
+            }
             cb = mb.create_content_builder(content_type="text")
             cb.set_text(msg.content)
             cb.complete()
@@ -95,6 +100,11 @@ def agentscope_msg_to_message(
                         role=role,
                         message_type=MessageType.MESSAGE,
                     )
+                    # add meta field to store old id and name
+                    current_mb.message.metadata = {
+                        "original_invocation_id": msg.invocation_id,
+                        "original_name": msg.name,
+                    }
                     current_type = MessageType.MESSAGE
                 cb = current_mb.create_content_builder(content_type="text")
                 cb.set_text(block.get("text", ""))
@@ -111,6 +121,11 @@ def agentscope_msg_to_message(
                         role=role,
                         message_type=MessageType.REASONING,
                     )
+                    # add meta field to store old id and name
+                    current_mb.message.metadata = {
+                        "original_invocation_id": msg.invocation_id,
+                        "original_name": msg.name,
+                    }
                     current_type = MessageType.REASONING
                 cb = current_mb.create_content_builder(content_type="text")
                 cb.set_text(block.get("thinking", ""))
@@ -126,6 +141,11 @@ def agentscope_msg_to_message(
                     role=role,
                     message_type=MessageType.PLUGIN_CALL,
                 )
+                # add meta field to store old id and name
+                current_mb.message.metadata = {
+                    "original_invocation_id": msg.invocation_id,
+                    "original_name": msg.name,
+                }
                 current_type = MessageType.PLUGIN_CALL
                 cb = current_mb.create_content_builder(content_type="data")
                 call_data = FunctionCall(
@@ -146,6 +166,11 @@ def agentscope_msg_to_message(
                     role=role,
                     message_type=MessageType.PLUGIN_CALL_OUTPUT,
                 )
+                # add meta field to store old id and name
+                current_mb.message.metadata = {
+                    "original_invocation_id": msg.invocation_id,
+                    "original_name": msg.name,
+                }
                 current_type = MessageType.PLUGIN_CALL_OUTPUT
                 cb = current_mb.create_content_builder(content_type="data")
                 output_data = FunctionCallOutput(
@@ -167,6 +192,11 @@ def agentscope_msg_to_message(
                         role=role,
                         message_type=MessageType.MESSAGE,
                     )
+                    # add meta field to store old id and name
+                    current_mb.message.metadata = {
+                        "original_invocation_id": msg.invocation_id,
+                        "original_name": msg.name,
+                    }
                     current_type = MessageType.MESSAGE
                 cb = current_mb.create_content_builder(content_type="image")
 
@@ -204,6 +234,11 @@ def agentscope_msg_to_message(
                         role=role,
                         message_type=MessageType.MESSAGE,
                     )
+                    # add meta field to store old id and name
+                    current_mb.message.metadata = {
+                        "original_invocation_id": msg.invocation_id,
+                        "original_name": msg.name,
+                    }
                     current_type = MessageType.MESSAGE
                 cb = current_mb.create_content_builder(content_type="audio")
                 # URLSource runtime check (dict with type == "url")
@@ -251,6 +286,11 @@ def agentscope_msg_to_message(
                         role=role,
                         message_type=MessageType.MESSAGE,
                     )
+                    # add meta field to store old id and name
+                    current_mb.message.metadata = {
+                        "original_invocation_id": msg.invocation_id,
+                        "original_name": msg.name,
+                    }
                     current_type = MessageType.MESSAGE
                 cb = current_mb.create_content_builder(content_type="text")
                 cb.set_text(str(block))
@@ -291,6 +331,15 @@ def message_to_agentscope_msg(
             "role": role_label,
             "invocation_id": getattr(message, "id"),
         }
+
+        # if meta exists, prefer original id/name from meta
+        if hasattr(message, "metadata") and isinstance(message.metadata, dict):
+            if "original_invocation_id" in message.metadata:
+                result["invocation_id"] = message.metadata[
+                    "original_invocation_id"
+                ]
+            if "original_name" in message.metadata:
+                result["name"] = message.metadata["original_name"]
 
         if message.type in (
             MessageType.PLUGIN_CALL,

@@ -396,6 +396,8 @@ class Message(Event):
     usage: Optional[Dict] = None
     """response usage for output"""
 
+    metadata: Optional[Dict] = None
+
     @staticmethod
     def from_openai_message(message: Union[BaseModel, dict]) -> "Message":
         """Create a message object from an openai message."""

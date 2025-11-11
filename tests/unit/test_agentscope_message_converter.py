@@ -45,10 +45,10 @@ def _check_round_trip(msgs, merge: bool):
     Performs a round-trip conversion check:
     Agentscope `Msg` -> Runtime Message -> Agentscope `Msg`.
 
-    Steps:
-    1. Convert Agentscope `Msg` objects to runtime messages.
-    2. Convert back runtime messages into Agentscope `Msg` objects.
-    3. Compare original and re-converted message blocks for equality.
+    This version checks:
+      1. Top-level fields: name, role, invocation_id
+      2. All content blocks (deep equality)
+      3. Supports both merge=True and merge=False cases
     """
     # Step 1: Convert Agentscope Msg -> Runtime Message
     runtime_messages = agentscope_msg_to_message(msgs)
@@ -58,32 +58,52 @@ def _check_round_trip(msgs, merge: bool):
     # Step 2: Convert Runtime Message -> Agentscope Msg
     converted_msgs = message_to_agentscope_msg(runtime_messages, merge=merge)
 
-    # Extract original blocks for comparison
+    # Step 3: Prepare original messages list for comparison
     if isinstance(msgs, Msg):
-        original_blocks = normalize(msgs.content)
+        original_msgs = [msgs]
     elif isinstance(msgs, list):
-        # Flatten message contents
-        original_blocks = normalize([blk for m in msgs for blk in m.content])
+        original_msgs = msgs
     else:
         raise TypeError(f"Unsupported msgs type: {type(msgs)}")
 
-    # Extract converted blocks depending on merge mode
+    # Step 4: Compare depending on merge flag
     if merge:
         # merge=True returns a single Msg
         assert isinstance(converted_msgs, Msg)
+
+        # Compare top-level fields with the first original Msg
+        assert converted_msgs.name == original_msgs[0].name
+        assert converted_msgs.role == original_msgs[0].role
+        assert converted_msgs.invocation_id == original_msgs[0].invocation_id
+
+        # Compare all content blocks (flatten original content)
+        original_blocks = normalize(
+            [blk for m in original_msgs for blk in m.content],
+        )
         converted_blocks = normalize(converted_msgs.content)
-    else:
-        # merge=False returns list[Msg]
-        assert isinstance(converted_msgs, list)
-        converted_blocks = normalize(
-            [blk for m in converted_msgs for blk in m.content],
+        assert json.dumps(original_blocks, sort_keys=True) == json.dumps(
+            converted_blocks,
+            sort_keys=True,
         )
 
-    # Compare serialized representations for equality
-    assert json.dumps(original_blocks, sort_keys=True) == json.dumps(
-        converted_blocks,
-        sort_keys=True,
-    )
+    else:
+        # merge=False returns a list[Msg]
+        assert isinstance(converted_msgs, list)
+        assert len(converted_msgs) == len(original_msgs)
+
+        for orig, conv in zip(original_msgs, converted_msgs):
+            # Compare top-level fields for each Msg
+            assert conv.name == orig.name
+            assert conv.role == orig.role
+            assert conv.invocation_id == orig.invocation_id
+
+            # Compare content blocks for each Msg
+            orig_blocks = normalize(orig.content)
+            conv_blocks = normalize(conv.content)
+            assert json.dumps(orig_blocks, sort_keys=True) == json.dumps(
+                conv_blocks,
+                sort_keys=True,
+            )
 
 
 @pytest.mark.parametrize(
