@@ -116,7 +116,6 @@ def _check_round_trip(msgs, merge: bool):
         Msg(
             name="assistant",
             role="assistant",
-            invocation_id="12345",
             metadata={"testdata": "test"},
             content=[
                 TextBlock(type="text", text="hello world"),
@@ -176,7 +175,6 @@ def _check_round_trip(msgs, merge: bool):
             Msg(
                 name="assistant",
                 role="assistant",
-                invocation_id="id1",
                 content=[
                     TextBlock(type="text", text="message one text"),
                     ThinkingBlock(type="thinking", thinking="Reasoning one"),
@@ -185,7 +183,6 @@ def _check_round_trip(msgs, merge: bool):
             Msg(
                 name="assistant",
                 role="assistant",
-                invocation_id="id2",
                 content=[
                     ImageBlock(
                         type="image",

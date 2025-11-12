@@ -83,13 +83,14 @@ class AgentScopeContextAdapter:
         return memory
 
     async def adapt_long_term_memory(self):
-        long_term_memory = AgentScopeLongTermMemory(
-            service=self.context.context_manager._memory_service,
-            user_id=self.context.session.user_id,
-            session_id=self.context.session.id,
-        )
-
-        return long_term_memory
+        if self.context.context_manager._memory_service:
+            long_term_memory = AgentScopeLongTermMemory(
+                service=self.context.context_manager._memory_service,
+                user_id=self.context.session.user_id,
+                session_id=self.context.session.id,
+            )
+            return long_term_memory
+        return None
 
     async def adapt_new_message(self):
         return message_to_agentscope_msg(

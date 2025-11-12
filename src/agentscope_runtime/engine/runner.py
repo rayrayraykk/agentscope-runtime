@@ -209,10 +209,14 @@ class Runner:
                 context.request.tools.extend(schemas)
 
         # update message in session
-        await context.context_manager.compose_context(
-            session=context.session,
-            request_input=request_input,
-        )
+        # TODO: remove this after refactoring all agents
+        from .agents.agentscope_agent import AgentScopeAgent
+
+        if not isinstance(self._agent, AgentScopeAgent):
+            await context.context_manager.compose_context(
+                session=context.session,
+                request_input=request_input,
+            )
 
         async for event in self._agent.run_async(context):
             if (
@@ -223,8 +227,6 @@ class Runner:
             yield seq_gen.yield_with_sequence(event)
 
         # TODO: remove this after refactoring all agents
-        from .agents.agentscope_agent import AgentScopeAgent
-
         if not isinstance(self._agent, AgentScopeAgent):
             await context.context_manager.append(
                 session=context.session,
