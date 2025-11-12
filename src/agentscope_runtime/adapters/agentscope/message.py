@@ -315,14 +315,12 @@ def agentscope_msg_to_message(
 
 def message_to_agentscope_msg(
     messages: Union[Message, List[Message]],
-    merge: bool = False,
 ) -> Union[Msg, List[Msg]]:
     """
     Convert AgentScope runtime Message(s) to AgentScope Msg(s).
 
     Args:
         messages: A single AgentScope runtime Message or list of Messages.
-        merge: If True and messages is a list, merge all contents into one Msg.
 
     Returns:
         A single Msg object or a list of Msg objects.
@@ -359,7 +357,7 @@ def message_to_agentscope_msg(
                 ToolUseBlock(
                     type="tool_use",
                     id=message.content[0].data["call_id"],
-                    name=message.content[0].data["name"],
+                    name=message.content[0].data.get("name"),
                     input=json.loads(message.content[0].data["arguments"]),
                 ),
             ]
@@ -390,7 +388,7 @@ def message_to_agentscope_msg(
                 ToolResultBlock(
                     type="tool_result",
                     id=message.content[0].data["call_id"],
-                    name=message.content[0].data["name"],
+                    name=message.content[0].data.get("name"),
                     output=blk,
                 ),
             ]
@@ -492,27 +490,6 @@ def message_to_agentscope_msg(
         return _convert_one(messages)
     elif isinstance(messages, list):
         converted_list = [_convert_one(m) for m in messages]
-        if merge:
-            merged_content = []
-            name = None
-            role = None
-            msg_id = None
-            metadata = None
-            for i, msg in enumerate(converted_list):
-                if i == 0:
-                    name = msg.name
-                    role = msg.role
-                    msg_id = msg.id
-                    metadata = msg.metadata
-                merged_content.extend(msg.content)
-            agentscope_msg = Msg(
-                name=name,
-                role=role,
-                metadata=metadata,
-                content=merged_content,
-            )
-            agentscope_msg.id = msg_id
-            return agentscope_msg
 
         # Group by original_id
         grouped = OrderedDict()
