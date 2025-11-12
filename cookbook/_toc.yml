@@ -20,7 +20,6 @@ parts:
     sections:
       - file: en/context_manager.md
       - file: en/environment_manager.md
-  - file: en/rag.md
   - file: en/skills.md
     sections:
       - file: en/skills/modelstudio_search.md
@@ -68,7 +67,6 @@ parts:
     sections:
       - file: zh/context_manager.md
       - file: zh/environment_manager.md
-  - file: zh/rag.md
   - file: zh/skills.md
     sections:
       - file: zh/skills/modelstudio_search.md
