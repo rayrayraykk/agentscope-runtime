@@ -399,6 +399,7 @@ class AgentScopeAgent(Agent):
                             data_delta_content = DataContent(
                                 index=index,
                                 data=FunctionCallOutput(
+                                    name=element.get("name"),
                                     call_id=element.get("id"),
                                     output=json_str,
                                 ).model_dump(),
