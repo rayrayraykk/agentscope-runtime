@@ -17,7 +17,7 @@ from .base import (
     AlipayAipaySubscribePackageInitializeResponse,
     AlipayAipaySubscribeTimesSaveResponse,
 )
-from .._base import Skill
+from ..base import Skill
 
 logger = logging.getLogger(__name__)
 

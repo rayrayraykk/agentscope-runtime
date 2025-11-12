@@ -15,7 +15,7 @@ from dashscope.common.constants import TaskStatus
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
-from .._base import Skill
+from ..base import Skill
 from ..utils.api_key_util import get_api_key, ApiNames
 from ....engine.tracing import trace, TracingUtil
 

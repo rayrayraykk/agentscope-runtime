@@ -17,7 +17,7 @@ from .modelstudio_search import (
 )
 from ..utils.mcp_util import get_mcp_dash_request_id
 from ....engine.tracing import trace
-from .._base import Skill
+from ..base import Skill
 
 SEARCH_URL = os.getenv(
     "SEARCH_URL",

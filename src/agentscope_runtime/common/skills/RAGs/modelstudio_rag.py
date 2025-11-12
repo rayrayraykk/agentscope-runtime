@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Tuple, Union, Optional
 import aiohttp
 from pydantic import BaseModel, Field
 
-from .._base import Skill
+from ..base import Skill
 from .._constants import (
     DASHSCOPE_HTTP_BASE_URL,
     DASHSCOPE_API_KEY,

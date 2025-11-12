@@ -9,7 +9,7 @@ from .modelstudio_rag import (
     RagOutput,
     ModelstudioRag,
 )
-from .._base import Skill
+from ..base import Skill
 from .._constants import (
     DASHSCOPE_HTTP_BASE_URL,
     DASHSCOPE_API_KEY,

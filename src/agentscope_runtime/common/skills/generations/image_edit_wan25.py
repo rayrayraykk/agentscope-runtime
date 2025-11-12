@@ -12,7 +12,7 @@ from dashscope.aigc.image_synthesis import AioImageSynthesis
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
-from .._base import Skill
+from ..base import Skill
 from ..utils.api_key_util import ApiNames, get_api_key
 from ....engine.tracing import trace, TracingUtil
 

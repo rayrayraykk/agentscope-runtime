@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
-from .._base import Skill
+from ..base import Skill
 
 
 from .base import (

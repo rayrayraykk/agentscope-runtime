@@ -18,7 +18,7 @@ import aiohttp
 import dashscope
 from pydantic import BaseModel, Field
 
-from .._base import Skill
+from ..base import Skill
 from ....engine.schemas.modelstudio_llm import (
     KnowledgeHolder,
     OpenAIMessage,

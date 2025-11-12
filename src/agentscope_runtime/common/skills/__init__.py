@@ -3,7 +3,7 @@ from typing import Dict, Type, List
 
 from pydantic import BaseModel, Field
 
-from ._base import Skill
+from .base import Skill
 from .generations.qwen_image_edit import (
     QwenImageEdit,
 )
