@@ -153,10 +153,16 @@ def agentscope_msg_to_message(
                 }
                 current_type = MessageType.PLUGIN_CALL
                 cb = current_mb.create_content_builder(content_type="data")
+
+                if isinstance(block.get("input"), (dict, list)):
+                    arguments = json.dumps(block.get("input"))
+                else:
+                    arguments = block.get("input")
+
                 call_data = FunctionCall(
                     call_id=block.get("id"),
                     name=block.get("name"),
-                    arguments=json.dumps(block.get("input")),
+                    arguments=arguments,
                 ).model_dump()
                 cb.set_data(call_data)
                 cb.complete()
@@ -179,11 +185,17 @@ def agentscope_msg_to_message(
                 }
                 current_type = MessageType.PLUGIN_CALL_OUTPUT
                 cb = current_mb.create_content_builder(content_type="data")
+
+                if isinstance(block.get("output"), (dict, list)):
+                    output = json.dumps(block.get("output"))
+                else:
+                    output = block.get("output")
+
                 output_data = FunctionCallOutput(
                     call_id=block.get("id"),
                     name=block.get("name"),
-                    output=json.dumps(block.get("output")),
-                ).model_dump()
+                    output=output,
+                ).model_dump(exclude_none=True)
                 cb.set_data(output_data)
                 cb.complete()
 
@@ -377,12 +389,12 @@ def message_to_agentscope_msg(
 
             if isinstance(blk, list):
                 if not all(is_valid_block(item) for item in blk):
-                    blk = str(blk)
+                    blk = message.content[0].data["output"]
             elif isinstance(blk, dict):
                 if not is_valid_block(blk):
-                    blk = str(blk)
+                    blk = message.content[0].data["output"]
             else:
-                blk = str(blk)
+                blk = message.content[0].data["output"]
 
             result["content"] = [
                 ToolResultBlock(

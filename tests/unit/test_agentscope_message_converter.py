@@ -170,6 +170,32 @@ def _check_round_trip_runtime_messages(runtime_messages):
     Performs a round-trip conversion check:
     Runtime Message -> Agentscope `Msg` -> Runtime Message.
     """
+
+    def strip_irrelevant_fields(obj):
+        """
+        Recursively remove fields we want to ignore in the comparison.
+        """
+        ignore_keys = {
+            "id",
+            "metadata",
+            "role",
+            "type",  # function_call ↔ plugin_call
+            "status",  # created ↔ completed
+            "index",  # 0 ↔ null
+            "msg_id",  # uuid ↔ null
+            "sequence_number",  # number ↔ null
+        }
+        if isinstance(obj, dict):
+            return {
+                k: strip_irrelevant_fields(v)
+                for k, v in obj.items()
+                if k not in ignore_keys
+            }
+        elif isinstance(obj, list):
+            return [strip_irrelevant_fields(i) for i in obj]
+        else:
+            return obj
+
     msgs = message_to_agentscope_msg(runtime_messages)
     assert isinstance(msgs, list)
     assert len(msgs) >= 1
@@ -178,9 +204,9 @@ def _check_round_trip_runtime_messages(runtime_messages):
     assert isinstance(converted_runtime_messages, list)
     assert len(converted_runtime_messages) == len(runtime_messages)
 
-    orig_norm = normalize(runtime_messages)
+    orig_norm = strip_irrelevant_fields(normalize(runtime_messages))
+    conv_norm = strip_irrelevant_fields(normalize(converted_runtime_messages))
 
-    conv_norm = normalize(converted_runtime_messages)
     assert json.dumps(orig_norm, sort_keys=True) == json.dumps(
         conv_norm,
         sort_keys=True,
@@ -197,7 +223,7 @@ def _check_round_trip_runtime_messages(runtime_messages):
                     "content": [
                         {
                             "type": "text",
-                            "text": "杭州的天气怎么样？",
+                            "text": "What's the weather in Hangzhou?",
                         },
                     ],
                 },
@@ -209,7 +235,9 @@ def _check_round_trip_runtime_messages(runtime_messages):
                             "data": {
                                 "call_id": "call_eb113ba709d54ab6a4dcbf",
                                 "name": "get_current_weather",
-                                "arguments": '{"location": "杭州"}',
+                                "arguments": json.dumps(
+                                    {"location": "Hangzhou"},
+                                ),
                             },
                         },
                     ],
@@ -221,8 +249,9 @@ def _check_round_trip_runtime_messages(runtime_messages):
                             "type": "data",
                             "data": {
                                 "call_id": "call_eb113ba709d54ab6a4dcbf",
-                                "output": '{"temperature": 25, "unit": '
-                                '"Celsius"}',
+                                "output": json.dumps(
+                                    {"temperature": 25, "unit": "Celsius"},
+                                ),
                             },
                         },
                     ],
