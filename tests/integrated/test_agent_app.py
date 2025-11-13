@@ -211,9 +211,6 @@ async def test_multi_turn_stream_async(start_app):
                         continue
 
                     if "output" in event:
-                        print("=======")
-                        print(event["output"])
-                        print("=======")
                         try:
                             text_content = event["output"][0]["content"][0][
                                 "text"
