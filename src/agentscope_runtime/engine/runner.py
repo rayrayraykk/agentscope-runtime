@@ -128,7 +128,7 @@ class Runner:
             **kwargs,
         )
 
-        # TODO: add redis or other persistant method
+        # TODO: add redis or other persistent method
         self._deploy_managers[deploy_manager.deploy_id] = deploy_result
         return deploy_result
 
