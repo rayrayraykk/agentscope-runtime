@@ -199,6 +199,7 @@ class Runner:
                 event.status == RunStatus.Completed
                 and event.object == "message"
             ):
+                # TODO: use message adapter here according to framework
                 response.add_new_message(event)
             yield seq_gen.yield_with_sequence(event)
 
