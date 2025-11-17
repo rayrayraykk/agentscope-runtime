@@ -13,7 +13,7 @@ try:
         AgentRunDeployManager,
     )
 except ImportError:
-    AgentRunDeployManager = None
+    AgentRunDeployManager = None  # type: ignore
 
 __all__ = [
     "DeployManager",
