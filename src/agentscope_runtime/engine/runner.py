@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import asyncio
+import logging
+import inspect
 import uuid
 from contextlib import AsyncExitStack
 from typing import Optional, List, AsyncGenerator, Any, Union, Dict
@@ -6,7 +9,6 @@ from typing import Optional, List, AsyncGenerator, Any, Union, Dict
 from agentscope_runtime.engine.deployers.utils.service_utils import (
     ServicesConfig,
 )
-from .agents import Agent
 from .deployers import (
     DeployManager,
     LocalDeployManager,
@@ -19,9 +21,6 @@ from .schemas.agent_schemas import (
     AgentResponse,
     SequenceNumberGenerator,
 )
-from .schemas.context import Context
-from .services.context_manager import ContextManager
-from .services.environment_manager import EnvironmentManager
 from .tracing import TraceType
 from .tracing.wrapper import trace
 from .tracing.message_util import (
@@ -30,50 +29,51 @@ from .tracing.message_util import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+
 class Runner:
     def __init__(
         self,
-        agent: Agent,
-        environment_manager: Optional[EnvironmentManager] = None,
-        context_manager: Optional[ContextManager] = None,
+        query_handler,
+        init_handler=None,
+        shutdown_handler=None,
+        framework_type=None,
     ) -> None:
         """
         Initializes a runner as core function.
-        Args:
-            agent: The agent to run.
-            environment_manager: The environment manager
-            context_manager: The context manager
         """
-        self._agent = agent
-        self._environment_manager = environment_manager
-        self._context_manager = (
-            context_manager or ContextManager()
-        )  # Add default context manager
+        self._query_handler = query_handler
+        self._init_handler = init_handler
+        self._shutdown_handler = shutdown_handler
+        self._framework_type = framework_type
+
         self._deploy_managers = {}
         self._exit_stack = AsyncExitStack()
 
     async def __aenter__(self) -> "Runner":
         """
-        Initializes the runner and ensures context/environment managers
-        are fully entered so that attributes like compose_session are
-        available.
+        Initializes the runner
         """
-        if self._environment_manager:
-            # enter_async_context returns the "real" object
-            self._environment_manager = (
-                await self._exit_stack.enter_async_context(
-                    self._environment_manager,
-                )
-            )
-
-        if self._context_manager:
-            self._context_manager = await self._exit_stack.enter_async_context(
-                self._context_manager,
-            )
+        if self._init_handler:
+            if inspect.iscoroutinefunction(self._init_handler):
+                await self._init_handler(self)
+            else:
+                self._init_handler(self)
 
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self._shutdown_handler:
+            try:
+                if inspect.iscoroutinefunction(self._shutdown_handler):
+                    await self._shutdown_handler(self)
+                else:
+                    self._shutdown_handler(self)
+            except Exception as e:
+                # Log and suppress exceptions during shutdown
+                logger.error(f"[Runner] Exception in shutdown handler: {e}")
+
         try:
             await self._exit_stack.aclose()
         except Exception:
@@ -132,6 +132,25 @@ class Runner:
         self._deploy_managers[deploy_manager.deploy_id] = deploy_result
         return deploy_result
 
+    async def _call_handler_streaming(self, handler, *args, **kwargs):
+        """
+        Call handler and yield results in streaming fashion, async or sync.
+        """
+        if asyncio.iscoroutinefunction(handler):
+            if inspect.isasyncgenfunction(handler):
+                async for item in handler(*args, **kwargs):
+                    yield item
+            else:
+                res = await handler(*args, **kwargs)
+                yield res
+        else:
+            if inspect.isgeneratorfunction(handler):
+                for item in handler(*args, **kwargs):
+                    yield item
+            else:
+                res = handler(*args, **kwargs)
+                yield res
+
     @trace(
         TraceType.AGENT_STEP,
         trace_name="agent_step",
@@ -142,7 +161,6 @@ class Runner:
         self,
         request: Union[AgentRequest, dict],
         user_id: Optional[str] = None,
-        tools: Optional[List] = None,
         **kwargs: Any,
     ) -> AsyncGenerator[Event, None]:
         """
@@ -161,64 +179,22 @@ class Runner:
         response.in_progress()
         yield seq_gen.yield_with_sequence(response)
 
+        # Assign session ID
+        request.session_id = request.session_id or str(uuid.uuid4())
+
+        # Assign user ID
         if user_id is None:
             if getattr(request, "user_id", None):
                 user_id = request.user_id
             else:
-                user_id = ""  # Default user id
+                user_id = ""
+        request.user_id = user_id
 
-        session_id = request.session_id or str(uuid.uuid4())
-        request_input = request.input
-
-        # TODO: `compose_session` will be removed in v1.0
-        session = await self._context_manager.compose_session(
-            user_id=user_id,
-            session_id=session_id,
-        )
-
-        context = Context(
-            user_id=session.user_id,
-            session=session,
-            request=request,
-            current_messages=request_input,
-            context_manager=self._context_manager,
-            environment_manager=self._environment_manager,
-            agent=self._agent,
-        )
-
-        # TODO: Update activate tools into the context (not schema only)
-        tools = tools or getattr(self._agent, "tools", None)
-        if tools:
-            # Lazy import
-            from ..sandbox.tools.utils import setup_tools
-
-            activated_tools, schemas = setup_tools(
-                tools=tools,
-                environment_manager=context.environment_manager,
-                session_id=session.id,
-                user_id=session.user_id,
-                include_schemas=True,
-            )
-
-            # update the context
-            context.activate_tools = activated_tools
-
-            # convert schema to a function call tool lists
-            # TODO: use pydantic model
-            if hasattr(context.request, "tools") and context.request.tools:
-                context.request.tools.extend(schemas)
-
-        # update message in session
-        # TODO: remove this after refactoring all agents
-        from .agents.agentscope_agent import AgentScopeAgent
-
-        if not isinstance(self._agent, AgentScopeAgent):
-            await context.context_manager.compose_context(
-                session=context.session,
-                request_input=request_input,
-            )
-
-        async for event in self._agent.run_async(context):
+        async for event in self._call_handler_streaming(
+            self._query_handler,
+            self,
+            request,
+        ):
             if (
                 event.status == RunStatus.Completed
                 and event.object == "message"
@@ -226,12 +202,6 @@ class Runner:
                 response.add_new_message(event)
             yield seq_gen.yield_with_sequence(event)
 
-        # TODO: remove this after refactoring all agents
-        if not isinstance(self._agent, AgentScopeAgent):
-            await context.context_manager.append(
-                session=context.session,
-                event_output=response.output,
-            )
         yield seq_gen.yield_with_sequence(response.completed())
 
     #  TODO: will be added before 2025/11/30
@@ -245,7 +215,7 @@ class Runner:
     #     """
     #     Streams the agent.
     #     """
-    #     return self._agent.query(message, session_id)
+    #     return ...
 
     async def stop(
         self,

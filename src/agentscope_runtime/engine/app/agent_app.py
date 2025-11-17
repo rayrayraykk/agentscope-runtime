@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from .base_app import BaseApp
-from ..agents.base_agent import Agent
+from ..deployers import DeployManager
 from ..deployers.adapter.a2a import A2AFastAPIDefaultAdapter
 from ..deployers.adapter.responses.response_api_protocol_adapter import (
     ResponseAPIDefaultAdapter,
@@ -21,8 +21,6 @@ from ..deployers.utils.service_utils.service_config import (
 )
 from ..runner import Runner
 from ..schemas.agent_schemas import AgentRequest
-from ..services.context_manager import ContextManager
-from ..services.environment_manager import EnvironmentManager
 from ...version import __version__
 
 logger = logging.getLogger(__name__)
@@ -36,9 +34,8 @@ class AgentApp(BaseApp):
     def __init__(
         self,
         *,
-        agent: Optional[Agent] = None,
-        environment_manager: Optional[EnvironmentManager] = None,
-        context_manager: Optional[ContextManager] = None,
+        agent_name: str = "",
+        agent_description: str = "",
         endpoint_path: str = "/process",
         response_type: str = "sse",
         stream: bool = True,
@@ -66,20 +63,22 @@ class AgentApp(BaseApp):
         self.broker_url = broker_url
         self.backend_url = backend_url
 
-        self._agent = agent
         self._runner = None
         self.custom_endpoints = []  # Store custom endpoints
 
-        a2a_protocol = A2AFastAPIDefaultAdapter(agent=self._agent)
+        # Custom Handlers
+        self._query_handler: Optional[Callable] = None
+        self._init_handler: Optional[Callable] = None
+        self._shutdown_handler: Optional[Callable] = None
+        self._framework_type: Optional[str] = None
+
+        a2a_protocol = A2AFastAPIDefaultAdapter(
+            agent_name=agent_name,
+            agent_description=agent_description,
+        )
+
         response_protocol = ResponseAPIDefaultAdapter()
         self.protocol_adapters = [a2a_protocol, response_protocol]
-
-        if self._agent:
-            self._runner = Runner(
-                agent=self._agent,
-                environment_manager=environment_manager,
-                context_manager=context_manager,
-            )
 
         @asynccontextmanager
         async def lifespan(app: FastAPI) -> Any:
@@ -104,12 +103,6 @@ class AgentApp(BaseApp):
             **kwargs,
         }
 
-        if self._runner:
-            if self.stream:
-                self.func = self._runner.stream_query
-            else:
-                self.func = self._runner.query
-
         super().__init__(
             broker_url=broker_url,
             backend_url=backend_url,
@@ -118,6 +111,41 @@ class AgentApp(BaseApp):
 
         # Store custom endpoints and tasks for deployment
         # but don't add them to FastAPI here - let FastAPIAppFactory handle it
+
+    def init(self, func):
+        """Register init hook (support async and sync functions)."""
+        self._init_handler = func
+        return func
+
+    def query(self, framework: Optional[str] = "agentscope"):
+        """
+        Register run hook and optionally specify agent framework.
+        Allowed framework values: 'agentscope', 'autogen', 'agno', 'langgraph'.
+        """
+
+        allowed_frameworks = {"agentscope", "autogen", "agno", "langgraph"}
+        if framework not in allowed_frameworks:
+            raise ValueError(f"framework must be one of {allowed_frameworks}")
+
+        def decorator(func):
+            self._query_handler = func
+            self._framework_type = framework
+            return func
+
+        return decorator
+
+    def shutdown(self, func):
+        """Register shutdown hook (support async and sync functions)."""
+        self._shutdown_handler = func
+        return func
+
+    def _build_runner(self):
+        self._runner = Runner(
+            query_handler=self._query_handler,
+            init_handler=self._init_handler,
+            shutdown_handler=self._shutdown_handler,
+            framework_type=self._framework_type,
+        )
 
     def run(
         self,
@@ -137,6 +165,8 @@ class AgentApp(BaseApp):
             services_config: Optional services configuration
             **kwargs: Additional keyword arguments
         """
+        # Build runner
+        self._build_runner()
 
         try:
             logger.info(
@@ -181,14 +211,15 @@ class AgentApp(BaseApp):
             logger.error(f"[AgentApp] Error while running: {e}")
             raise
 
-    async def deploy(self, deployer, **kwargs):
+    async def deploy(self, deployer: DeployManager, **kwargs):
         """Deploy the agent app with custom endpoints support"""
         # Pass custom endpoints and tasks to the deployer
+        # Build runner
+        self._build_runner()
 
         deploy_kwargs = {
             **kwargs,
             "custom_endpoints": self.custom_endpoints,
-            "agent": self._agent,
             "runner": self._runner,
             "endpoint_path": self.endpoint_path,
             "stream": self.stream,
