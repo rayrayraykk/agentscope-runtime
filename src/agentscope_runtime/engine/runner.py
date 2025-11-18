@@ -189,7 +189,6 @@ class Runner:
     async def stream_query(  # pylint:disable=unused-argument
         self,
         request: Union[AgentRequest, dict],
-        user_id: Optional[str] = None,
         **kwargs: Any,
     ) -> AsyncGenerator[Event, None]:
         """
@@ -215,14 +214,9 @@ class Runner:
         request.session_id = request.session_id or str(uuid.uuid4())
 
         # Assign user ID
-        if user_id is None:
-            if getattr(request, "user_id", None):
-                user_id = request.user_id
-            else:
-                user_id = ""
-        request.user_id = user_id
+        request.user_id = request.session_id or request.session_id
 
-        kwargs = {
+        query_kwargs = {
             "request": request,
         }
 
@@ -250,6 +244,7 @@ class Runner:
         async for event in stream_adapter(
             source_stream=self._call_handler_streaming(
                 self.query_handler,
+                **query_kwargs,
                 **kwargs,
             ),
         ):

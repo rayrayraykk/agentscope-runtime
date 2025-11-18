@@ -54,6 +54,7 @@ def run_app():
         self,
         msgs,
         request: AgentRequest = None,
+        **kwargs,
     ):
         session_id = request.session_id
         user_id = request.user_id
