@@ -1,10 +1,19 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=not-callable
 import asyncio
 import logging
 import inspect
 import uuid
 from contextlib import AsyncExitStack
-from typing import Optional, List, AsyncGenerator, Any, Union, Dict
+from typing import (
+    Optional,
+    List,
+    AsyncGenerator,
+    Any,
+    Union,
+    Dict,
+    AsyncIterator,
+)
 
 from agentscope_runtime.engine.deployers.utils.service_utils import (
     ServicesConfig,
@@ -33,47 +42,65 @@ logger = logging.getLogger(__name__)
 
 
 class Runner:
-    def __init__(
-        self,
-        query_handler,
-        init_handler=None,
-        shutdown_handler=None,
-        framework_type=None,
-    ) -> None:
+    def __init__(self) -> None:
         """
-        Initializes a runner as core function.
+        Initializes a runner as core instance.
         """
-        self._query_handler = query_handler
-        self._init_handler = init_handler
-        self._shutdown_handler = shutdown_handler
-        self._framework_type = framework_type
+        self._framework_type_value = None
 
         self._deploy_managers = {}
         self._exit_stack = AsyncExitStack()
+
+    @property
+    def framework_type(self):
+        """Get framework_type"""
+        return self._framework_type_value
+
+    @framework_type.setter
+    def framework_type(self, value):
+        """Set framework_type"""
+        self._framework_type_value = value
+
+    async def query_handler(self, *args, **kwargs):
+        """
+        Handle agent query.
+        """
+        raise NotImplementedError("query_handler not implemented")
+
+    async def init_handler(self, *args, **kwargs):
+        """
+        Init handler.
+        """
+
+    async def shutdown_handler(self, *args, **kwargs):
+        """
+        Shutdown handler.
+        """
 
     async def __aenter__(self) -> "Runner":
         """
         Initializes the runner
         """
-        if self._init_handler:
-            if inspect.iscoroutinefunction(self._init_handler):
-                await self._init_handler(self)
+        init_fn = getattr(self, "init_handler", None)
+        if callable(init_fn):
+            if inspect.iscoroutinefunction(init_fn):
+                await init_fn()
             else:
-                self._init_handler(self)
-
+                init_fn()
+        else:
+            logger.warning("[Runner] init_handler is not callable")
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self._shutdown_handler:
-            try:
-                if inspect.iscoroutinefunction(self._shutdown_handler):
-                    await self._shutdown_handler(self)
+        shutdown_fn = getattr(self, "shutdown_handler", None)
+        try:
+            if callable(shutdown_fn):
+                if inspect.iscoroutinefunction(shutdown_fn):
+                    await shutdown_fn()
                 else:
-                    self._shutdown_handler(self)
-            except Exception as e:
-                # Log and suppress exceptions during shutdown
-                logger.error(f"[Runner] Exception in shutdown handler: {e}")
-
+                    shutdown_fn()
+        except Exception as e:
+            logger.warning(f"[Runner] Exception in shutdown handler: {e}")
         try:
             await self._exit_stack.aclose()
         except Exception:
@@ -136,20 +163,22 @@ class Runner:
         """
         Call handler and yield results in streaming fashion, async or sync.
         """
-        if asyncio.iscoroutinefunction(handler):
-            if inspect.isasyncgenfunction(handler):
-                async for item in handler(*args, **kwargs):
-                    yield item
-            else:
-                res = await handler(*args, **kwargs)
-                yield res
+        result = handler(*args, **kwargs)
+
+        if inspect.isasyncgenfunction(handler):
+            async for item in result:
+                yield item
+
+        elif inspect.isgenerator(result):
+            for item in result:
+                yield item
+
+        elif asyncio.iscoroutine(result):
+            res = await result
+            yield res
+
         else:
-            if inspect.isgeneratorfunction(handler):
-                for item in handler(*args, **kwargs):
-                    yield item
-            else:
-                res = handler(*args, **kwargs)
-                yield res
+            yield result
 
     @trace(
         TraceType.AGENT_STEP,
@@ -166,6 +195,9 @@ class Runner:
         """
         Streams the agent.
         """
+        if self.framework_type is None:
+            raise RuntimeError("Framework type is not set")
+
         if isinstance(request, dict):
             request = AgentRequest(**request)
 
@@ -190,10 +222,36 @@ class Runner:
                 user_id = ""
         request.user_id = user_id
 
-        async for event in self._call_handler_streaming(
-            self._query_handler,
-            self,
-            request,
+        kwargs = {
+            "request": request,
+        }
+
+        if self.framework_type == "agentscope":
+            from ..adapters.agentscope.stream import (
+                adapt_agentscope_message_stream,
+            )
+            from ..adapters.agentscope.message import message_to_agentscope_msg
+
+            stream_adapter = adapt_agentscope_message_stream
+            kwargs.update(
+                {"msgs": message_to_agentscope_msg(request.input)},
+            )
+
+        # TODO: support other frameworks
+        else:
+
+            def identity_stream_adapter(
+                source_stream: AsyncIterator[Any],
+            ) -> AsyncIterator[Any]:
+                return source_stream
+
+            stream_adapter = identity_stream_adapter
+
+        async for event in stream_adapter(
+            source_stream=self._call_handler_streaming(
+                self.query_handler,
+                **kwargs,
+            ),
         ):
             if (
                 event.status == RunStatus.Completed

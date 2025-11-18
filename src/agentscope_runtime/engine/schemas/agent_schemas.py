@@ -707,6 +707,9 @@ class AgentRequest(BaseRequest):
     session_id: Optional[str] = None
     """conversation id for dialog"""
 
+    user_id: Optional[str] = None
+    """User id for dialog"""
+
     response_id: Optional[str] = None
     """response unique id"""
 

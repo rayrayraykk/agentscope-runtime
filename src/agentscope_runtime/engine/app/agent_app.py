@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
 import logging
+import types
 from contextlib import asynccontextmanager
 from typing import Optional, Any, Callable, List
 
@@ -16,9 +17,6 @@ from ..deployers.adapter.responses.response_api_protocol_adapter import (
 )
 from ..deployers.utils.deployment_modes import DeploymentMode
 from ..deployers.utils.service_utils.fastapi_factory import FastAPIAppFactory
-from ..deployers.utils.service_utils.service_config import (
-    DEFAULT_SERVICES_CONFIG,
-)
 from ..runner import Runner
 from ..schemas.agent_schemas import AgentRequest
 from ...version import __version__
@@ -34,8 +32,8 @@ class AgentApp(BaseApp):
     def __init__(
         self,
         *,
-        agent_name: str = "",
-        agent_description: str = "",
+        app_name: str = "",
+        app_description: str = "",
         endpoint_path: str = "/process",
         response_type: str = "sse",
         stream: bool = True,
@@ -44,6 +42,7 @@ class AgentApp(BaseApp):
         after_finish: Optional[Callable] = None,
         broker_url: Optional[str] = None,
         backend_url: Optional[str] = None,
+        runner: Optional[Runner] = None,
         **kwargs,
     ):
         """
@@ -63,7 +62,7 @@ class AgentApp(BaseApp):
         self.broker_url = broker_url
         self.backend_url = backend_url
 
-        self._runner = None
+        self._runner = runner
         self.custom_endpoints = []  # Store custom endpoints
 
         # Custom Handlers
@@ -73,8 +72,8 @@ class AgentApp(BaseApp):
         self._framework_type: Optional[str] = None
 
         a2a_protocol = A2AFastAPIDefaultAdapter(
-            agent_name=agent_name,
-            agent_description=agent_description,
+            agent_name=app_name,
+            agent_description=app_description,
         )
 
         response_protocol = ResponseAPIDefaultAdapter()
@@ -140,19 +139,35 @@ class AgentApp(BaseApp):
         return func
 
     def _build_runner(self):
-        self._runner = Runner(
-            query_handler=self._query_handler,
-            init_handler=self._init_handler,
-            shutdown_handler=self._shutdown_handler,
-            framework_type=self._framework_type,
-        )
+        if self._runner is None:
+            self._runner = Runner()
+
+        if self._framework_type is not None:
+            self._runner.framework_type = self._framework_type
+
+        if self._query_handler is not None:
+            self._runner.query_handler = types.MethodType(
+                self._query_handler,
+                self._runner,
+            )
+
+        if self._init_handler is not None:
+            self._runner.init_handler = types.MethodType(
+                self._init_handler,
+                self._runner,
+            )
+
+        if self._shutdown_handler is not None:
+            self._runner.shutdown_handler = types.MethodType(
+                self._shutdown_handler,
+                self._runner,
+            )
 
     def run(
         self,
         host="0.0.0.0",
         port=8090,
         embed_task_processor=False,
-        services_config=None,
         **kwargs,
     ):
         """
@@ -162,7 +177,6 @@ class AgentApp(BaseApp):
             host: Host to bind to
             port: Port to bind to
             embed_task_processor: Whether to embed task processor
-            services_config: Optional services configuration
             **kwargs: Additional keyword arguments
         """
         # Build runner
@@ -172,10 +186,6 @@ class AgentApp(BaseApp):
             logger.info(
                 "[AgentApp] Starting AgentApp with FastAPIAppFactory...",
             )
-
-            # Use default services config if not provided
-            if services_config is None:
-                services_config = DEFAULT_SERVICES_CONFIG
 
             # Create FastAPI application using the factory
             fastapi_app = FastAPIAppFactory.create_app(
@@ -187,7 +197,6 @@ class AgentApp(BaseApp):
                 before_start=self.before_start,
                 after_finish=self.after_finish,
                 mode=DeploymentMode.DAEMON_THREAD,
-                services_config=services_config,
                 protocol_adapters=self.protocol_adapters,
                 custom_endpoints=self.custom_endpoints,
                 broker_url=self.broker_url,
