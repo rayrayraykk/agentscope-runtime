@@ -32,8 +32,8 @@ PORT = 8090
 def run_app():
     """Start AgentApp with streaming output enabled."""
     agent_app = AgentApp(
-        agent_name="Friday",
-        agent_description="A helpful assistant",
+        app_name="Friday",
+        app_description="A helpful assistant",
     )
 
     @agent_app.init
