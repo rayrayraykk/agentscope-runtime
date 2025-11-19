@@ -9,19 +9,25 @@ from ...engine.services.base import ServiceWithLifecycleManager
 
 class SandboxService(ServiceWithLifecycleManager):
     def __init__(self, base_url=None, bearer_token=None):
-        self.manager_api = SandboxManager(
-            base_url=base_url,
-            bearer_token=bearer_token,
-        )
-
+        self.manager_api = None
         self.base_url = base_url
         self.bearer_token = bearer_token
+        self._health = False
 
     async def start(self) -> None:
-        pass
+        if self.manager_api is None:
+            self.manager_api = SandboxManager(
+                base_url=self.base_url,
+                bearer_token=self.bearer_token,
+            )
+        self._health = True
 
     async def stop(self) -> None:
         # Release all environments
+        if self.manager_api is None:
+            self._health = False
+            return
+
         session_keys = self.manager_api.list_session_keys()
 
         if session_keys:
@@ -35,14 +41,16 @@ class SandboxService(ServiceWithLifecycleManager):
             # Embedded mode
             self.manager_api.cleanup()
 
+        self.manager_api = None
+
     async def health(self) -> bool:
-        return True
+        return self._health
 
     def connect(
         self,
         session_id: str,
         user_id: Optional[str] = None,
-        env_types=None,
+        sandbox_types=None,
     ) -> List:
         # Create a composite key
         session_ctx_id = self._create_session_ctx_id(session_id, user_id)
@@ -57,19 +65,19 @@ class SandboxService(ServiceWithLifecycleManager):
             # Create a new environment
             return self._create_new_environment(
                 session_ctx_id,
-                env_types,
+                sandbox_types,
             )
 
     def _create_new_environment(
         self,
         session_ctx_id: str,
-        env_types: Optional[List[str]] = None,
+        sandbox_types: Optional[List[str]] = None,
     ):
-        if env_types is None:
-            env_types = [SandboxType.BASE]
+        if sandbox_types is None:
+            sandbox_types = [SandboxType.BASE]
 
         sandboxes = []
-        for env_type in env_types:
+        for env_type in sandbox_types:
             if env_type is None:
                 continue
 
