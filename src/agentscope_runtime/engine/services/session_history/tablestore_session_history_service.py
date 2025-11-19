@@ -4,21 +4,15 @@ import asyncio
 import uuid
 from typing import Any, Dict, List, Optional, Union
 
-try:
-    import tablestore
-    from tablestore import AsyncOTSClient as AsyncTablestoreClient
-    from tablestore_for_agent_memory.base.base_memory_store import (
-        Session as TablestoreSession,
-    )
-    from tablestore_for_agent_memory.base.common import MetaType, Order
-    from tablestore_for_agent_memory.memory.async_memory_store import (
-        AsyncMemoryStore,
-    )
-except ImportError as e:
-    raise ImportError(
-        "aliyun_tablestore is not available. "
-        "Please run pip install agentscope-runtime[aliyun_tablestore_ext]",
-    ) from e
+import tablestore
+from tablestore import AsyncOTSClient as AsyncTablestoreClient
+from tablestore_for_agent_memory.base.base_memory_store import (
+    Session as TablestoreSession,
+)
+from tablestore_for_agent_memory.base.common import MetaType, Order
+from tablestore_for_agent_memory.memory.async_memory_store import (
+    AsyncMemoryStore,
+)
 
 from .session_history_service import SessionHistoryService
 from ...schemas.agent_schemas import Message
