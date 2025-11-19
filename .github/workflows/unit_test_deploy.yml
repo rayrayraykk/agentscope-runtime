@@ -1,4 +1,4 @@
-name: Unit Tests
+name: Unit Tests for Deploy
 
 on:
   push:
@@ -48,11 +48,11 @@ jobs:
       - name: Install dependencies
         run: |
           export PIP_DEFAULT_TIMEOUT=300
-          pip install -q -e ".[dev,langgraph,agno,autogen,langchain_rag,llamaindex_rag,aliyun_tablestore_ext,memory_ext]"
+          pip install -q -e ".[dev,langgraph,agno,autogen,langchain_rag,llamaindex_rag,aliyun_tablestore_ext,memory_ext,deployment]"
 
       - name: Run tests with coverage
         run: |
-          coverage run -m pytest tests/unit
+          coverage run -m pytest tests/deploy
 
       - name: Generate coverage report
         run: |

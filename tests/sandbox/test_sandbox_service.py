@@ -5,7 +5,7 @@ import pytest
 
 from dotenv import load_dotenv
 
-from agentscope_runtime.engine.services.sandbox_service import SandboxService
+from agentscope_runtime.engine.services.sandbox import SandboxService
 
 
 @pytest.fixture
