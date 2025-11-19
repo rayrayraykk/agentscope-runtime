@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
 from typing import Optional, Dict, Any, List
+
+from mem0 import AsyncMemoryClient
+
 from .memory_service import MemoryService
-from ..schemas.agent_schemas import Message, MessageType, ContentType
+from ...schemas.agent_schemas import Message, MessageType, ContentType
 
 
 class Mem0MemoryService(MemoryService):
@@ -14,7 +17,6 @@ class Mem0MemoryService(MemoryService):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        from mem0 import AsyncMemoryClient
 
         mem0_api_key = os.getenv("MEM0_API_KEY")
         if mem0_api_key is None:

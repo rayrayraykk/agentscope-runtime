@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from typing import List, Optional
 
-from ...sandbox.enums import SandboxType
-from ...sandbox.manager import SandboxManager
-from ...sandbox.registry import SandboxRegistry
-from ...engine.services.base import ServiceWithLifecycleManager
+from ....sandbox.enums import SandboxType
+from ....sandbox.manager import SandboxManager
+from ....sandbox.registry import SandboxRegistry
+from ....engine.services.base import ServiceWithLifecycleManager
 
 
 class SandboxService(ServiceWithLifecycleManager):
@@ -114,7 +114,7 @@ class SandboxService(ServiceWithLifecycleManager):
             # Check if this is an AgentBay session ID
             if self._is_agentbay_session_id(env_id):
                 try:
-                    from ...sandbox.box.agentbay.agentbay_sandbox import (
+                    from ....sandbox.box.agentbay.agentbay_sandbox import (
                         AgentbaySandbox,
                     )
 

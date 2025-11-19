@@ -2,8 +2,12 @@
 import os
 from typing import Optional, Dict, Any, List
 
+from reme_ai.service.personal_memory_service import (
+    PersonalMemoryService,
+)
+
 from .memory_service import MemoryService
-from ..schemas.agent_schemas import Message
+from ...schemas.agent_schemas import Message
 
 
 class ReMePersonalMemoryService(MemoryService):
@@ -25,10 +29,6 @@ class ReMePersonalMemoryService(MemoryService):
         ]:
             if os.getenv(key) is None:
                 raise ValueError(f"{key} is not set")
-
-        from reme_ai.service.personal_memory_service import (
-            PersonalMemoryService,
-        )
 
         self.service = PersonalMemoryService()
 

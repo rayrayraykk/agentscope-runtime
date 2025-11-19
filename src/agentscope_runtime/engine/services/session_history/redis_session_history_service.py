@@ -5,8 +5,9 @@ from typing import Optional, Dict, Any, List, Union
 
 import redis.asyncio as aioredis
 
-from .session_history_service import SessionHistoryService, Session
-from ..schemas.agent_schemas import Message
+from .session_history_service import SessionHistoryService
+from ...schemas.session import Session
+from ...schemas.agent_schemas import Message
 
 
 class RedisSessionHistoryService(SessionHistoryService):

@@ -5,25 +5,19 @@ import copy
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-try:
-    import tablestore
-    from langchain_community.embeddings import DashScopeEmbeddings
-    from langchain_core.embeddings import Embeddings
-    from tablestore import AsyncOTSClient as AsyncTablestoreClient
-    from tablestore import VectorMetricType
-    from tablestore_for_agent_memory.base.filter import Filters
-    from tablestore_for_agent_memory.knowledge.async_knowledge_store import (
-        AsyncKnowledgeStore,
-    )
-except ImportError as e:
-    raise ImportError(
-        "aliyun_tablestore is not available. "
-        "Please run pip install agentscope-runtime[aliyun_tablestore_ext]",
-    ) from e
+import tablestore
+from langchain_community.embeddings import DashScopeEmbeddings
+from langchain_core.embeddings import Embeddings
+from tablestore import AsyncOTSClient as AsyncTablestoreClient
+from tablestore import VectorMetricType
+from tablestore_for_agent_memory.base.filter import Filters
+from tablestore_for_agent_memory.knowledge.async_knowledge_store import (
+    AsyncKnowledgeStore,
+)
 
-from ..schemas.agent_schemas import Message, MessageType
+from ...schemas.agent_schemas import Message, MessageType
 from .memory_service import MemoryService
-from .utils.tablestore_service_utils import (
+from ..utils.tablestore_service_utils import (
     convert_messages_to_tablestore_documents,
     convert_tablestore_document_to_message,
     get_message_metadata_names,

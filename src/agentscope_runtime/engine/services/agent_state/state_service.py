@@ -4,7 +4,7 @@ import copy
 from abc import abstractmethod
 from typing import Dict, Any, Optional
 
-from .base import ServiceWithLifecycleManager
+from ..base import ServiceWithLifecycleManager
 
 
 class StateService(ServiceWithLifecycleManager):

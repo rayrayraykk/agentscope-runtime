@@ -5,7 +5,7 @@ import redis.asyncio as aioredis
 
 
 from .memory_service import MemoryService
-from ..schemas.agent_schemas import Message, MessageType
+from ...schemas.agent_schemas import Message, MessageType
 
 
 class RedisMemoryService(MemoryService):

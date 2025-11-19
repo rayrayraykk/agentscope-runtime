@@ -5,8 +5,8 @@ from typing import Optional, Dict, Any
 
 from pydantic import Field
 
-from .base import ServiceWithLifecycleManager
-from ..schemas.agent_schemas import MessageType, Message
+from ..base import ServiceWithLifecycleManager
+from ...schemas.agent_schemas import MessageType, Message
 
 
 class MemoryService(ServiceWithLifecycleManager):
