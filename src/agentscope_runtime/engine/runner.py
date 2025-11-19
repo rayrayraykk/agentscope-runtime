@@ -49,6 +49,7 @@ class Runner:
         self._framework_type_value = None
 
         self._deploy_managers = {}
+        self._health = False
         self._exit_stack = AsyncExitStack()
 
     @property
@@ -77,10 +78,7 @@ class Runner:
         Shutdown handler.
         """
 
-    async def __aenter__(self) -> "Runner":
-        """
-        Initializes the runner
-        """
+    async def start(self):
         init_fn = getattr(self, "init_handler", None)
         if callable(init_fn):
             if inspect.iscoroutinefunction(init_fn):
@@ -89,9 +87,10 @@ class Runner:
                 init_fn()
         else:
             logger.warning("[Runner] init_handler is not callable")
+        self._health = True
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def stop(self):
         shutdown_fn = getattr(self, "shutdown_handler", None)
         try:
             if callable(shutdown_fn):
@@ -104,6 +103,25 @@ class Runner:
         try:
             await self._exit_stack.aclose()
         except Exception:
+            pass
+
+        self._health = False
+
+    async def __aenter__(self) -> "Runner":
+        """
+        Initializes the runner
+        """
+        await self.start()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.stop()
+
+        if hasattr(self, "_deploy_manager") and self._deploy_manager:
+            for deploy_id in self._deploy_manager:
+                await self._deploy_manager[deploy_id].stop()
+        else:
+            # No deploy manager found, nothing to stop
             pass
 
     async def deploy(
@@ -197,6 +215,13 @@ class Runner:
         if self.framework_type is None:
             raise RuntimeError("Framework type is not set")
 
+        if not self._health:
+            raise RuntimeError(
+                "Runner has not been started. "
+                "Please call 'await runner.start()' or use 'async with "
+                "Runner()' before calling 'stream_query'.",
+            )
+
         if isinstance(request, dict):
             request = AgentRequest(**request)
 
@@ -270,22 +295,3 @@ class Runner:
     #     Streams the agent.
     #     """
     #     return ...
-
-    async def stop(
-        self,
-        deploy_id: str,
-    ) -> None:
-        """
-        Stops the agent service.
-
-        Args:
-            deploy_id: Optional deploy ID (not used for service shutdown)
-
-        Raises:
-            RuntimeError: If stopping fails
-        """
-        if hasattr(self, "_deploy_manager") and self._deploy_manager:
-            await self._deploy_manager[deploy_id].stop()
-        else:
-            # No deploy manager found, nothing to stop
-            pass
