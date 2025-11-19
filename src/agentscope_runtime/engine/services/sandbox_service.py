@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=too-many-branches
-from typing import List
+from typing import List, Optional
 
 from ...sandbox.enums import SandboxType
 from ...sandbox.manager import SandboxManager
 from ...sandbox.registry import SandboxRegistry
-from ...sandbox.tools.mcp_tool import MCPTool
-from ...sandbox.tools.sandbox_tool import SandboxTool
-from ...sandbox.tools.function_tool import FunctionTool
 from ...engine.services.base import ServiceWithLifecycleManager
 
 
@@ -44,10 +40,9 @@ class SandboxService(ServiceWithLifecycleManager):
 
     def connect(
         self,
-        session_id,
-        user_id,
+        session_id: str,
+        user_id: Optional[str] = None,
         env_types=None,
-        tools=None,
     ) -> List:
         # Create a composite key
         session_ctx_id = self._create_session_ctx_id(session_id, user_id)
@@ -63,36 +58,15 @@ class SandboxService(ServiceWithLifecycleManager):
             return self._create_new_environment(
                 session_ctx_id,
                 env_types,
-                tools,
             )
 
     def _create_new_environment(
         self,
         session_ctx_id: str,
-        env_types=None,
-        tools=None,
+        env_types: Optional[List[str]] = None,
     ):
-        if tools:
-            for tool in tools:
-                if not isinstance(tool, (SandboxTool, FunctionTool, MCPTool)):
-                    raise ValueError(
-                        "tools must be instances of SandboxTool, "
-                        "FunctionTool, or MCPTool",
-                    )
-
         if env_types is None:
-            assert (
-                tools is not None
-            ), "tools must be specified when env_types is not set"
-
-        if tools:
-            tool_env_types = set()
-            for tool in tools:
-                tool_env_types.add(tool.sandbox_type)
-            if env_types is None:
-                env_types = []
-
-            env_types = set(env_types) | tool_env_types
+            env_types = [SandboxType.BASE]
 
         sandboxes = []
         for env_type in env_types:
@@ -101,14 +75,13 @@ class SandboxService(ServiceWithLifecycleManager):
 
             box_type = SandboxType(env_type)
 
-            # 仅非 AgentBay 走 manager 池
             if box_type != SandboxType.AGENTBAY:
                 box_id = self.manager_api.create_from_pool(
                     sandbox_type=box_type.value,
                     meta={"session_ctx_id": session_ctx_id},
                 )
             else:
-                box_id = None  # AgentBay 由云端内部创建
+                box_id = None
 
             box_cls = SandboxRegistry.get_classes_by_type(box_type)
 
@@ -123,26 +96,6 @@ class SandboxService(ServiceWithLifecycleManager):
             if self.base_url is None:
                 # Embedded mode
                 box.manager_api = self.manager_api
-
-            # Add MCP to the sandbox
-            server_config_list = []
-            if tools:
-                for tool in tools:
-                    if isinstance(tool, MCPTool) and SandboxType(
-                        tool.sandbox_type,
-                    ) == SandboxType(box_type):
-                        server_config_list.append(tool.server_configs)
-            if server_config_list:
-                server_configs = {"mcpServers": {}}
-                for server_config in server_config_list:
-                    if (
-                        server_config is not None
-                        and "mcpServers" in server_config
-                    ):
-                        server_configs["mcpServers"].update(
-                            server_config["mcpServers"],
-                        )
-                box.add_mcp_servers(server_configs, overwrite=False)
 
             sandboxes.append(box)
         return sandboxes
@@ -219,7 +172,7 @@ class SandboxService(ServiceWithLifecycleManager):
         """
         return session_id.startswith("session-")
 
-    def release(self, session_id, user_id):
+    def release(self, session_id, user_id=None):
         session_ctx_id = self._create_session_ctx_id(session_id, user_id)
 
         env_ids = self.manager_api.get_session_mapping(session_ctx_id)
@@ -238,4 +191,6 @@ class SandboxService(ServiceWithLifecycleManager):
 
     def _create_session_ctx_id(self, session_id, user_id):
         # Create a composite key from session_id and user_id
+        if user_id is None:
+            return session_id
         return f"{session_id}_{user_id}"
