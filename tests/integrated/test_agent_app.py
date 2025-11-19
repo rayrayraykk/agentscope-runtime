@@ -19,10 +19,10 @@ from agentscope_runtime.engine.schemas.agent_schemas import AgentRequest
 from agentscope_runtime.adapters.agentscope.memory import (
     AgentScopeSessionHistoryMemory,
 )
-from agentscope_runtime.engine.services.state_service import (
+from agentscope_runtime.engine.services.agent_state import (
     InMemoryStateService,
 )
-from agentscope_runtime.engine.services.session_history_service import (
+from agentscope_runtime.engine.services.session_history import (
     InMemorySessionHistoryService,
 )
 

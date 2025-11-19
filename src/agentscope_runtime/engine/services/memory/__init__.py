@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from ....common.utils.lazy_loader import install_lazy_loader
 
 if TYPE_CHECKING:
-    from .memory_service import InMemoryMemoryService
+    from .memory_service import MemoryService, InMemoryMemoryService
     from .redis_memory_service import RedisMemoryService
     from .reme_task_memory_service import ReMeTaskMemoryService
     from .reme_personal_memory_service import ReMePersonalMemoryService
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 install_lazy_loader(
     globals(),
     {
+        "MemoryService": ".memory_service",
         "InMemoryMemoryService": ".memory_service",
         "RedisMemoryService": ".redis_memory_service",
         "ReMeTaskMemoryService": {
