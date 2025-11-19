@@ -17,14 +17,8 @@ class Mem0MemoryService(MemoryService):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-        mem0_api_key = os.getenv("MEM0_API_KEY")
-        if mem0_api_key is None:
-            raise ValueError("MEM0_API_KEY is not set")
-        mem0_api_key = os.getenv("MEM0_API_KEY")
-
-        # get the mem0 client instance
-        self.service = AsyncMemoryClient(api_key=mem0_api_key)
+        self.service = None
+        self._health = False
 
     @staticmethod
     async def get_query_text(message: Message) -> str:
@@ -65,13 +59,21 @@ class Mem0MemoryService(MemoryService):
         return [self.transform_message(message) for message in messages]
 
     async def start(self):
-        pass
+        mem0_api_key = os.getenv("MEM0_API_KEY")
+        if mem0_api_key is None:
+            raise ValueError("MEM0_API_KEY is not set")
+        mem0_api_key = os.getenv("MEM0_API_KEY")
+
+        # get the mem0 client instance
+        self.service = AsyncMemoryClient(api_key=mem0_api_key)
+        self._health = True
 
     async def stop(self):
-        pass
+        self.service = None
+        self._health = False
 
     async def health(self):
-        pass
+        return self._health
 
     async def add_memory(
         self,

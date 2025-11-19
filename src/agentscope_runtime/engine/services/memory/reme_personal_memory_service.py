@@ -65,7 +65,10 @@ class ReMePersonalMemoryService(MemoryService):
         return await self.service.stop()
 
     async def health(self) -> bool:
-        return await self.service.health()
+        try:
+            return await self.service.health()
+        except Exception:
+            return False
 
     async def add_memory(
         self,

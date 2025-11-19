@@ -20,10 +20,10 @@ except ImportError as e:
         "Please run pip install agentscope-runtime[aliyun_tablestore_ext]",
     ) from e
 
-from ..schemas.agent_schemas import Message
 from .session_history_service import SessionHistoryService
-from .schemas.session import Session
-from .utils.tablestore_service_utils import (
+from ...schemas.agent_schemas import Message
+from ...schemas.session import Session
+from ..utils.tablestore_service_utils import (
     convert_message_to_tablestore_message,
     convert_tablestore_session_to_session,
     tablestore_log,
