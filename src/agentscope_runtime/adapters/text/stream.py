@@ -20,7 +20,6 @@ async def adapt_text_stream(
     cb = mb.create_content_builder(content_type="text")
 
     async for text_delta in source_stream:
-        print(text_delta)
         delta_content = cb.add_text_delta(text_delta)
         yield delta_content
 
