@@ -110,6 +110,8 @@ async def adapt_agentscope_message_stream(
                                 yield text_delta_content
 
                             if last:
+                                if text_delta_content:
+                                    yield text_delta_content.completed()
                                 yield message.completed()
                                 message = Message(
                                     type=MessageType.MESSAGE,
@@ -204,6 +206,9 @@ async def adapt_agentscope_message_stream(
 
                             # The last won't happen in the thinking message
                             if last:
+                                if text_delta_content:
+                                    yield text_delta_content.completed()
+
                                 yield reasoning_message.completed()
                                 reasoning_message = Message(
                                     type=MessageType.REASONING,
