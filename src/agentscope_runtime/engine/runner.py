@@ -278,6 +278,12 @@ class Runner:
                 response.add_new_message(event)
             yield seq_gen.yield_with_sequence(event)
 
+        # Obtain token usage
+        try:
+            response.usage = response.output[-1].usage
+        except IndexError:
+            pass
+
         yield seq_gen.yield_with_sequence(response.completed())
 
     #  TODO: will be added before 2025/11/30
