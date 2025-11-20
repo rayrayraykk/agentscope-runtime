@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=too-many-nested-blocks,too-many-branches,too-many-statements
-
 import copy
 import json
 
@@ -17,6 +16,13 @@ from ...engine.schemas.agent_schemas import (
     MessageType,
     RunStatus,
 )
+
+
+def _update_obj_attrs(obj, **attrs):
+    for key, value in attrs.items():
+        if hasattr(obj, key):
+            setattr(obj, key, value)
+    return obj
 
 
 async def adapt_agentscope_message_stream(
@@ -57,7 +63,15 @@ async def adapt_agentscope_message_stream(
         if not msg.content:
             continue
 
+        # msg content
         content = msg.content
+
+        # msg usage
+        usage = getattr(msg, "usage", None)
+
+        # msg metadata
+        metadata = msg.metadata
+
         if isinstance(content, str):
             last_content = content
         else:
@@ -65,6 +79,11 @@ async def adapt_agentscope_message_stream(
                 if isinstance(element, str) and element:
                     if should_start_message:
                         index = None
+                        message = _update_obj_attrs(
+                            message,
+                            metadata=metadata,
+                            usage=usage,
+                        )
                         yield message.in_progress()
                         should_start_message = False
                     text_delta_content = TextContent(
@@ -86,6 +105,11 @@ async def adapt_agentscope_message_stream(
                         if text:
                             if should_start_message:
                                 index = None
+                                message = _update_obj_attrs(
+                                    message,
+                                    metadata=metadata,
+                                    usage=usage,
+                                )
                                 yield message.in_progress()
                                 should_start_message = False
 
@@ -113,6 +137,12 @@ async def adapt_agentscope_message_stream(
                                 if text_delta_content:
                                     completed_content = message.content[index]
                                     yield completed_content.completed()
+
+                                message = _update_obj_attrs(
+                                    message,
+                                    metadata=metadata,
+                                    usage=usage,
+                                )
                                 yield message.completed()
                                 message = Message(
                                     type=MessageType.MESSAGE,
@@ -123,6 +153,11 @@ async def adapt_agentscope_message_stream(
 
                     elif element.get("type") == "tool_use":
                         if reasoning_message.status == RunStatus.InProgress:
+                            reasoning_message = _update_obj_attrs(
+                                reasoning_message,
+                                metadata=metadata,
+                                usage=usage,
+                            )
                             yield reasoning_message.completed()
                             reasoning_message = Message(
                                 type=MessageType.REASONING,
@@ -143,6 +178,11 @@ async def adapt_agentscope_message_stream(
                             type=MessageType.PLUGIN_CALL,
                             role="assistant",
                             content=[data_delta_content],
+                        )
+                        plugin_call_message = _update_obj_attrs(
+                            plugin_call_message,
+                            metadata=metadata,
+                            usage=usage,
                         )
                         yield plugin_call_message.completed()
                         index = None
@@ -165,6 +205,11 @@ async def adapt_agentscope_message_stream(
                             role="assistant",
                             content=[data_delta_content],
                         )
+                        plugin_output_message = _update_obj_attrs(
+                            plugin_output_message,
+                            metadata=metadata,
+                            usage=usage,
+                        )
                         yield plugin_output_message.completed()
                         message = Message(
                             type=MessageType.MESSAGE,
@@ -181,6 +226,11 @@ async def adapt_agentscope_message_stream(
                         if reasoning:
                             if should_start_reasoning_message:
                                 index = None
+                                reasoning_message = _update_obj_attrs(
+                                    reasoning_message,
+                                    metadata=metadata,
+                                    usage=usage,
+                                )
                                 yield reasoning_message.in_progress()
                                 should_start_reasoning_message = False
                             text_delta_content = TextContent(
@@ -213,6 +263,11 @@ async def adapt_agentscope_message_stream(
                                     )
                                     yield completed_content.completed()
 
+                                reasoning_message = _update_obj_attrs(
+                                    reasoning_message,
+                                    metadata=metadata,
+                                    usage=usage,
+                                )
                                 yield reasoning_message.completed()
                                 reasoning_message = Message(
                                     type=MessageType.REASONING,
@@ -222,6 +277,11 @@ async def adapt_agentscope_message_stream(
                     else:
                         if should_start_message:
                             index = None
+                            message = _update_obj_attrs(
+                                message,
+                                metadata=metadata,
+                                usage=usage,
+                            )
                             yield message.in_progress()
                             should_start_message = False
 
@@ -239,6 +299,11 @@ async def adapt_agentscope_message_stream(
     if last_content:
         if should_start_message:
             index = None
+            message = _update_obj_attrs(
+                message,
+                metadata=metadata,
+                usage=usage,
+            )
             yield message.in_progress()
         text_delta_content = TextContent(
             delta=True,
@@ -249,4 +314,9 @@ async def adapt_agentscope_message_stream(
             new_content=text_delta_content,
         )
         yield text_delta_content
+        message = _update_obj_attrs(
+            message,
+            metadata=metadata,
+            usage=usage,
+        )
         yield message.completed()
