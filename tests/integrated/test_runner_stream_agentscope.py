@@ -87,6 +87,8 @@ class MyRunner(Runner):
             ),
             formatter=DashScopeChatFormatter(),
         )
+        agent.set_console_output_enabled(enabled=False)
+
         if state:
             agent.load_state_dict(state)
         async for msg, last in stream_printing_messages(
