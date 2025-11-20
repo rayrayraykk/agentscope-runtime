@@ -134,8 +134,8 @@ async def adapt_agentscope_message_stream(
                                 yield text_delta_content
 
                             if last:
-                                if text_delta_content:
-                                    completed_content = message.content[index]
+                                completed_content = message.content[index]
+                                if completed_content.text:
                                     yield completed_content.completed()
 
                                 message = _update_obj_attrs(
@@ -257,10 +257,10 @@ async def adapt_agentscope_message_stream(
 
                             # The last won't happen in the thinking message
                             if last:
-                                if text_delta_content:
-                                    completed_content = (
-                                        reasoning_message.content[index]
-                                    )
+                                completed_content = reasoning_message.content[
+                                    index
+                                ]
+                                if completed_content.text:
                                     yield completed_content.completed()
 
                                 reasoning_message = _update_obj_attrs(
