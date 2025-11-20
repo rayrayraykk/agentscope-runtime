@@ -11,7 +11,7 @@ except ImportError:
     from typing_extensions import Self
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from openai.types.chat import ChatCompletionChunk
 
 
@@ -635,6 +635,8 @@ class BaseRequest(BaseModel):
 
 class AgentRequest(BaseRequest):
     """agent request"""
+
+    model_config = ConfigDict(extra="allow")
 
     model: Optional[str] = None
     """
