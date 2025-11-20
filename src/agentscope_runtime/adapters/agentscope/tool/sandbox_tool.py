@@ -1,7 +1,15 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=protected-access
+import logging
 import functools
+
+from mcp.types import CallToolResult
 from agentscope.message import TextBlock
 from agentscope.tool import ToolResponse
+from agentscope.mcp import MCPClientBase
+
+
+logger = logging.getLogger(__name__)
 
 
 def sandbox_tool_adapter(func):
@@ -26,7 +34,36 @@ def sandbox_tool_adapter(func):
         res = func(*args, **kwargs)
         if isinstance(res, ToolResponse):
             return res
-        # TODO: fix this
-        return ToolResponse(content=[TextBlock(type="text", text=str(res))])
+
+        try:
+            mcp_res = CallToolResult.model_validate(res)
+            as_content = MCPClientBase._convert_mcp_content_to_as_blocks(
+                mcp_res.content,
+            )
+            resp = ToolResponse(
+                content=as_content,
+                metadata=mcp_res.meta,
+            )
+            return resp
+        except Exception as e:
+            logger.warning(
+                (
+                    f"Failed to convert tool result to ToolResponse. "
+                    f"Function: {func.__name__}, "
+                    f"Args: {args}, "
+                    f"Kwargs: {kwargs}, "
+                    f"Result type: {type(res).__name__}, "
+                    f"Result: {res!r}, "
+                    f"Error: {e}"
+                ),
+                exc_info=True,
+            )
+            return ToolResponse(
+                content=[
+                    TextBlock(
+                        text=str(res),
+                    ),
+                ],
+            )
 
     return wrapper
