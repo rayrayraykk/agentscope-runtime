@@ -280,7 +280,8 @@ class Runner:
 
         # Obtain token usage
         try:
-            response.usage = response.output[-1].usage
+            if response.output:
+                response.usage = response.output[-1].usage
         except IndexError:
             pass
 
