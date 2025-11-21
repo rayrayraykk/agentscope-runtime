@@ -202,7 +202,7 @@ async def adapt_agentscope_message_stream(
                         )
                         plugin_output_message = Message(
                             type=MessageType.PLUGIN_CALL_OUTPUT,
-                            role="assistant",
+                            role="tool",
                             content=[data_delta_content],
                         )
                         plugin_output_message = _update_obj_attrs(
