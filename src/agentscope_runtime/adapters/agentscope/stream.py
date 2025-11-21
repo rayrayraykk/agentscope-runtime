@@ -3,7 +3,7 @@
 import copy
 import json
 
-from typing import AsyncIterator, Tuple, List
+from typing import AsyncIterator, Tuple
 
 from agentscope.message import Msg
 
@@ -50,15 +50,6 @@ async def adapt_agentscope_message_stream(
         # deepcopy required to avoid modifying the original message object
         # which may be used elsewhere in the streaming pipeline
         msg = copy.deepcopy(msg)
-
-        # Filter out unfinished tool_use messages
-        if not last:
-            new_blocks = []
-            if isinstance(msg.content, List):
-                for block in msg.content:
-                    if block.get("type", "") != "tool_use":
-                        new_blocks.append(block)
-                msg.content = new_blocks
 
         if not msg.content:
             continue
@@ -176,7 +167,7 @@ async def adapt_agentscope_message_stream(
                         )
                         plugin_call_message = Message(
                             type=MessageType.PLUGIN_CALL,
-                            role="assistant",
+                            role="tool",
                             content=[data_delta_content],
                         )
                         plugin_call_message = _update_obj_attrs(
@@ -202,7 +193,7 @@ async def adapt_agentscope_message_stream(
                         )
                         plugin_output_message = Message(
                             type=MessageType.PLUGIN_CALL_OUTPUT,
-                            role="assistant",
+                            role="tool",
                             content=[data_delta_content],
                         )
                         plugin_output_message = _update_obj_attrs(
