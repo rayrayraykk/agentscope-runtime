@@ -58,6 +58,7 @@ async def adapt_agentscope_message_stream(
 
             index = None
 
+            # Note: Tool use content only happens in the last of messages
             tool_start = False
 
             # Cache msg id
@@ -74,9 +75,9 @@ async def adapt_agentscope_message_stream(
             if new_tool_blocks:
                 if tool_start:
                     msg.content = new_tool_blocks
-                    tool_start = True
                 else:
                     msg.content = new_blocks
+                    tool_start = True
 
             else:
                 msg.content = new_blocks
@@ -252,7 +253,6 @@ async def adapt_agentscope_message_stream(
                         index = None
 
                     elif element.get("type") == "tool_result":  # Tool result
-                        # block
                         json_str = json.dumps(
                             element.get("output"),
                             ensure_ascii=False,
