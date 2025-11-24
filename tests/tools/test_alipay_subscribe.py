@@ -17,85 +17,85 @@ from agentscope_runtime.tools.alipay.subscribe import (
 )
 
 pytestmark = pytest.mark.skip(
-    reason="Skipping the entire file online for " "security reasons",
+    reason="Skipping the entire file online for security reasons",
 )
 
 
 @pytest.fixture(scope="module")
 def alipay_subscribe_status_check():
-    """创建支付宝订阅状态检查组件实例"""
+    """Create Alipay subscription status check component instance"""
     return AlipaySubscribeStatusCheck()
 
 
 @pytest.fixture(scope="module")
 def alipay_subscribe_package_initialize():
-    """创建支付宝订阅套餐包初始化组件实例"""
+    """Create Alipay subscription package initialization component instance"""
     return AlipaySubscribePackageInitialize()
 
 
 @pytest.fixture(scope="module")
 def alipay_subscribe_times_save():
-    """创建支付宝订阅次数保存组件实例"""
+    """Create Alipay subscription usage count save component instance"""
     return AlipaySubscribeTimesSave()
 
 
 @pytest.fixture(scope="module")
 def alipay_subscribe_check_or_initialize():
-    """创建支付宝订阅检查或初始化组件实例"""
+    """Create Alipay subscription check or initialization component instance"""
     return AlipaySubscribeCheckOrInitialize()
 
 
 @pytest.fixture
 def test_order_no():
-    """生成测试订单号"""
+    """Generate test order number"""
     return f"test_order_{int(datetime.now().timestamp())}"
 
 
 # Tests
 def test_subscribe_status_check_byCount(alipay_subscribe_status_check):
-    """测试订阅状态检查功能-次数"""
+    """Test subscription status check function - by usage count"""
     check_input = SubscribeStatusCheckInput(
         uuid="123455",
         plan_id="2509011400000004",
         channel="百炼",
     )
     resp = alipay_subscribe_status_check.run(check_input)
-    # 验证返回结果
+    # Verify the returned result
     assert hasattr(resp, "subscribe_flag")
     assert hasattr(resp, "subscribe_package")
-    # 检查 subscribe_flag 的类型（可以是字符串或 None）
+    # Check the type of subscribe_flag (can be boolean or None)
     assert isinstance(resp.subscribe_flag, (bool, type(None)))
-    # 如果返回了状态值，检查是否在有效范围内
+    # If status value is returned, check whether it is within valid range
     if resp.subscribe_flag is not None:
         valid_statuses = [True, False]
         assert resp.subscribe_flag in valid_statuses
-    # 注意：由于SSL证书问题，
-    # 实际返回可能是None，这是正常的
+    # Note: Due to SSL certificate issues,
+    # actual return may be None, which is normal
 
 
 def test_subscribe_status_check_byTime(alipay_subscribe_status_check):
-    """测试订阅状态检查功能-时长"""
+    """Test subscription status check function - by duration"""
     check_input = SubscribeStatusCheckInput(
         uuid="123456",
         plan_id="2509011400000004",
         channel="百炼",
     )
     resp = alipay_subscribe_status_check.run(check_input)
-    # 验证返回结果
+    # Verify the returned result
     assert hasattr(resp, "subscribe_flag")
     assert hasattr(resp, "subscribe_package")
-    # 检查 subscribe_flag 的类型（可以是字符串或 None）
+    # Check the type of subscribe_flag (can be boolean or None)
     assert isinstance(resp.subscribe_flag, (bool, type(None)))
-    # 如果返回了状态值，检查是否在有效范围内
+    # If status value is returned, check whether it is within valid range
     if resp.subscribe_flag is not None:
         valid_statuses = [True, False]
         assert resp.subscribe_flag in valid_statuses
-    # 注意：由于SSL证书问题，
-    # 实际返回可能是None，这是正常的
+    # Note: Due to SSL certificate issues,
+    # actual return may be None, which is normal
 
 
 def test_subscribe_package_initialize(alipay_subscribe_package_initialize):
-    """测试订阅包初始化功能"""
+    """Test subscription package initialization function"""
     initialize_input = SubscribePackageInitializeInput(
         uuid="1234558",
         plan_id="2509011400000004",
@@ -103,18 +103,19 @@ def test_subscribe_package_initialize(alipay_subscribe_package_initialize):
         agent_name="测试agent",
     )
     resp = alipay_subscribe_package_initialize.run(initialize_input)
-    # 验证返回结果
+    # Verify the returned result
     assert hasattr(resp, "subscribe_url")
-    # 检查 subscribe_url 的类型（可以是字符串或 None）
+    # Check the type of subscribe_url (can be string or None)
     assert isinstance(resp.subscribe_url, (str, type(None)))
-    # 如果返回了状态值，检查是否在有效范围内
+    # If URL is returned, check whether it is within valid range
     if resp.subscribe_url is not None:
         assert re.search(r"alipays://platformapi/startapp", resp.subscribe_url)
-    # 注意：由于SSL证书问题，实际返回可能是None，这是正常的
+    # Note: Due to SSL certificate issues, actual return may be None,
+    # which is normal
 
 
 def test_subscribe_times_save(alipay_subscribe_times_save, test_order_no):
-    """测试订阅次数计费功能"""
+    """Test subscription usage count billing function"""
     count_input = SubscribeTimesSaveInput(
         uuid="123455",
         plan_id="2509011400000004",
@@ -123,22 +124,24 @@ def test_subscribe_times_save(alipay_subscribe_times_save, test_order_no):
         out_request_no=test_order_no,
     )
     resp = alipay_subscribe_times_save.run(count_input)
-    # 验证返回结果
+    # Verify the returned result
     assert hasattr(resp, "success")
-    # 检查 success 的类型（可以是字符串或 None）
+    # Check the type of success (can be boolean or None)
     assert isinstance(resp.success, (bool, type(None)))
-    # 如果返回了状态值，检查是否在有效范围内
+    # If status value is returned, check whether it is within valid range
     if resp.success is not None:
         valid_statuses = [True, False]
         assert resp.success in valid_statuses
-    # 注意：由于SSL证书问题，
-    # 实际返回可能是None，这是正常的
+    # Note: Due to SSL certificate issues,
+    # actual return may be None, which is normal
 
 
 def test_subscribe_check_or_initialize_subscribed(
     alipay_subscribe_check_or_initialize,
 ):
-    """测试未订阅用户的订阅检查或初始化功能"""
+    """
+    Test subscription check or initialization function for unsubscribed users
+    """
     check_or_initialize_input = SubscribeCheckOrInitializeInput(
         uuid="123",
         plan_id="2509011400000004",
@@ -146,7 +149,7 @@ def test_subscribe_check_or_initialize_subscribed(
         agent_name="测试Agent",
     )
     resp = alipay_subscribe_check_or_initialize.run(check_or_initialize_input)
-    # 验证返回结果（返回订阅状态&订阅链接）
+    # Verify the returned result (subscription status & subscription link)
     assert hasattr(resp, "subscribe_flag")
     assert hasattr(resp, "subscribe_url")
     assert isinstance(resp.subscribe_url, (str, type(None)))
@@ -156,5 +159,5 @@ def test_subscribe_check_or_initialize_subscribed(
     if resp.subscribe_flag is not None:
         valid_statuses = [True, False]
         assert resp.subscribe_flag in valid_statuses
-    # 注意：由于SSL证书问题，
-    # 实际返回可能为空
+    # Note: Due to SSL certificate issues,
+    # actual return may be empty

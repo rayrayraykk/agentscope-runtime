@@ -25,13 +25,20 @@ def test_arun_success(rag_component):
         {
             "role": "system",
             "content": """
-你是一位经验丰富的手机导购，任务是帮助客户对比手机参数，分析客户需求，推荐个性化建议。
-# 知识库
-请记住以下材料，他们可能对回答问题有帮助。
+You are an experienced mobile phone sales consultant. Your task is to help
+customers compare phone specifications, analyze their needs, and provide
+personalized recommendations.
+# Knowledge Base
+Please remember the following materials. They may be helpful in answering
+questions.
 ${documents}
 """,
         },
-        {"role": "user", "content": "有什么可以推荐的2000左右手机？"},
+        {
+            "role": "user",
+            "content": "Can you recommend any mobile phones "
+            "around 2000 RMB",
+        },
     ]
 
     # Prepare input data
@@ -53,7 +60,7 @@ ${documents}
 
 def test_image_rags(rag_component):
     messages = [
-        {"role": "user", "content": "帮我找相似的产品"},
+        {"role": "user", "content": "Help me find similar products"},
     ]
 
     # Prepare input data

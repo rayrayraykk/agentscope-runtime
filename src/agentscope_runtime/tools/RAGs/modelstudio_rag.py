@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import asyncio
+import logging
+import traceback
 from typing import Any, Dict, List, Tuple, Union, Optional
 
 import aiohttp
@@ -16,6 +18,8 @@ from ...engine.schemas.modelstudio_llm import (
 )
 from ...engine.schemas.oai_llm import UserMessage
 from ...engine.tracing import trace
+
+logger = logging.getLogger(__name__)
 
 PIPELINE_SIMPLE_ENDPOINT = "/indices/pipeline_simple"
 PIPELINE_RETRIEVE_PROMPT_ENDPOINT = "/indices/pipeline/retrieve_prompt"
@@ -161,10 +165,7 @@ class ModelstudioRag(Tool[RagInput, RagOutput]):
                             messages=args.messages,
                         )
         except Exception as e:
-            print(e)
-            import traceback
-
-            print(traceback.format_exc())
+            logger.error(f"{e}: {traceback.format_exc()}")
             return RagOutput(
                 rag_result="",
                 raw_result=[],
