@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # pylint:disable=too-many-branches, unused-argument, too-many-return-statements
-
+# pylint:disable=protected-access
 
 import asyncio
 import inspect
 import json
+import logging
 from contextlib import asynccontextmanager
 from typing import Optional, Callable, Type, Any, List, Dict
 
@@ -14,9 +15,10 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 
 from .service_config import ServicesConfig, DEFAULT_SERVICES_CONFIG
-from .service_factory import ServiceFactory
 from ..deployment_modes import DeploymentMode
 from ...adapter.protocol_adapter import ProtocolAdapter
+
+logger = logging.getLogger(__name__)
 
 
 async def error_stream(e):
@@ -122,9 +124,9 @@ class FastAPIAppFactory:
         app.state.deployment_mode = mode
         app.state.services_config = services_config
         app.state.stream_enabled = stream
-        app.state.response_type = response_type
         app.state.custom_func = func
-        app.state.external_runner = runner
+        app.state.runner = runner
+        app.state.response_type = response_type
         app.state.endpoint_path = endpoint_path
         app.state.protocol_adapters = protocol_adapters  # Store for later use
         app.state.custom_endpoints = (
@@ -164,21 +166,15 @@ class FastAPIAppFactory:
         **kwargs,
     ):
         """Handle application startup."""
-        # Mode-specific initialization
-        if mode == DeploymentMode.DAEMON_THREAD:
-            # Use external runner
-            app.state.runner = external_runner
-            app.state.runner_managed_externally = True
-
-        elif mode in [
-            DeploymentMode.DETACHED_PROCESS,
-            DeploymentMode.STANDALONE,
-        ]:
-            # Create internal runner
-            app.state.runner = await FastAPIAppFactory._create_internal_runner(
-                services_config,
+        try:
+            # aexit any possible running instances before set up
+            # runner
+            await app.state.runner.__aexit__(None, None, None)
+            await app.state.runner.__aenter__()
+        except Exception as e:
+            logger.error(
+                f"Warning: Error during runner setup: {e}",
             )
-            app.state.runner_managed_externally = False
 
         # Call custom startup callback
         if before_start:
@@ -243,9 +239,6 @@ class FastAPIAppFactory:
                         queues=queues,
                     )
                 except Exception as e:
-                    import logging
-
-                    logger = logging.getLogger(__name__)
                     logger.error(f"Failed to start Celery worker: {e}")
 
             worker_thread = threading.Thread(
@@ -269,39 +262,23 @@ class FastAPIAppFactory:
                 after_finish(app, **kwargs)
 
         # Cleanup internal runner
-        if (
-            hasattr(app.state, "runner")
-            and not app.state.runner_managed_externally
-        ):
-            runner = app.state.runner
-            if runner:
-                try:
-                    # Clean up runner
-                    await runner.__aexit__(None, None, None)
-                except Exception as e:
-                    print(f"Warning: Error during runner cleanup: {e}")
+        runner = app.state.runner
+        if runner:
+            try:
+                # Clean up runner
+                await runner.__aexit__(None, None, None)
+            except Exception as e:
+                logger.error(f"Warning: Error during runner cleanup: {e}")
 
     @staticmethod
     async def _create_internal_runner(services_config: ServicesConfig):
         """Create internal runner with configured services."""
         from agentscope_runtime.engine import Runner
-        from agentscope_runtime.engine.services.context_manager import (
-            ContextManager,
-        )
-
-        # Create services
-        services = ServiceFactory.create_services_from_config(services_config)
-
-        # Create context manager
-        context_manager = ContextManager(
-            session_history_service=services["session_history"],
-            memory_service=services["memory"],
-        )
 
         # Create runner (agent will be set later)
         runner = Runner(
-            agent=None,  # Will be set by the specific deployment
-            context_manager=context_manager,
+            # agent=None,  # Will be set by the specific deployment
+            # context_manager=context_manager,
         )
 
         # Initialize runner

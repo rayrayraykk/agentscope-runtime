@@ -69,7 +69,7 @@ def agentscope_msg_to_message(
             )
             # add meta field to store old id and name
             mb.message.metadata = {
-                "original_invocation_id": msg.invocation_id,
+                "original_id": msg.id,
                 "original_name": msg.name,
                 "metadata": msg.metadata,
             }
@@ -104,7 +104,7 @@ def agentscope_msg_to_message(
                     )
                     # add meta field to store old id and name
                     current_mb.message.metadata = {
-                        "original_invocation_id": msg.invocation_id,
+                        "original_id": msg.id,
                         "original_name": msg.name,
                         "metadata": msg.metadata,
                     }
@@ -126,7 +126,7 @@ def agentscope_msg_to_message(
                     )
                     # add meta field to store old id and name
                     current_mb.message.metadata = {
-                        "original_invocation_id": msg.invocation_id,
+                        "original_id": msg.id,
                         "original_name": msg.name,
                         "metadata": msg.metadata,
                     }
@@ -147,16 +147,22 @@ def agentscope_msg_to_message(
                 )
                 # add meta field to store old id and name
                 current_mb.message.metadata = {
-                    "original_invocation_id": msg.invocation_id,
+                    "original_id": msg.id,
                     "original_name": msg.name,
                     "metadata": msg.metadata,
                 }
                 current_type = MessageType.PLUGIN_CALL
                 cb = current_mb.create_content_builder(content_type="data")
+
+                if isinstance(block.get("input"), (dict, list)):
+                    arguments = json.dumps(block.get("input"))
+                else:
+                    arguments = block.get("input")
+
                 call_data = FunctionCall(
                     call_id=block.get("id"),
                     name=block.get("name"),
-                    arguments=json.dumps(block.get("input")),
+                    arguments=arguments,
                 ).model_dump()
                 cb.set_data(call_data)
                 cb.complete()
@@ -173,17 +179,23 @@ def agentscope_msg_to_message(
                 )
                 # add meta field to store old id and name
                 current_mb.message.metadata = {
-                    "original_invocation_id": msg.invocation_id,
+                    "original_id": msg.id,
                     "original_name": msg.name,
                     "metadata": msg.metadata,
                 }
                 current_type = MessageType.PLUGIN_CALL_OUTPUT
                 cb = current_mb.create_content_builder(content_type="data")
+
+                if isinstance(block.get("output"), (dict, list)):
+                    output = json.dumps(block.get("output"))
+                else:
+                    output = block.get("output")
+
                 output_data = FunctionCallOutput(
                     call_id=block.get("id"),
                     name=block.get("name"),
-                    output=json.dumps(block.get("output")),
-                ).model_dump()
+                    output=output,
+                ).model_dump(exclude_none=True)
                 cb.set_data(output_data)
                 cb.complete()
 
@@ -200,7 +212,7 @@ def agentscope_msg_to_message(
                     )
                     # add meta field to store old id and name
                     current_mb.message.metadata = {
-                        "original_invocation_id": msg.invocation_id,
+                        "original_id": msg.id,
                         "original_name": msg.name,
                         "metadata": msg.metadata,
                     }
@@ -243,7 +255,7 @@ def agentscope_msg_to_message(
                     )
                     # add meta field to store old id and name
                     current_mb.message.metadata = {
-                        "original_invocation_id": msg.invocation_id,
+                        "original_id": msg.id,
                         "original_name": msg.name,
                         "metadata": msg.metadata,
                     }
@@ -296,7 +308,7 @@ def agentscope_msg_to_message(
                     )
                     # add meta field to store old id and name
                     current_mb.message.metadata = {
-                        "original_invocation_id": msg.invocation_id,
+                        "original_id": msg.id,
                         "original_name": msg.name,
                         "metadata": msg.metadata,
                     }
@@ -315,14 +327,12 @@ def agentscope_msg_to_message(
 
 def message_to_agentscope_msg(
     messages: Union[Message, List[Message]],
-    merge: bool = False,
 ) -> Union[Msg, List[Msg]]:
     """
     Convert AgentScope runtime Message(s) to AgentScope Msg(s).
 
     Args:
         messages: A single AgentScope runtime Message or list of Messages.
-        merge: If True and messages is a list, merge all contents into one Msg.
 
     Returns:
         A single Msg object or a list of Msg objects.
@@ -338,15 +348,13 @@ def message_to_agentscope_msg(
         result = {
             "name": getattr(message, "name", message.role),
             "role": role_label,
-            "invocation_id": getattr(message, "id"),
         }
+        _id = getattr(message, "id")
 
         # if meta exists, prefer original id/name from meta
         if hasattr(message, "metadata") and isinstance(message.metadata, dict):
-            if "original_invocation_id" in message.metadata:
-                result["invocation_id"] = message.metadata[
-                    "original_invocation_id"
-                ]
+            if "original_id" in message.metadata:
+                _id = message.metadata["original_id"]
             if "original_name" in message.metadata:
                 result["name"] = message.metadata["original_name"]
             if "metadata" in message.metadata:
@@ -361,7 +369,7 @@ def message_to_agentscope_msg(
                 ToolUseBlock(
                     type="tool_use",
                     id=message.content[0].data["call_id"],
-                    name=message.content[0].data["name"],
+                    name=message.content[0].data.get("name"),
                     input=json.loads(message.content[0].data["arguments"]),
                 ),
             ]
@@ -381,18 +389,18 @@ def message_to_agentscope_msg(
 
             if isinstance(blk, list):
                 if not all(is_valid_block(item) for item in blk):
-                    blk = str(blk)
+                    blk = message.content[0].data["output"]
             elif isinstance(blk, dict):
                 if not is_valid_block(blk):
-                    blk = str(blk)
+                    blk = message.content[0].data["output"]
             else:
-                blk = str(blk)
+                blk = message.content[0].data["output"]
 
             result["content"] = [
                 ToolResultBlock(
                     type="tool_result",
                     id=message.content[0].data["call_id"],
-                    name=message.content[0].data["name"],
+                    name=message.content[0].data.get("name"),
                     output=blk,
                 ),
             ]
@@ -485,50 +493,38 @@ def message_to_agentscope_msg(
                     msg_content.append(block_cls(type=cnt_type, text=value))
 
             result["content"] = msg_content
-
-        return Msg(**result)
+        _msg = Msg(**result)
+        _msg.id = _id
+        return _msg
 
     # Handle single or list input
     if isinstance(messages, Message):
         return _convert_one(messages)
     elif isinstance(messages, list):
         converted_list = [_convert_one(m) for m in messages]
-        if merge:
-            merged_content = []
-            name = None
-            role = None
-            invocation_id = None
-            metadata = None
-            for i, msg in enumerate(converted_list):
-                if i == 0:
-                    name = msg.name
-                    role = msg.role
-                    invocation_id = msg.invocation_id
-                    metadata = msg.metadata
-                merged_content.extend(msg.content)
-            return Msg(
-                name=name,
-                role=role,
-                invocation_id=invocation_id,
-                metadata=metadata,
-                content=merged_content,
-            )
 
-        # Group by original_invocation_id
+        # Group by original_id
         grouped = OrderedDict()
         for msg, orig_msg in zip(messages, converted_list):
-            orig_id = getattr(msg, "metadata", {}).get(
-                "original_invocation_id",
-                orig_msg.invocation_id,
-            )
+            metadata = getattr(msg, "metadata")
+            if metadata:
+                orig_id = metadata.get(
+                    "original_id",
+                    orig_msg.id,
+                )
+            else:
+                # In case metadata is not provided, use the original id
+                orig_id = msg.id
+
             if orig_id not in grouped:
-                grouped[orig_id] = Msg(
+                agentscope_msg = Msg(
                     name=orig_msg.name,
                     role=orig_msg.role,
-                    invocation_id=orig_msg.invocation_id,
                     metadata=orig_msg.metadata,
                     content=list(orig_msg.content),
                 )
+                agentscope_msg.id = orig_id
+                grouped[orig_id] = agentscope_msg
             else:
                 grouped[orig_id].content.extend(orig_msg.content)
 
