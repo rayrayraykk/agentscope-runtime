@@ -86,7 +86,7 @@ async def test_async_image_to_video(
     test_inputs = [
         ImageToVideoSubmitInput(
             image_url=image_url,
-            prompt="女孩把小狗抱起来",
+            prompt="The girl picked up the puppy.",
             resolution="1080P",
             prompt_extend=True,
         ),
@@ -448,7 +448,7 @@ async def test_image_edit(image_edit):
         "/watermarkremover/production/anon-398e601a-53ca-4b50"
         "-959d-bc359ff85d31/img/1750251591975"
         "-b6b7cc6af66b4119371705687fc520b1.jpg",
-        prompt="去除图像中的水印",
+        prompt="Remove the watermark from the image",
         n=2,
     )
 
@@ -474,7 +474,7 @@ def image_generation():
 async def test_image_generation(image_generation):
     """Test image generation from text"""
     image_gen_input = ImageGenInput(
-        prompt="帮我画一个国宝熊猫,",
+        prompt="Draw a panda,",
     )
 
     result = await image_generation.arun(
@@ -542,13 +542,13 @@ async def test_image_to_video(image_to_video):
     test_inputs = [
         ImageToVideoInput(
             image_url=image_url,
-            prompt="女孩把小狗抱起来",
+            prompt="The girl picked up the puppy.",
             resolution="1080P",
             prompt_extend=True,
         ),
         ImageToVideoInput(
             image_url=image_url,
-            prompt="小狗把女孩抱起来",
+            prompt="The girl picked up the puppy.",
             resolution="480P",
             prompt_extend=True,
         ),
@@ -602,7 +602,8 @@ async def test_qwen_image_edit(qwen_image_edit):
     test_inputs = [
         QwenImageEditInput(
             image_url=base_image_url,
-            prompt="将图中的人物改为站立姿势，弯腰握住狗的前爪",
+            prompt="Change the person in the picture to a standing posture, "
+            "bending over to hold the dog's front paws.",
             negative_prompt="",
         ),
     ]
@@ -651,11 +652,13 @@ async def test_qwen_image_gen(qwen_image_gen):
     """Test Qwen image generation"""
     test_inputs = [
         QwenImageGenInput(
-            prompt="沙滩上小男孩和一只金毛并排坐着",
+            prompt="A little boy and a golden retriever sitting side "
+            "by side on the beach.",
             negative_prompt="",
         ),
         QwenImageGenInput(
-            prompt="沙滩上小女孩和一只柯基并排坐着",
+            prompt="A little girl and a corgi sitting side by side on the "
+            "beach.",
         ),
     ]
 
@@ -701,10 +704,12 @@ async def test_qwen_text_to_speech(qwen_text_to_speech):
     """Test Qwen text to speech"""
     test_inputs = [
         QwenTextToSpeechInput(
-            text="沙滩上小男孩和一只金毛并排坐着",
+            text="A little boy and a golden retriever sitting side "
+            "by side on the beach.",
         ),
         QwenTextToSpeechInput(
-            text="沙滩上小女孩和一只柯基并排坐着",
+            text="A little girl and a corgi sitting side by side on the "
+            "beach.",
         ),
     ]
 
@@ -759,7 +764,8 @@ async def test_image_edit_wan25(image_edit_wan25):
 
     image_edit_input = ImageEditWan25Input(
         images=images,
-        prompt="将图1中的闹钟放置到图2的餐桌的花瓶旁边位置",
+        prompt="Place the alarm clock from Image 1 next to the vase on the "
+        "dining table in Image 2.",
         n=1,
     )
 
@@ -782,7 +788,7 @@ def image_generation_wan25():
 async def test_image_generation_wan25(image_generation_wan25):
     """Test WAN25 image generation functionality"""
     image_gen_input = ImageGenerationWan25Input(
-        prompt="帮我画一个国宝熊猫,",
+        prompt="Draw a panda,",
     )
 
     result = await image_generation_wan25.arun(image_gen_input)
@@ -827,7 +833,7 @@ async def test_async_image_to_video_wan25(
     test_inputs = [
         ImageToVideoWan25SubmitInput(
             image_url=image_url,
-            prompt="女孩把小狗抱起来",
+            prompt="The girl picked up the puppy.",
             audio_url=audio_url,
             watermark=True,
         ),

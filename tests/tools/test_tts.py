@@ -40,7 +40,7 @@ def test_modelstudio_tts_client():
 
         tts_client.start()
 
-        tts_client.send_text_data("今天真是美好的一天啊！")
+        tts_client.send_text_data("What a beautiful day it is today!")
 
         tts_client.stop()
 
@@ -81,29 +81,6 @@ def test_azure_tts_client():
                 "ingredients, which have given rise to many different "
                 "cooking styles. What's the best way to stir-fry noodles "
                 "so they come out really tasty?",
-                # "这两",
-                # "句",
-                # "诗",
-                # "出自",
-                # "唐代诗人王之",
-                # "涣的《登",
-                # "鹳雀楼》",
-                # "。全诗如下",
-                # "：",
-                # "白日依山尽，",
-                # "黄河入海流",
-                # "。",
-                # "欲穷千里目，",
-                # "更上一层楼",
-                # "这首"
-                # "诗表达了诗人登",
-                # "高望远、",
-                # "追求更高境界的",
-                # "积极进取精神，",
-                # "也常被用来",
-                # "鼓励人们不断进取",
-                # "、勇攀高峰",
-                # "。"
             ]
 
             for text in texts:
@@ -112,8 +89,4 @@ def test_azure_tts_client():
 
             tts_client.async_stop()
 
-            # time.sleep(8)
-
             tts_client.close()
-
-            # time.sleep(30)

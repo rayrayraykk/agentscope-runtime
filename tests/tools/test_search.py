@@ -17,7 +17,7 @@ def search_component():
 
 
 def test_arun_success(search_component):
-    messages = [{"role": "user", "content": "南京的天气如何？"}]
+    messages = [{"role": "user", "content": "How is the weather in Nanjing?"}]
 
     # Prepare input data
     input_data = SearchInput(
