@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint:disable=line-too-long, protected-access
-
+import os
 import time
 from pathlib import Path
 
@@ -22,8 +22,8 @@ def test_modelstudio_asr_client():
         print(f"on_asr_event: end={sentence_end}, text={sentence_text}")
 
     current_dir = Path(__file__).parent
-    resources_dir = current_dir / ".." / "assets"
-    with open(resources_dir / "tts.pcm", "wb"):
+    resources_dir = os.path.join(current_dir, "assets")
+    with open(os.path.join(resources_dir, "tts.pcm"), "wb"):
         config = ModelstudioAsrConfig()
 
         callbacks = ModelstudioAsrCallbacks(on_event=on_asr_event)
@@ -32,7 +32,7 @@ def test_modelstudio_asr_client():
 
         asr_client.start()
 
-        with open(resources_dir / "chat.pcm", "rb") as f:
+        with open(os.path.join(resources_dir, "chat.pcm"), "rb") as f:
             while True:
                 data = f.read(3200)
                 if not data:
@@ -58,9 +58,9 @@ def test_azure_asr_client():
 
     asr_client.start()
     current_dir = Path(__file__).parent
-    resources_dir = current_dir / ".." / "assets"
+    resources_dir = os.path.join(current_dir, "assets")
 
-    with open(resources_dir / "chat-en.pcm", "rb") as f:
+    with open(os.path.join(resources_dir, "chat-en.pcm"), "rb") as f:
         while True:
             data = f.read(3200)
             if not data:

@@ -1,10 +1,7 @@
-name: Unit Tests for Deploy
+name: Unit Tests for Tool
 
 on:
   push:
-    branches:
-      - 'main'
-  pull_request:
     branches:
       - 'main'
 
@@ -48,11 +45,11 @@ jobs:
       - name: Install dependencies
         run: |
           export PIP_DEFAULT_TIMEOUT=300
-          pip install -q -e ".[dev,langchain_rag,llamaindex_rag,aliyun_tablestore_ext,memory_ext,deployment]"
+          pip install -q -e ".[dev,tool]"
 
       - name: Run tests with coverage
         run: |
-          coverage run -m pytest tests/deploy
+          coverage run -m pytest tests/unit
 
       - name: Generate coverage report
         run: |

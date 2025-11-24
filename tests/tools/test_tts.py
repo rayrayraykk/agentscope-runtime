@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import time
 from pathlib import Path
 
@@ -24,8 +25,9 @@ def test_modelstudio_tts_client():
         file.write(data)
 
     current_dir = Path(__file__).parent
-    resources_dir = current_dir / ".." / "assets"
-    with open(resources_dir / "tts.pcm", "wb") as file:
+    resources_dir = os.path.join(current_dir, "assets")
+
+    with open(os.path.join(resources_dir, "tts.pcm"), "wb") as file:
         config = ModelstudioTtsConfig(
             model="cosyvoice-v2",
             sample_rate=16000,
