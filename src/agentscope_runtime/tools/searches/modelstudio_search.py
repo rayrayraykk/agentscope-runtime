@@ -419,7 +419,8 @@ class ModelstudioSearch(Tool[SearchInput, SearchOutput]):
             """
             if isinstance(input_val, (int, float)):
                 return int(input_val)
-            elif input_val.isdigit():  # 假设时间戳字符串全为数字
+            elif input_val.isdigit():
+                # Assume the timestamp string consists entirely of digits.
                 return int(input_val)
             elif input_val == " ":
                 return 0
@@ -431,7 +432,7 @@ class ModelstudioSearch(Tool[SearchInput, SearchOutput]):
                     )
                     return int(datetime_obj.timestamp())
                 except Exception:
-                    # 如果时间戳格式有误，则返回0
+                    # If the timestamp format is incorrect, return 0.
                     return 0
 
         try:
@@ -592,20 +593,22 @@ class ModelstudioSearch(Tool[SearchInput, SearchOutput]):
             text_snippet = snippet.replace("\n", "\\n")
             text_result_cur = text_snippet[:] + text_timestamp
 
-            # 按照是否通过检查，分别放入相应集合
+            # Place into corresponding collection based on whether it
+            # passes the check
             if item.csi_checked:
                 text_result.append(text_result_cur)
             else:
                 other_text_result.append(text_result_cur)
 
             cnt_char += len(snippet)
-            if cnt_char > search_nlp_total_char:  # 当前限制搜索字符4k
+            if cnt_char > search_nlp_total_char:
+                # Currently limit search characters to 4k.
                 break
 
         text_result_str = ""
         match = re.search("<number>", citation_format)
         if not match:
-            citation_format = "[<number>]"  # 输入错误兜底
+            citation_format = "[<number>]"  # Fallback for incorrect input
         if enable_citation and enable_source:
             for i in range(len(text_result)):
                 cite_form = re.sub("<number>", str(i + 1), citation_format)
@@ -615,8 +618,11 @@ class ModelstudioSearch(Tool[SearchInput, SearchOutput]):
                     break
 
             if other_text_result:
-                # 1. 被绿网干掉的内容，统一不加[ref_x]序号
-                # 2. 在正常引用网页后，增加"## 其他互联网信息："，把被绿网掉的内容放这里
+                # 1. Content removed by the green-net filter will not have
+                #   [ref_x] citation numbers.
+                # 2. After normally citing web pages, add "## Other Internet
+                #   Information:" and put the content removed by the
+                #   green-net filter here.
                 text_result_str += "## 其他互联网信息：\n\n```"
                 for i, text in enumerate(other_text_result):
                     text = text + "\n\n"
@@ -705,7 +711,7 @@ class ModelstudioSearch(Tool[SearchInput, SearchOutput]):
             date_str += "。"
             return date_str
 
-        # app所有请求都加上时间
+        # Add time to all app requests.
         knowledge = []
         for tool_name, result in tool_output.items():
             if tool_name == "search":
@@ -869,36 +875,3 @@ class FieldValidator:
                 output_dict[key] = value
 
         return output_dict
-
-
-if __name__ == "__main__":
-    import asyncio
-
-    messages = [
-        OpenAIMessage(
-            role="user",
-            content="杭州天气",
-        ),
-    ]
-    input_data = SearchInput(
-        messages=messages,
-        search_options=SearchOptions(
-            search_strategy="pro_ultra",
-            enable_citation=True,
-            enable_source=True,
-            prepend_search_result=True,
-            forced_search=False,
-            enable_search_extension=False,
-            citation_format="[ref_<number>]",
-        ),
-    )
-    search_component = ModelstudioSearch()
-
-    async def main() -> None:
-        search_output = await search_component.arun(
-            input_data,
-            user_id="1585072",
-        )
-        print(search_output)
-
-    asyncio.run(main())

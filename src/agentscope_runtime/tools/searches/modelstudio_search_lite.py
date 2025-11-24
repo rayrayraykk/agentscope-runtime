@@ -308,16 +308,3 @@ class ModelstudioSearchLite(Tool[SearchLiteInput, SearchLiteOutput]):
             return [], []
 
         return search_items, tool_items
-
-
-if __name__ == "__main__":
-    import asyncio
-
-    input_data = SearchLiteInput(query="魅族最新Flyme介绍", count=5)
-    search_component = ModelstudioSearchLite()
-
-    async def main() -> None:
-        image_gent_output = await search_component.arun(input_data)
-        print(image_gent_output)
-
-    asyncio.run(main())
