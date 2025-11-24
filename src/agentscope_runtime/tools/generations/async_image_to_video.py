@@ -10,7 +10,7 @@ from dashscope.aigc.video_synthesis import AioVideoSynthesis
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
-from ..base import Skill
+from ..base import Tool
 from ..utils.api_key_util import get_api_key, ApiNames
 from ...engine.tracing import trace, TracingUtil
 
@@ -89,12 +89,12 @@ class ImageToVideoSubmitOutput(BaseModel):
 
 
 class ImageToVideoSubmit(
-    Skill[ImageToVideoSubmitInput, ImageToVideoSubmitOutput],
+    Tool[ImageToVideoSubmitInput, ImageToVideoSubmitOutput],
 ):
     """
     Service for submitting image-to-video generation tasks.
 
-    This Skill provides functionality to submit asynchronous
+    This Tool provides functionality to submit asynchronous
     image-to-video generation tasks using DashScope's VideoSynthesis API.
     It supports various video effects and customization options.
     """
@@ -257,12 +257,12 @@ class ImageToVideoFetchOutput(BaseModel):
 
 
 class ImageToVideoFetch(
-    Skill[ImageToVideoFetchInput, ImageToVideoFetchOutput],
+    Tool[ImageToVideoFetchInput, ImageToVideoFetchOutput],
 ):
     """
     Service for fetching image-to-video generation results.
 
-    This Skill provides functionality to retrieve the status and
+    This Tool provides functionality to retrieve the status and
     results of asynchronous image-to-video generation tasks using
     DashScope's VideoSynthesis API.
     """

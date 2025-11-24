@@ -17,7 +17,7 @@ from .base import (
     AlipayAipaySubscribePackageInitializeResponse,
     AlipayAipaySubscribeTimesSaveResponse,
 )
-from ..base import Skill
+from ..base import Tool
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +114,7 @@ class SubscribeCheckOrInitializeOutput(BaseModel):
 
 
 class AlipaySubscribeStatusCheck(
-    Skill[SubscribeStatusCheckInput, SubscribeStatusOutput],
+    Tool[SubscribeStatusCheckInput, SubscribeStatusOutput],
 ):
     """支付宝订阅状态检查组件
 
@@ -217,7 +217,7 @@ class AlipaySubscribeStatusCheck(
 
 
 class AlipaySubscribePackageInitialize(
-    Skill[
+    Tool[
         SubscribePackageInitializeInput,
         SubscribePackageInitializeOutput,
     ],
@@ -292,7 +292,7 @@ class AlipaySubscribePackageInitialize(
 
 
 class AlipaySubscribeTimesSave(
-    Skill[
+    Tool[
         SubscribeTimesSaveInput,
         SubscribeTimesSaveOutput,
     ],
@@ -367,7 +367,7 @@ class AlipaySubscribeTimesSave(
 
 
 class AlipaySubscribeCheckOrInitialize(
-    Skill[
+    Tool[
         SubscribeCheckOrInitializeInput,
         SubscribeCheckOrInitializeOutput,
     ],

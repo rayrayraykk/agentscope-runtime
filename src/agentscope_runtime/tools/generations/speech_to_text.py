@@ -15,7 +15,7 @@ from dashscope.common.constants import TaskStatus
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
-from ..base import Skill
+from ..base import Tool
 from ..utils.api_key_util import get_api_key, ApiNames
 from ...engine.tracing import trace, TracingUtil
 
@@ -58,7 +58,7 @@ class SpeechToTextOutput(BaseModel):
     )
 
 
-class SpeechToText(Skill[SpeechToTextInput, SpeechToTextOutput]):
+class SpeechToText(Tool[SpeechToTextInput, SpeechToTextOutput]):
     """
     Speech to text transcription service that converts audio files to text
     using DashScope's Paraformer ASR API.

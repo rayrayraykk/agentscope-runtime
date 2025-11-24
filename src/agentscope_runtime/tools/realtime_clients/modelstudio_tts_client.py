@@ -13,7 +13,7 @@ from dashscope.audio.tts_v2.speech_synthesizer import (
 )
 from pydantic import BaseModel
 
-from .realtime_skill import (
+from .realtime_tool import (
     RealtimeState,
 )
 from .tts_client import TtsClient

@@ -67,7 +67,7 @@ Provides lightweight RAG functionality, suitable for resource-constrained or fas
 ### Basic RAG Query Example
 
 ```python
-from agentscope_runtime.common.skills.RAGs.modelstudio_rag import ModelstudioRag
+from agentscope_runtime.common.tools.RAGs.modelstudio_rag import ModelstudioRag
 import asyncio
 
 # Initialize RAG component

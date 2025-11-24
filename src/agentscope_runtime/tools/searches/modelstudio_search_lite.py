@@ -17,7 +17,7 @@ from .modelstudio_search import (
 )
 from ..utils.mcp_util import get_mcp_dash_request_id
 from ...engine.tracing import trace
-from ..base import Skill
+from ..base import Tool
 
 SEARCH_URL = os.getenv(
     "SEARCH_URL",
@@ -75,9 +75,9 @@ class SearchLiteOutput(BaseModel):
     )
 
 
-class ModelstudioSearchLite(Skill[SearchLiteInput, SearchLiteOutput]):
+class ModelstudioSearchLite(Tool[SearchLiteInput, SearchLiteOutput]):
     """
-    Search Skill that calling dashscope for llm search result.
+    Search tool that calling dashscope for llm search result.
     """
 
     description = "搜索可用于查询百科知识、时事新闻、天气等信息"

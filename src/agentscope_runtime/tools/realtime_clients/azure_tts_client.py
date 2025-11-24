@@ -16,7 +16,7 @@ from azure.cognitiveservices.speech import (
 from azure.cognitiveservices.speech.enums import PropertyId
 from pydantic import BaseModel
 
-from .realtime_skill import (
+from .realtime_tool import (
     RealtimeState,
 )
 from .tts_client import TtsClient

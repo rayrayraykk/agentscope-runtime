@@ -68,7 +68,7 @@
 ### 基础搜索示例
 
 ```python
-from agentscope_runtime.common.skills.searches import ModelstudioSearch
+from agentscope_runtime.common.tools.searches import ModelstudioSearch
 import asyncio
 
 # 初始化搜索组件

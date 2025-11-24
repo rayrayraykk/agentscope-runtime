@@ -1,6 +1,6 @@
-# Realtime Client Skills
+# Realtime Client Tools
 
-This directory hosts realtime audio skills that power end-to-end speech experiences, including automatic speech recognition (ASR), text-to-speech (TTS), and bidirectional streaming pipelines.
+This directory hosts realtime audio tools that power end-to-end speech experiences, including automatic speech recognition (ASR), text-to-speech (TTS), and bidirectional streaming pipelines.
 
 ## 📋 Component Catalog
 
@@ -86,8 +86,8 @@ Client for Azure Speech Service TTS.
 - **SSML support**: leverage Speech Synthesis Markup Language
 - **Multilingual**: major languages and dialects worldwide
 
-### 5. RealtimeSkill – Base Class for Realtime Components
-Provides shared infrastructure for realtime audio skills.
+### 5. RealtimeTool – Base Class for Realtime Components
+Provides shared infrastructure for realtime audio tools.
 
 **Core Traits**
 - **Async processing**: non-blocking audio streaming
@@ -110,7 +110,7 @@ Provides shared infrastructure for realtime audio skills.
 
 ### ModelStudio ASR Example
 ```python
-from agentscope_runtime.common.skills.realtime_clients import (
+from agentscope_runtime.common.tools.realtime_clients import (
     ModelstudioAsrClient,
     ModelstudioAsrCallbacks,
 )
@@ -158,7 +158,7 @@ asyncio.run(asr_example())
 
 ### ModelStudio TTS Example
 ```python
-from agentscope_runtime.common.skills.realtime_clients import (
+from agentscope_runtime.common.tools.realtime_clients import (
     ModelstudioTtsClient,
     ModelstudioTtsCallbacks,
 )
@@ -213,11 +213,11 @@ asyncio.run(tts_example())
 
 ### Azure Speech Service Example
 ```python
-from agentscope_runtime.common.skills.realtime_clients import (
+from agentscope_runtime.common.tools.realtime_clients import (
     AzureAsrClient,
     AzureAsrCallbacks,
 )
-from agentscope_runtime.common.skills.realtime_clients import (
+from agentscope_runtime.common.tools.realtime_clients import (
     AzureTtsClient,
     AzureTtsCallbacks,
 )

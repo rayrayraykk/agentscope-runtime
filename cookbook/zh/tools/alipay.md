@@ -172,7 +172,7 @@
 ### 基础支付示例
 
 ```python
-from agentscope_runtime.common.skills.alipay.payment import (
+from agentscope_runtime.common.tools.alipay.payment import (
     MobileAlipayPayment,
     WebPageAlipayPayment
 )
@@ -205,7 +205,7 @@ asyncio.run(webpage_payment_example())
 ### 交易管理示例
 
 ```python
-from agentscope_runtime.common.skills.alipay.payment import (
+from agentscope_runtime.common.tools.alipay.payment import (
     AlipayPaymentQuery,
     AlipayPaymentRefund,
     AlipayRefundQuery
@@ -243,7 +243,7 @@ asyncio.run(transaction_management_example())
 ### 订阅服务示例
 
 ```python
-from agentscope_runtime.common.skills.alipay.subscribe import (
+from agentscope_runtime.common.tools.alipay.subscribe import (
     AlipaySubscribeStatusCheck,
     AlipaySubscribePackageInitialize,
     AlipaySubscribeTimesSave,

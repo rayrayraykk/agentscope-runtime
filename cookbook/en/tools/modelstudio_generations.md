@@ -67,7 +67,7 @@ Specialized service for portrait style repainting.
 ## 🚀 Usage Examples
 
 ```python
-from agentscope_runtime.common.skills.generations.image_generation import ImageGeneration
+from agentscope_runtime.common.tools.generations.image_generation import ImageGeneration
 import asyncio
 
 # Initialize component

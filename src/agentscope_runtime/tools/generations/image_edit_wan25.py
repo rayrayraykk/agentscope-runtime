@@ -12,7 +12,7 @@ from dashscope.aigc.image_synthesis import AioImageSynthesis
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
-from ..base import Skill
+from ..base import Tool
 from ..utils.api_key_util import ApiNames, get_api_key
 from ...engine.tracing import trace, TracingUtil
 
@@ -62,7 +62,7 @@ class ImageGenOutput(BaseModel):
     )
 
 
-class ImageEditWan25(Skill[ImageGenInput, ImageGenOutput]):
+class ImageEditWan25(Tool[ImageGenInput, ImageGenOutput]):
     """
     图生图调用.
     """

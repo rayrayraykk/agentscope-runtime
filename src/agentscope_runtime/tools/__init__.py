@@ -3,7 +3,7 @@ from typing import Dict, Type, List
 
 from pydantic import BaseModel, Field
 
-from .base import Skill
+from .base import Tool
 from .generations.qwen_image_edit import (
     QwenImageEdit,
 )
@@ -67,7 +67,7 @@ class McpServerMeta(BaseModel):
         ...,
         description="服务描述",
     )
-    components: List[Type[Skill]] = Field(
+    components: List[Type[Tool]] = Field(
         ...,
         description="组件列表",
     )

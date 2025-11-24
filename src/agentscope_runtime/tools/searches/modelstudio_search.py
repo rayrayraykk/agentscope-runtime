@@ -18,7 +18,7 @@ import aiohttp
 import dashscope
 from pydantic import BaseModel, Field
 
-from ..base import Skill
+from ..base import Tool
 from ...engine.schemas.modelstudio_llm import (
     KnowledgeHolder,
     OpenAIMessage,
@@ -99,9 +99,9 @@ class SearchItem(BaseModel):
     csi_checked: bool = False
 
 
-class ModelstudioSearch(Skill[SearchInput, SearchOutput]):
+class ModelstudioSearch(Tool[SearchInput, SearchOutput]):
     """
-    Search Skill that calling dashscope for llm search result.
+    Search tool that calling dashscope for llm search result.
     """
 
     description = (

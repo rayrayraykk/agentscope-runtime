@@ -13,7 +13,7 @@ from dashscope.aigc.video_synthesis import AioVideoSynthesis
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
-from ..base import Skill
+from ..base import Tool
 from ..utils.api_key_util import get_api_key, ApiNames
 from ...engine.tracing import trace, TracingUtil
 
@@ -70,7 +70,7 @@ class TextToVideoOutput(BaseModel):
     )
 
 
-class TextToVideo(Skill[TextToVideoInput, TextToVideoOutput]):
+class TextToVideo(Tool[TextToVideoInput, TextToVideoOutput]):
     """
     Text to video generation service that converts text into videos
     using DashScope's VideoSynthesis API.

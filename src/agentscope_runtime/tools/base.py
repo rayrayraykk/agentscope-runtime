@@ -27,11 +27,11 @@ from ..engine.schemas.agent_schemas import (
 
 # A type variable bounded by BaseModel, meaning it can represent BaseModel or
 # any subclass of it.
-SkillArgsT = TypeVar("SkillArgsT", bound=BaseModel, contravariant=True)
-SkillReturnT = TypeVar("SkillReturnT", bound=BaseModel, covariant=True)
+ToolArgsT = TypeVar("ToolArgsT", bound=BaseModel, contravariant=True)
+ToolReturnT = TypeVar("ToolReturnT", bound=BaseModel, covariant=True)
 
 
-class Skill(Generic[SkillArgsT, SkillReturnT]):
+class Tool(Generic[ToolArgsT, ToolReturnT]):
     """Base class for all zh, supporting both async and streaming
     capabilities.
     """
@@ -61,7 +61,7 @@ class Skill(Generic[SkillArgsT, SkillReturnT]):
         )
         if not self.name or not self.description:
             raise ValueError(
-                "Skill name and description must be provided.",
+                "Tool name and description must be provided.",
             )
         self.input_type = self._input_type()
         self.return_type = self._return_type()
@@ -74,9 +74,9 @@ class Skill(Generic[SkillArgsT, SkillReturnT]):
 
     async def _arun(
         self,
-        args: SkillArgsT,
+        args: ToolArgsT,
         **kwargs: Any,
-    ) -> SkillReturnT:
+    ) -> ToolReturnT:
         """Actual component execution method
 
         Args:
@@ -84,7 +84,7 @@ class Skill(Generic[SkillArgsT, SkillReturnT]):
             **kwargs: Other arguments if needed.
 
         Returns:
-            SkillReturnT: Output parameters adhering to the output schema.
+            ToolReturnT: Output parameters adhering to the output schema.
 
         Raises:
             NotImplementedError: This method must be implemented by subclasses.
@@ -93,9 +93,9 @@ class Skill(Generic[SkillArgsT, SkillReturnT]):
 
     async def arun(
         self,
-        args: SkillArgsT,
+        args: ToolArgsT,
         **kwargs: Any,
-    ) -> SkillReturnT:
+    ) -> ToolReturnT:
         """Run the component with the given arguments asynchronously.
 
         Args:
@@ -103,7 +103,7 @@ class Skill(Generic[SkillArgsT, SkillReturnT]):
             **kwargs: Other arguments if needed.
 
         Returns:
-            SkillReturnT: Output parameters adhering to the output schema.
+            ToolReturnT: Output parameters adhering to the output schema.
 
         Raises:
             TypeError: If input or return types don't match expected schemas.
@@ -141,20 +141,20 @@ class Skill(Generic[SkillArgsT, SkillReturnT]):
         """
         return async_to_sync(self.arun)(args, **kwargs)
 
-    def _input_type(self) -> Type[SkillArgsT]:
+    def _input_type(self) -> Type[ToolArgsT]:
         """Extract the generic input types.
 
         Returns:
-            Type[SkillArgsT]: The input schema type,
+            Type[ToolArgsT]: The input schema type,
             used for validating input arguments.
         """
         return get_args(self.__orig_bases__[0])[0]
 
-    def _return_type(self) -> Type[SkillReturnT]:
+    def _return_type(self) -> Type[ToolReturnT]:
         """Extract the generic return types.
 
         Returns:
-            Type[SkillReturnT]: The return schema type, used for
+            Type[ToolReturnT]: The return schema type, used for
             validating return values.
         """
         return get_args(self.__orig_bases__[0])[1]
@@ -197,14 +197,14 @@ class Skill(Generic[SkillArgsT, SkillReturnT]):
     def verify_list_args(
         cls,
         args_list: List[Union[str, Dict, BaseModel]],
-    ) -> List[SkillArgsT]:
+    ) -> List[ToolArgsT]:
         """Verify the list of stringify input arguments.
 
         Args:
             args_list: List of stringify input arguments.
 
         Returns:
-            List[SkillArgsT]: The validated input arguments.
+            List[ToolArgsT]: The validated input arguments.
         """
         return_list = []
         for args in args_list:
@@ -246,7 +246,7 @@ class Skill(Generic[SkillArgsT, SkillReturnT]):
         return validated_args
 
     @classmethod
-    def return_value_as_string(cls, value: SkillArgsT) -> str:
+    def return_value_as_string(cls, value: ToolArgsT) -> str:
         """Convert return value to string representation.
 
         Args:

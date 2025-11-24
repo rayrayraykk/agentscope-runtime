@@ -9,7 +9,7 @@ import dashscope
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
-from ..base import Skill
+from ..base import Tool
 from ..utils.api_key_util import get_api_key, ApiNames
 from ...engine.tracing import trace, TracingUtil
 
@@ -51,10 +51,10 @@ class QwenTextToSpeechOutput(BaseModel):
 
 
 class QwenTextToSpeech(
-    Skill[QwenTextToSpeechInput, QwenTextToSpeechOutput],
+    Tool[QwenTextToSpeechInput, QwenTextToSpeechOutput],
 ):
     """
-    Qwen Text To Speech Skill for AI-powered speech synthesis.
+    Qwen Text To Speech Tool for AI-powered speech synthesis.
     """
 
     name: str = "modelstudio_qwen_tts"

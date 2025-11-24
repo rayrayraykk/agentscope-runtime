@@ -10,7 +10,7 @@ from dashscope.aigc.video_synthesis import AioVideoSynthesis
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
-from ..base import Skill
+from ..base import Tool
 from ..utils.api_key_util import get_api_key, ApiNames
 from ...engine.tracing import trace, TracingUtil
 
@@ -75,7 +75,7 @@ class TextToVideoSubmitOutput(BaseModel):
 
 
 class TextToVideoSubmit(
-    Skill[TextToVideoSubmitInput, TextToVideoSubmitOutput],
+    Tool[TextToVideoSubmitInput, TextToVideoSubmitOutput],
 ):
     """
     Text to video generation service that converts text into videos
@@ -230,7 +230,7 @@ class TextToVideoFetchOutput(BaseModel):
 
 
 class TextToVideoFetch(
-    Skill[TextToVideoFetchInput, TextToVideoFetchOutput],
+    Tool[TextToVideoFetchInput, TextToVideoFetchOutput],
 ):
     """
     Text to video fetch service that retrieves video generation results

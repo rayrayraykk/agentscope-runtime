@@ -15,7 +15,7 @@ from azure.cognitiveservices.speech import (
 from pydantic import BaseModel
 
 from .asr_client import AsrClient
-from .realtime_skill import (
+from .realtime_tool import (
     RealtimeState,
 )
 from ...engine.schemas.realtime import AzureAsrConfig

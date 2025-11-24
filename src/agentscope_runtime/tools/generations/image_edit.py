@@ -13,7 +13,7 @@ from dashscope.aigc.image_synthesis import AioImageSynthesis
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
-from ..base import Skill
+from ..base import Tool
 from ..utils.api_key_util import get_api_key, ApiNames
 from ...engine.tracing import trace, TracingUtil
 
@@ -76,7 +76,7 @@ class ImageGenOutput(BaseModel):
     )
 
 
-class ImageEdit(Skill[ImageGenInput, ImageGenOutput]):
+class ImageEdit(Tool[ImageGenInput, ImageGenOutput]):
     """
     图生图调用.
     """

@@ -10,7 +10,7 @@ from dashscope import AioMultiModalConversation
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
-from ..base import Skill
+from ..base import Tool
 from ..utils.api_key_util import get_api_key, ApiNames
 from ...engine.tracing import trace, TraceType, TracingUtil
 
@@ -67,9 +67,9 @@ class QwenImageGenOutput(BaseModel):
     )
 
 
-class QwenImageGen(Skill[QwenImageGenInput, QwenImageGenOutput]):
+class QwenImageGen(Tool[QwenImageGenInput, QwenImageGenOutput]):
     """
-    Qwen Image Generation Skill for AI-powered image editing.
+    Qwen Image Generation Tool for AI-powered image editing.
     """
 
     name: str = "modelstudio_qwen_image_gen"

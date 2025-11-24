@@ -11,7 +11,7 @@ from dashscope.client.base_api import BaseAsyncAioApi
 from mcp.server.fastmcp import Context
 from pydantic import BaseModel, Field
 
-from ..base import Skill
+from ..base import Tool
 from ..utils.api_key_util import get_api_key, ApiNames
 from ...engine.tracing import trace, TracingUtil
 
@@ -70,7 +70,7 @@ class SpeechToVideoSubmitOutput(BaseModel):
 
 
 class SpeechToVideoSubmit(
-    Skill[SpeechToVideoSubmitInput, SpeechToVideoSubmitOutput],
+    Tool[SpeechToVideoSubmitInput, SpeechToVideoSubmitOutput],
 ):
     """
     Speech to video generation service that converts speech and image into
@@ -271,7 +271,7 @@ class SpeechToVideoFetchOutput(BaseModel):
 
 
 class SpeechToVideoFetch(
-    Skill[SpeechToVideoFetchInput, SpeechToVideoFetchOutput],
+    Tool[SpeechToVideoFetchInput, SpeechToVideoFetchOutput],
 ):
     """
     Speech to video fetch service that retrieves video generation results

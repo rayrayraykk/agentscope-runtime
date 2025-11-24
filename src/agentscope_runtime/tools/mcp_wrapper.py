@@ -12,26 +12,27 @@ U = TypeVar("U", bound=BaseModel)
 
 
 class MCPWrapper(Generic[T, U]):
-    """A wrapper class for integrating zh with MCP (Model Context
-         Protocol) servers.
+    """
+    A wrapper class for integrating zh with MCP (Model Context Protocol)
+    servers.
 
-    This class provides functionality to wrap skill classes and expose
+    This class provides functionality to wrap tool classes and expose
     them as MCP tools with proper type annotations and parameter handling.
 
     Attributes:
         mcp (FastMCP): The MCP server instance.
-        skill_class (Type): The skill class to wrap.
+        tool_class (Type): The tool class to wrap.
     """
 
-    def __init__(self, mcp: FastMCP, skill_class: Type):
+    def __init__(self, mcp: FastMCP, tool_class: Type):
         """Initialize the MCP wrapper.
 
         Args:
             mcp (FastMCP): The FastMCP server instance to register tools with.
-            skill_class (Type): The skill class to wrap as an MCP tool.
+            tool_class (Type): The tool class to wrap as an MCP tool.
         """
         self.mcp = mcp
-        self.skill_class = skill_class
+        self.tool_class = tool_class
 
     def wrap(
         self,
@@ -39,23 +40,23 @@ class MCPWrapper(Generic[T, U]):
         description: str,
         method_name: str = "arun",
     ) -> Callable[..., Any]:
-        """Wrap a skill as an MCP tool.
+        """Wrap a tool as an MCP tool.
 
-        This method creates a skill instance and wraps it as an MCP tool
+        This method creates a tool instance and wraps it as an MCP tool
         with proper parameter handling and type annotations derived from the
-        skill's input model.
+        tool's input model.
 
         Args:
-            name (str): The name for the skill instance.
-            description (str): The description for the skill instance.
+            name (str): The name for the tool instance.
+            description (str): The description for the tool instance.
             method_name (str, optional): The method name to call on the
-                 skill.  Defaults to "arun".
+                 tool.  Defaults to "arun".
 
         Returns:
             Callable[..., Any]: The wrapped tool function that can be called
                by MCP.
         """
-        skill = self.skill_class(name=name, description=description)
+        tool = self.tool_class(name=name, description=description)
 
         def create_decorated_async_function(
             params: list[str],
@@ -66,12 +67,12 @@ class MCPWrapper(Generic[T, U]):
             type annotations.
 
             This internal function generates Python code for an async
-            function that matches the skill's input schema,
+            function that matches the tool's input schema,
             then executes it to create the actual function.
 
             Args:
                 params (list[str]): List of parameter names from the
-                    skill's input model.
+                    tool's input model.
                 func_name (str, optional): Name for the generated function.
                     Defaults to "wrapped_tool".
                 decorator (Optional[Callable], optional): Decorator to apply
@@ -86,7 +87,7 @@ class MCPWrapper(Generic[T, U]):
 
             for param in params:
                 # Get field information from Pydantic model
-                field_info = skill.input_type.model_fields[param]
+                field_info = tool.input_type.model_fields[param]
                 # Extract type annotation
                 param_type = field_info.annotation
 
@@ -139,7 +140,7 @@ async def {func_name}({args_str}):
     # only including non-None values for optional params
     kwargs_dict = {{}}
     locals_dict = locals()
-    field_infos = skill.input_type.model_fields
+    field_infos = tool.input_type.model_fields
 
     for param_name in {params}:
         param_value = locals_dict[param_name]
@@ -152,26 +153,26 @@ async def {func_name}({args_str}):
             kwargs_dict[param_name] = param_value
         # Skip optional fields with None values - let Pydantic use defaults
 
-    input_model = skill.input_type(**kwargs_dict)
+    input_model = tool.input_type(**kwargs_dict)
 
-    # Set request_id from MCP context before calling skill method
+    # Set request_id from MCP context before calling tool method
     if 'ctx' in locals_dict and locals_dict['ctx'] is not None:
         request_id = get_mcp_dash_request_id(locals_dict['ctx'])
         TracingUtil.set_request_id(request_id)
 
-    method = getattr(skill, method_name)
+    method = getattr(tool, method_name)
     result = await method(input_model)
     import json
     return json.dumps(result.model_dump(), ensure_ascii=False)
 """
 
-            # make namespace for skill
+            # make namespace for tool
             from mcp.server.fastmcp import Context
             from .utils.mcp_util import get_mcp_dash_request_id
             from ..engine.tracing.tracing_util import TracingUtil
 
             namespace = {
-                "skill": skill,
+                "tool": tool,
                 "method_name": method_name,
                 "Context": Context,
                 "PydanticUndefined": PydanticUndefined,
@@ -191,24 +192,24 @@ async def {func_name}({args_str}):
 
         # define the mcp tool decorator
         tool_decorator = self.mcp.tool(
-            name=skill.name,
-            description=skill.description,
+            name=tool.name,
+            description=tool.description,
         )
 
-        # wrap the tool with mcp decorator with respect of the skill
+        # wrap the tool with mcp decorator with respect of the tool
         # input type
 
         wrapped_tool = create_decorated_async_function(
-            params=list(skill.input_type.model_fields.keys()),
+            params=list(tool.input_type.model_fields.keys()),
             decorator=tool_decorator,
         )
 
         # Update schema and remove ctx parameter
-        schema = skill.function_schema.parameters.model_dump()
+        schema = tool.function_schema.parameters.model_dump()
         if "properties" in schema and "ctx" in schema["properties"]:
             schema["properties"].pop("ctx")
         if "required" in schema and "ctx" in schema["required"]:
             schema["required"].remove("ctx")
 
-        self.mcp._tool_manager._tools[skill.name].parameters.update(schema)
+        self.mcp._tool_manager._tools[tool.name].parameters.update(schema)
         return wrapped_tool

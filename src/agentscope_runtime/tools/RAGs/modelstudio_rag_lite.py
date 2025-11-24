@@ -9,7 +9,7 @@ from .modelstudio_rag import (
     RagOutput,
     ModelstudioRag,
 )
-from ..base import Skill
+from ..base import Tool
 from .._constants import (
     DASHSCOPE_HTTP_BASE_URL,
     DASHSCOPE_API_KEY,
@@ -23,9 +23,9 @@ from ...engine.tracing import trace
 PIPELINE_RETRIEVE_ENDPOINT = "/indices/pipeline/{pipeline_id}/retrieve"
 
 
-class ModelstudioRagLite(Skill[RagInput, RagOutput]):
+class ModelstudioRagLite(Tool[RagInput, RagOutput]):
     """
-    Dashscope Rag Skill that recalling user info on modelstudio
+    Dashscope Rag Tool that recalling user info on modelstudio
     """
 
     description: str = "Modelstudio Rag可召回用户在百炼上的数据库中存储的信息，用于后续大模型生成使用。"
@@ -33,7 +33,7 @@ class ModelstudioRagLite(Skill[RagInput, RagOutput]):
 
     @trace(trace_type="RAG", trace_name="modelstudio_rag_lite")
     async def _arun(self, args: RagInput, **kwargs: Any) -> RagOutput:
-        """RAG Skill to retrieve and augment user data on Modelstudio.
+        """RAG Tool to retrieve and augment user data on Modelstudio.
 
         This method performs RAG by querying the user's knowledge base on
         Modelstudio platform and updating the system prompt with the retrieved

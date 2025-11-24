@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Tuple, Union, Optional
 import aiohttp
 from pydantic import BaseModel, Field
 
-from ..base import Skill
+from ..base import Tool
 from .._constants import (
     DASHSCOPE_HTTP_BASE_URL,
     DASHSCOPE_API_KEY,
@@ -67,9 +67,9 @@ class RagOutput(BaseModel):
     )
 
 
-class ModelstudioRag(Skill[RagInput, RagOutput]):
+class ModelstudioRag(Tool[RagInput, RagOutput]):
     """
-    Dashscope Rag Skill that recalling user info on modelstudio
+    Dashscope Rag Tool that recalling user info on modelstudio
     """
 
     description: str = (
@@ -80,7 +80,7 @@ class ModelstudioRag(Skill[RagInput, RagOutput]):
 
     @trace(trace_type="RAG", trace_name="modelstudio_rag")
     async def _arun(self, args: RagInput, **kwargs: Any) -> RagOutput:
-        """RAG Skill to retrieve and augment user data on Modelstudio.
+        """RAG Tool to retrieve and augment user data on Modelstudio.
 
         This method performs RAG by querying the user's knowledge base on
         Modelstudio platform and updating the system prompt with the retrieved

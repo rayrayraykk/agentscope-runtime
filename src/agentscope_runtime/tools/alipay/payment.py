@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
-from ..base import Skill
+from ..base import Tool
 
 
 from .base import (
@@ -121,7 +121,7 @@ class PaymentOutput(BaseModel):
     )
 
 
-class MobileAlipayPayment(Skill[MobilePaymentInput, PaymentOutput]):
+class MobileAlipayPayment(Tool[MobilePaymentInput, PaymentOutput]):
     """
     手机端支付宝支付组件
 
@@ -219,7 +219,7 @@ class MobileAlipayPayment(Skill[MobilePaymentInput, PaymentOutput]):
             raise RuntimeError(error_msg) from e
 
 
-class WebPageAlipayPayment(Skill[WebPagePaymentInput, PaymentOutput]):
+class WebPageAlipayPayment(Tool[WebPagePaymentInput, PaymentOutput]):
     """
     电脑网页端支付宝支付组件
 
@@ -318,7 +318,7 @@ class WebPageAlipayPayment(Skill[WebPagePaymentInput, PaymentOutput]):
             raise RuntimeError(error_msg) from e
 
 
-class AlipayPaymentQuery(Skill[PaymentQueryInput, PaymentOutput]):
+class AlipayPaymentQuery(Tool[PaymentQueryInput, PaymentOutput]):
     """
     支付宝交易查询组件
 
@@ -413,7 +413,7 @@ class AlipayPaymentQuery(Skill[PaymentQueryInput, PaymentOutput]):
             raise RuntimeError(error_msg) from e
 
 
-class AlipayPaymentRefund(Skill[PaymentRefundInput, PaymentOutput]):
+class AlipayPaymentRefund(Tool[PaymentRefundInput, PaymentOutput]):
     """
     支付宝交易退款组件
 
@@ -513,7 +513,7 @@ class AlipayPaymentRefund(Skill[PaymentRefundInput, PaymentOutput]):
             raise RuntimeError(error_msg) from e
 
 
-class AlipayRefundQuery(Skill[RefundQueryInput, PaymentOutput]):
+class AlipayRefundQuery(Tool[RefundQueryInput, PaymentOutput]):
     """
     支付宝退款查询组件
 

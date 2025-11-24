@@ -86,7 +86,7 @@
 - **SSML支持**: 支持语音合成标记语言
 - **多语言**: 支持全球主要语言和方言
 
-### 5. RealtimeSkill - 实时组件基类
+### 5. RealtimeTool - 实时组件基类
 为实时音频处理组件提供统一的基础架构。
 
 **核心特性：**
@@ -110,7 +110,7 @@
 
 ### 百炼ASR使用示例
 ```python
-from agentscope_runtime.common.skills.realtime_clients import (
+from agentscope_runtime.common.tools.realtime_clients import (
     ModelstudioAsrClient,
     ModelstudioAsrCallbacks,
 )
@@ -159,7 +159,7 @@ asyncio.run(asr_example())
 
 ### 百炼TTS使用示例
 ```python
-from agentscope_runtime.common.skills.realtime_clients import (
+from agentscope_runtime.common.tools.realtime_clients import (
     ModelstudioTtsClient,
     ModelstudioTtsCallbacks,
 )
@@ -214,11 +214,11 @@ asyncio.run(tts_example())
 
 ### Azure语音服务示例
 ```python
-from agentscope_runtime.common.skills.realtime_clients import (
+from agentscope_runtime.common.tools.realtime_clients import (
     AzureAsrClient,
     AzureAsrCallbacks,
 )
-from agentscope_runtime.common.skills.realtime_clients import (
+from agentscope_runtime.common.tools.realtime_clients import (
     AzureTtsClient,
     AzureTtsCallbacks,
 )
