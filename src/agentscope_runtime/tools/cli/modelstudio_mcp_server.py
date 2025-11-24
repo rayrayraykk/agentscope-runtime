@@ -2,18 +2,22 @@
 
 import os
 import sys
+import logging
+
 from mcp.server.fastmcp import FastMCP
 
 from .. import mcp_server_metas
 from ..mcp_wrapper import MCPWrapper
+
+logger = logging.getLogger(__name__)
 
 
 def main() -> None:
     # get from args
     server_name = None
     for i, arg in enumerate(sys.argv):
-        print(sys.argv[i])
-        print(sys.argv)
+        logger.info(sys.argv[i])
+        logger.info(sys.argv)
         if arg == "--server" and i + 1 < len(sys.argv):
             server_name = sys.argv[i + 1]
             break
@@ -24,14 +28,14 @@ def main() -> None:
 
     all_server_names = set(mcp_server_metas.keys())
     if not server_name:
-        print(
+        logger.error(
             f"Please specify the server name with --server <server_name>, "
             f"support servers are {list(all_server_names)}",
         )
         sys.exit(1)
 
     if server_name not in mcp_server_metas:
-        print(
+        logger.error(
             f"Invalid server name '{server_name}',"
             f" Available servers: {list(all_server_names)}",
         )
@@ -61,9 +65,9 @@ def main() -> None:
     # Register each component as a tool
     for component in server_meta.components:
         MCPWrapper(mcp, component).wrap(component.name, component.description)
-        print(f"Added tool: {component.name}")
+        logger.info(f"Added tool: {component.name}")
 
-    print("MCP server is running...")
+    logger.info("MCP server is running...")
 
     # get mcp transport type
     transport_type = os.getenv("TRANSPORT", "sse")
