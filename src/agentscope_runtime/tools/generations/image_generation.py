@@ -20,7 +20,7 @@ from ...engine.tracing import trace, TracingUtil
 
 class ImageGenInput(BaseModel):
     """
-    文生图Input
+    Text-to-Image Input
     """
 
     prompt: str = Field(
@@ -56,7 +56,7 @@ class ImageGenInput(BaseModel):
 
 class ImageGenOutput(BaseModel):
     """
-    文生图 Output.
+    Text-to-Image Output.
     """
 
     results: list[str] = Field(title="Results", description="输出图片url 列表")
@@ -69,7 +69,7 @@ class ImageGenOutput(BaseModel):
 
 class ImageGeneration(Tool[ImageGenInput, ImageGenOutput]):
     """
-    文生图调用.
+    Text-to-Image Call.
     """
 
     name: str = "modelstudio_image_gen"
@@ -137,16 +137,16 @@ class ImageGeneration(Tool[ImageGenInput, ImageGenOutput]):
         ):
             raise RuntimeError(f"Failed to submit task: {task_response}")
 
-        # 2. 循环异步查询任务状态
-        max_wait_time = 300  # 5分钟超时
-        poll_interval = 2  # 2秒轮询间隔
+        # 2. Loop to asynchronously query task status
+        max_wait_time = 300  # 5 minutes timeout
+        poll_interval = 2  # 2 seconds polling interval
         start_time = time.time()
 
         while True:
-            # 异步等待
+            # Asynchronous wait
             await asyncio.sleep(poll_interval)
 
-            # 查询任务结果
+            # Query task result
             res = await AioImageSynthesis.fetch(
                 api_key=api_key,
                 task=task_response,
@@ -162,7 +162,7 @@ class ImageGeneration(Tool[ImageGenInput, ImageGenOutput]):
             ):
                 raise RuntimeError(f"Failed to fetch result: {res}")
 
-            # 检查任务是否完成
+            # Check if task is completed
             if res.status_code == HTTPStatus.OK:
                 if hasattr(res.output, "task_status"):
                     if res.output.task_status == "SUCCEEDED":
@@ -170,10 +170,10 @@ class ImageGeneration(Tool[ImageGenInput, ImageGenOutput]):
                     elif res.output.task_status in ["FAILED", "CANCELED"]:
                         raise RuntimeError(f"Failed to generate: {res}")
                 else:
-                    # 如果没有task_status字段，认为已完成
+                    # If no task_status field, consider task completed
                     break
 
-            # 超时检查
+            # Timeout check
             if time.time() - start_time > max_wait_time:
                 raise TimeoutError(
                     f"Image generation timeout after {max_wait_time}s",

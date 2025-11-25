@@ -20,11 +20,11 @@ from ...engine.tracing import trace, TracingUtil
 
 class ImageGenInput(BaseModel):
     """
-    图生图Input
+    Image-to-Image Input
     """
 
     function: str = Field(
-        ...,  # 必选
+        ...,  # Required
         description="图像编辑功能。支持 "
         "stylization_all、stylization_local、description_edit"
         "、description_edit_with_mask、remove_watermark、expand"
@@ -32,7 +32,7 @@ class ImageGenInput(BaseModel):
         "、control_cartoon_feature。",
     )
     base_image_url: str = Field(
-        ...,  # 必选
+        ...,  # Required
         description="输入图像的URL地址，需为公网可访问地址，支持 HTTP 或 HTTPS "
         "协议。格式：JPG、JPEG、PNG、BMP、TIFF、WEBP，分辨率[512,"
         "4096]，大小不超过10MB。URL不能包含中文字符。",
@@ -65,7 +65,7 @@ class ImageGenInput(BaseModel):
 
 class ImageGenOutput(BaseModel):
     """
-    文生图 Output.
+    Text-to-Image Output.
     """
 
     results: list[str] = Field(title="Results", description="输出图片url 列表")
@@ -78,7 +78,7 @@ class ImageGenOutput(BaseModel):
 
 class ImageEdit(Tool[ImageGenInput, ImageGenOutput]):
     """
-    图生图调用.
+    Image-to-image Call
     """
 
     name: str = "modelstudio_image_edit"
@@ -125,8 +125,8 @@ class ImageEdit(Tool[ImageGenInput, ImageGenOutput]):
         if args.watermark is not None:
             parameters["watermark"] = args.watermark
 
-        # 🔄 使用DashScope异步任务API实现真正的并发
-        # 1. 提交异步任务
+        # 🔄 Use DashScope asynchronous task API to achieve true concurrency
+        # 1. Submit asynchronous task
         task_response = await AioImageSynthesis.async_call(
             model=model_name,
             api_key=api_key,
@@ -143,16 +143,16 @@ class ImageEdit(Tool[ImageGenInput, ImageGenOutput]):
         ):
             raise RuntimeError(f"Failed to submit task: {task_response}")
 
-        # 2. 循环异步查询任务状态
-        max_wait_time = 300  # 5分钟超时
-        poll_interval = 2  # 2秒轮询间隔
+        # 2. Loop to asynchronously query task status
+        max_wait_time = 300  # 5 minutes timeout
+        poll_interval = 2  # 2 seconds polling interval
         start_time = time.time()
 
         while True:
-            # 异步等待
+            # Asynchronous wait
             await asyncio.sleep(poll_interval)
 
-            # 查询任务结果
+            # Query task result
             res = await AioImageSynthesis.fetch(
                 api_key=api_key,
                 task=task_response,
@@ -168,7 +168,7 @@ class ImageEdit(Tool[ImageGenInput, ImageGenOutput]):
             ):
                 raise RuntimeError(f"Failed to fetch result: {res}")
 
-            # 检查任务是否完成
+            # Check if task is completed
             if res.status_code == HTTPStatus.OK:
                 if hasattr(res.output, "task_status"):
                     if res.output.task_status == "SUCCEEDED":
@@ -176,10 +176,10 @@ class ImageEdit(Tool[ImageGenInput, ImageGenOutput]):
                     elif res.output.task_status in ["FAILED", "CANCELED"]:
                         raise RuntimeError(f"Failed to generate: {res}")
                 else:
-                    # 如果没有task_status字段，认为已完成
+                    # If no task_status field, consider it completed
                     break
 
-            # 超时检查
+            # Timeout check
             if time.time() - start_time > max_wait_time:
                 raise TimeoutError(
                     f"Image editing timeout after {max_wait_time}s",

@@ -21,7 +21,7 @@ from ...engine.tracing import trace, TracingUtil
 
 class ImageStyleRepaintInput(BaseModel):
     """
-    人像风格重绘输入
+    Portrait Style Repaint Input
     """
 
     image_url: str = Field(
@@ -55,7 +55,7 @@ class ImageStyleRepaintInput(BaseModel):
 
 class ImageStyleRepaintOutput(BaseModel):
     """
-    人像风格重绘输出
+    Portrait Style Repaint Output
     """
 
     results: list[str] = Field(title="Results", description="输出图片url 列表")
@@ -70,7 +70,7 @@ class ImageStyleRepaint(
     Tool[ImageStyleRepaintInput, ImageStyleRepaintOutput],
 ):
     """
-    人像风格重绘
+    Portrait Style Repaint
     """
 
     name: str = "modelstudio_image_style_repaint"
@@ -78,7 +78,7 @@ class ImageStyleRepaint(
 
     def __init__(self, name: str = None, description: str = None):
         super().__init__(name=name, description=description)
-        # 创建线程池用于执行同步的BaseAsyncApi调用
+        # Create thread pool to execute synchronous BaseAsyncApi calls
         self._executor = ThreadPoolExecutor(
             max_workers=10,
             thread_name_prefix="StyleRepaint",
@@ -154,7 +154,8 @@ class ImageStyleRepaint(
             headers = {"X-DashScope-OssResourceResolve": "enable"}
             kwargs["headers"] = headers
 
-        # 🔄 将BaseAsyncApi.call放到线程池中执行，避免阻塞事件循环
+        # 🔄 Put BaseAsyncApi.call into thread pool to avoid blocking
+        # event loop
         def _sync_style_repaint_call() -> Any:
             input = {
                 "image_url": image_url,
@@ -172,7 +173,7 @@ class ImageStyleRepaint(
                 **kwargs,
             )
 
-        # 在线程池中异步执行同步调用
+        # Execute synchronous calls asynchronously in thread pool
         res = await asyncio.get_event_loop().run_in_executor(
             self._executor,
             _sync_style_repaint_call,
