@@ -375,5 +375,3 @@ class ModelstudioRag(Tool[RagInput, RagOutput]):
             raise RuntimeError(
                 f"get pipeline id exceptionally: {str(e)}",
             ) from e
-
-        return ""

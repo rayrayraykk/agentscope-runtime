@@ -132,8 +132,6 @@ class ModelstudioRagLite(Tool[RagInput, RagOutput]):
                 f"retrieve pipeline exceptionally: {str(e)}",
             ) from e
 
-        return {}
-
     @staticmethod
     async def generate_rag_request(
         rag_input: RagInput,

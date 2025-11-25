@@ -211,9 +211,6 @@ class AzureTtsClient(TtsClient):
         )
 
     def send_text_data(self, text: str) -> None:
-        # if self.state == RealtimeState.IDLE:
-        #     return
-
         if not text:
             return
 
