@@ -110,7 +110,7 @@ Provides shared infrastructure for realtime audio tools.
 
 ### ModelStudio ASR Example
 ```python
-from agentscope_runtime.common.tools.realtime_clients import (
+from agentscope_runtime.tools.realtime_clients import (
     ModelstudioAsrClient,
     ModelstudioAsrCallbacks,
 )
@@ -158,7 +158,7 @@ asyncio.run(asr_example())
 
 ### ModelStudio TTS Example
 ```python
-from agentscope_runtime.common.tools.realtime_clients import (
+from agentscope_runtime.tools.realtime_clients import (
     ModelstudioTtsClient,
     ModelstudioTtsCallbacks,
 )
@@ -213,11 +213,11 @@ asyncio.run(tts_example())
 
 ### Azure Speech Service Example
 ```python
-from agentscope_runtime.common.tools.realtime_clients import (
+from agentscope_runtime.tools.realtime_clients import (
     AzureAsrClient,
     AzureAsrCallbacks,
 )
-from agentscope_runtime.common.tools.realtime_clients import (
+from agentscope_runtime.tools.realtime_clients import (
     AzureTtsClient,
     AzureTtsCallbacks,
 )

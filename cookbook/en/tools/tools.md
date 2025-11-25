@@ -74,35 +74,34 @@ Use this pattern for every custom tool: define Pydantic models, extend `Tool`, i
 
 ## AgentScope Integration Example
 
-The classic “Build agent with AgentScope family” example now wraps a tool instead of the older component class. We convert the tool into an AgentScope tool via `FunctionTool`, register it on an `AgentScopeAgent`, and let the runtime handle streaming results.
+We use `tool_adapter` to add tools to AgentScope's `Toolkit`:
 
 ```python
 import asyncio
 import os
+
 from agentscope.agent import ReActAgent
 from agentscope.model import DashScopeChatModel
-from agentscope_runtime.common.tools.searches import (
+from agentscope.formatter import DashScopeChatFormatter
+from agentscope.tool import Toolkit
+from agentscope.message import Msg
+
+from agentscope_runtime.tools.searches import (
     ModelstudioSearch,
     SearchInput,
     SearchOptions,
 )
-from agentscope_runtime.engine.runner import Runner
-from agentscope_runtime.engine.agents.agentscope_agent import AgentScopeAgent
-from agentscope_runtime.engine.schemas.agent_schemas import AgentRequest
-from agentscope_runtime.engine.services.context_manager import ContextManager
-from agentscope_runtime.engine.services.environment_manager import (
-    EnvironmentManager,
-)
-from agentscope_runtime.sandbox.tools.function_tool import FunctionTool
+from agentscope_runtime.adapters.agentscope.tool import tool_adapter
 
 search_tool = ModelstudioSearch()
 
 
+@tool_adapter(description=search_tool.description)
 def modelstudio_search_tool(
     messages: list[dict],
     search_options: dict | None = None,
     search_timeout: int | None = None,
-    type: str | None = None,
+    _type: str | None = None,
 ):
     payload_kwargs = {
         "messages": messages,
@@ -110,8 +109,8 @@ def modelstudio_search_tool(
     }
     if search_timeout is not None:
         payload_kwargs["search_timeout"] = search_timeout
-    if type is not None:
-        payload_kwargs["type"] = type
+    if _type is not None:
+        payload_kwargs["type"] = _type
 
     payload = SearchInput(**payload_kwargs)
     result = search_tool.run(
@@ -121,51 +120,32 @@ def modelstudio_search_tool(
     return ModelstudioSearch.return_value_as_string(result)
 
 
-search_tool = FunctionTool(
-    func=modelstudio_search_tool,
-    name=search_tool.name,
-    description=search_tool.description,
-)
+toolkit = Toolkit()
 
-model = DashScopeChatModel(
-    "qwen-max",
-    api_key=os.environ["DASHSCOPE_API_KEY"],
-)
+toolkit.register_tool_function(modelstudio_search_tool)
 
-agent = AgentScopeAgent(
+agent = ReActAgent(
     name="Friday",
-    model=model,
-    tools=[search_tool],
-    agent_config={
-        "sys_prompt": "You are a helpful AI agent with web search access.",
-    },
-    agent_builder=ReActAgent,
+    model=DashScopeChatModel(
+        "qwen-turbo",
+        api_key=os.getenv("DASHSCOPE_API_KEY"),
+        stream=True,
+    ),
+    sys_prompt="You're a helpful assistant named Friday.",
+    toolkit=toolkit,
+    formatter=DashScopeChatFormatter(),
 )
 
-runner = Runner(
-    agent=agent,
-    context_manager=ContextManager(),
-    environment_manager=EnvironmentManager(),
-)
-
-
-async def interact():
-    request = AgentRequest(
-        input=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": "What happened in Hangzhou today?"}
-                ],
-            }
-        ],
+if __name__ == "__main__":
+    asyncio.run(
+        agent(
+            Msg(
+                role="user",
+                name="user",
+                content="What is the weather like in Shenzhen?",
+            ),
+        ),
     )
-    async for message in runner.stream_query(request=request):
-        if message.object == "message" and message.status.value == "completed":
-            print("Agent answer:", message.content[0].text)
-
-
-asyncio.run(interact())
 ```
 
 ## LangGraph Integration Example
@@ -261,7 +241,7 @@ print(final_state["messages"][-1].content)
 Each family bundles a set of related ModelStudio or partner services. Refer to the detailed cookbook pages for exhaustive parameter tables, examples, and operational notes.
 
 ### ModelStudio Search Tools
-- **Key tools**: `ModelstudioSearch`, `ModelstudioSearchLite` (`agentscope_runtime.common.tools.searches`).
+- **Key tools**: `ModelstudioSearch`, `ModelstudioSearchLite` (`agentscope_runtime.tools.searches`).
 - **When to use**: semantic/metasearch across web, news, academic, product, multimedia sources, with advanced routing, filtering, and caching. Lite version trades configurability for latency and resource savings.
 - **Usage highlights**: supply `messages` plus `search_options` dict (strategy, `max_results`, `time_range`, etc.), optionally add `search_output_rules` for citations/summaries, and read back `search_result` + `search_info`.
 - **Learn more**: see `cookbook/en/tools/modelstudio_search.md` for strategy lists, architecture diagrams, and code samples derived from `docs/zh/searches.md`.
@@ -273,13 +253,13 @@ Each family bundles a set of related ModelStudio or partner services. Refer to t
 - **Learn more**: consult `cookbook/en/tools/modelstudio_rag.md`, which summarizes the detailed behavior from `docs/en/RAGs.md`, including optimization tips (vector indexes, chunking strategies, streaming generation).
 
 ### ModelStudio AIGC (Generations) Tools
-- **Key tools**: `ImageGeneration`, `ImageEdit`, `ImageStyleRepaint` and the WAN/Qwen variants under `agentscope_runtime.common.tools.generations`.
+- **Key tools**: `ImageGeneration`, `ImageEdit`, `ImageStyleRepaint` and the WAN/Qwen variants under `agentscope_runtime.tools.generations`.
 - **When to use**: text-to-image creation, image editing (in/out-painting, replacements), and portrait style transfer with DashScope WanXiang or Qwen media models.
 - **Usage highlights**: supply prompts plus optional `size`/`n`, or provide `base_image_url` + `mask_image_url` for edits; outputs are signed asset URLs—download or proxy them promptly.
 - **Learn more**: `cookbook/en/tools/modelstudio_generations.md` mirrors `docs/en/generations.md` with environment variables, dependencies, and example event loops.
 
 ### Alipay Payment & Subscription Tools
-- **Key tools** (from `agentscope_runtime.common.tools.alipay`): `MobileAlipayPayment`, `WebPageAlipayPayment`, `AlipayPaymentQuery`, `AlipayPaymentRefund`, `AlipayRefundQuery`, `AlipaySubscribeStatusCheck`, `AlipaySubscribePackageInitialize`, `AlipaySubscribeTimesSave`, `AlipaySubscribeCheckOrInitialize`.
+- **Key tools** (from `agentscope_runtime.tools.alipay`): `MobileAlipayPayment`, `WebPageAlipayPayment`, `AlipayPaymentQuery`, `AlipayPaymentRefund`, `AlipayRefundQuery`, `AlipaySubscribeStatusCheck`, `AlipaySubscribePackageInitialize`, `AlipaySubscribeTimesSave`, `AlipaySubscribeCheckOrInitialize`.
 - **When to use**: orchestrate full payment lifecycles (link creation, status checks, refunds) and manage subscription entitlements or pay-per-use deductions inside enterprise agents.
 - **Usage highlights**: payment tools accept `out_trade_no`, `order_title`, `total_amount`; query/refund tools operate on order IDs plus optional `out_request_no`; subscription tools pivot on user `uuid` and return flags, packages, or subscription URLs.
 - **Learn more**: `cookbook/en/tools/alipay.md` (and the source `docs/en/alipay.md`) detail prerequisites, environment variables (`ALIPAY_APP_ID`, `ALIPAY_PRIVATE_KEY`, etc.), and example async flows.

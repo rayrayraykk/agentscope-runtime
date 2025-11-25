@@ -67,7 +67,7 @@
 ### 基础RAG查询示例
 
 ```python
-from agentscope_runtime.common.skills.RAGs.modelstudio_rag import ModelstudioRag
+from agentscope_runtime.tools.RAGs.modelstudio_rag import ModelstudioRag
 import asyncio
 
 # 初始化RAG组件

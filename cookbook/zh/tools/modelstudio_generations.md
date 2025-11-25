@@ -8,6 +8,7 @@
 基于文本描述生成图像的AI绘画服务。
 
 **前置使用条件：**
+
 - 需要有效的DashScope API密钥
 - 网络连接正常
 
@@ -67,7 +68,7 @@
 ## 🚀 使用示例
 
 ```python
-from agentscope_runtime.common.tools.generations.image_generation import ImageGeneration
+from agentscope_runtime.tools.generations.image_generation import ImageGeneration
 import asyncio
 
 # 初始化组件

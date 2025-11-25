@@ -68,7 +68,7 @@ Provides lightweight search functionality, suitable for quick queries and resour
 ### Basic Search Example
 
 ```python
-from agentscope_runtime.common.tools.searches import ModelstudioSearch
+from agentscope_runtime.tools.searches import ModelstudioSearch
 import asyncio
 
 # Initialize search component

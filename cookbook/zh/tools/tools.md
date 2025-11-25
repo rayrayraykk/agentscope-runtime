@@ -74,35 +74,34 @@ asyncio.run(main())
 
 ## AgentScope集成示例
 
-经典的 “Build agent with AgentScope family” 示例如今以 Tool 替代旧组件：我们通过 `FunctionTool` 将 Tool 暴露给 AgentScope Agent，并由 Runtime 处理流式结果。
+我们使用`tool_adapter`将工具添加到AgentScope的`Toolkit`中：
 
 ```python
 import asyncio
 import os
+
 from agentscope.agent import ReActAgent
 from agentscope.model import DashScopeChatModel
-from agentscope_runtime.common.tools.searches import (
+from agentscope.formatter import DashScopeChatFormatter
+from agentscope.tool import Toolkit
+from agentscope.message import Msg
+
+from agentscope_runtime.tools.searches import (
     ModelstudioSearch,
     SearchInput,
     SearchOptions,
 )
-from agentscope_runtime.engine.runner import Runner
-from agentscope_runtime.engine.agents.agentscope_agent import AgentScopeAgent
-from agentscope_runtime.engine.schemas.agent_schemas import AgentRequest
-from agentscope_runtime.engine.services.context_manager import ContextManager
-from agentscope_runtime.engine.services.environment_manager import (
-    EnvironmentManager,
-)
-from agentscope_runtime.sandbox.tools.function_tool import FunctionTool
+from agentscope_runtime.adapters.agentscope.tool import tool_adapter
 
 search_tool = ModelstudioSearch()
 
 
+@tool_adapter(description=search_tool.description)
 def modelstudio_search_tool(
     messages: list[dict],
     search_options: dict | None = None,
     search_timeout: int | None = None,
-    type: str | None = None,
+    _type: str | None = None,
 ):
     payload_kwargs = {
         "messages": messages,
@@ -110,8 +109,8 @@ def modelstudio_search_tool(
     }
     if search_timeout is not None:
         payload_kwargs["search_timeout"] = search_timeout
-    if type is not None:
-        payload_kwargs["type"] = type
+    if _type is not None:
+        payload_kwargs["type"] = _type
 
     payload = SearchInput(**payload_kwargs)
     result = search_tool.run(
@@ -121,51 +120,32 @@ def modelstudio_search_tool(
     return ModelstudioSearch.return_value_as_string(result)
 
 
-search_tool = FunctionTool(
-    func=modelstudio_search_tool,
-    name=search_tool.name,
-    description=search_tool.description,
-)
+toolkit = Toolkit()
 
-model = DashScopeChatModel(
-    "qwen-max",
-    api_key=os.environ["DASHSCOPE_API_KEY"],
-)
+toolkit.register_tool_function(modelstudio_search_tool)
 
-agent = AgentScopeAgent(
+agent = ReActAgent(
     name="Friday",
-    model=model,
-    tools=[search_tool],
-    agent_config={
-        "sys_prompt": "You are a helpful AI agent with web search access.",
-    },
-    agent_builder=ReActAgent,
+    model=DashScopeChatModel(
+        "qwen-turbo",
+        api_key=os.getenv("DASHSCOPE_API_KEY"),
+        stream=True,
+    ),
+    sys_prompt="You're a helpful assistant named Friday.",
+    toolkit=toolkit,
+    formatter=DashScopeChatFormatter(),
 )
 
-runner = Runner(
-    agent=agent,
-    context_manager=ContextManager(),
-    environment_manager=EnvironmentManager(),
-)
-
-
-async def interact():
-    request = AgentRequest(
-        input=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": "What happened in Hangzhou today?"}
-                ],
-            }
-        ],
+if __name__ == "__main__":
+    asyncio.run(
+        agent(
+            Msg(
+                role="user",
+                name="user",
+                content="What is the weather like in Shenzhen?",
+            ),
+        ),
     )
-    async for message in runner.stream_query(request=request):
-        if message.object == "message" and message.status.value == "completed":
-            print("Agent answer:", message.content[0].text)
-
-
-asyncio.run(interact())
 ```
 
 ## LangGraph 集成示例
@@ -261,13 +241,13 @@ print(final_state["messages"][-1].content)
 每个家族都封装了若干 ModelStudio 或合作伙伴服务。详细参数、示例与运维提示可在对应的 Cookbook 页面查看。
 
 ### ModelStudio Search Tools
-- **核心技能**：`ModelstudioSearch`、`ModelstudioSearchLite`（位于 `agentscope_runtime.common.tools.searches`）。
+- **核心技能**：`ModelstudioSearch`、`ModelstudioSearchLite`（位于 `agentscope_runtime.tools.searches`）。
 - **适用场景**：在 Web、新闻、学术、商品、多媒体等源上进行语义/元搜索，提供高级路由、过滤与缓存。Lite 版以更低延迟换取部分配置能力。
 - **使用提示**：传入 `messages` 与 `search_options`（策略、`max_results`、`time_range` 等），必要时添加 `search_output_rules` 输出引用或摘要；返回的 `search_result` 与 `search_info` 可直接消费。
 - **延伸阅读**：`cookbook/zh/tools/modelstudio_search.md`，包含策略列表、架构图与源自 `docs/zh/searches.md` 的示例。
 
 ### ModelStudio RAG Tools
-- **核心技能**：`ModelstudioRag`、`ModelstudioRagLite`（位于 `agentscope_runtime.common.tools.RAGs`）。
+- **核心技能**：`ModelstudioRag`、`ModelstudioRagLite`（位于 `agentscope_runtime.tools.RAGs`）。
 - **适用场景**：依托 DashScope 知识库进行致密/稀疏/混合检索，多轮上下文融合，多模态输入与带引用的生成。
 - **使用提示**：传入对话 `messages`、`rag_options`（`knowledge_base_id`、`top_k`、`score_threshold`、`enable_citation` 等）以及认证 token；输出 `rag_result.answer`、`references`、`confidence`。
 - **延伸阅读**：`cookbook/zh/tools/modelstudio_rag.md`，总结 `docs/zh/RAGs.md` 中的行为细节与优化建议（向量索引、切片策略、流式生成等）。
@@ -279,7 +259,7 @@ print(final_state["messages"][-1].content)
 - **延伸阅读**：`cookbook/zh/tools/modelstudio_generations.md`，对应 `docs/zh/generations.md`，涵盖所需环境变量、依赖与事件循环示例。
 
 ### 支付宝支付与订阅 Tools
-- **核心技能**（位于 `agentscope_runtime.common.tools.alipay`）：`MobileAlipayPayment`、`WebPageAlipayPayment`、`AlipayPaymentQuery`、`AlipayPaymentRefund`、`AlipayRefundQuery`、`AlipaySubscribeStatusCheck`、`AlipaySubscribePackageInitialize`、`AlipaySubscribeTimesSave`、`AlipaySubscribeCheckOrInitialize`。
+- **核心技能**（位于 `agentscope_runtime.tools.alipay`）：`MobileAlipayPayment`、`WebPageAlipayPayment`、`AlipayPaymentQuery`、`AlipayPaymentRefund`、`AlipayRefundQuery`、`AlipaySubscribeStatusCheck`、`AlipaySubscribePackageInitialize`、`AlipaySubscribeTimesSave`、`AlipaySubscribeCheckOrInitialize`。
 - **适用场景**：在企业 Agent 中编排完整支付生命周期（链接生成、状态查询、退款）以及订阅权益或按次扣费管理。
 - **使用提示**：支付类 Tool 接收 `out_trade_no`、`order_title`、`total_amount`；查询/退款类 Tool 主要依赖订单号与可选 `out_request_no`；订阅类 Tool 围绕用户 `uuid` 返回状态、套餐或订阅 URL。
 - **延伸阅读**：`cookbook/zh/tools/alipay.md`（以及 `docs/zh/alipay.md`），详述前置条件、环境变量（`ALIPAY_APP_ID`、`ALIPAY_PRIVATE_KEY` 等）与异步示例。

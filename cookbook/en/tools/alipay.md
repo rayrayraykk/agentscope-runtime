@@ -172,7 +172,7 @@ One-stop subscription service component that automatically checks user subscript
 ### Basic Payment Example
 
 ```python
-from agentscope_runtime.common.tools.alipay.payment import (
+from agentscope_runtime.tools.alipay.payment import (
     MobileAlipayPayment,
     WebPageAlipayPayment
 )
@@ -205,7 +205,7 @@ asyncio.run(webpage_payment_example())
 ### Transaction Management Example
 
 ```python
-from agentscope_runtime.common.tools.alipay.payment import (
+from agentscope_runtime.tools.alipay.payment import (
     AlipayPaymentQuery,
     AlipayPaymentRefund,
     AlipayRefundQuery
@@ -243,7 +243,7 @@ asyncio.run(transaction_management_example())
 ### Subscription Service Example
 
 ```python
-from agentscope_runtime.common.tools.alipay.subscribe import (
+from agentscope_runtime.tools.alipay.subscribe import (
     AlipaySubscribeStatusCheck,
     AlipaySubscribePackageInitialize,
     AlipaySubscribeTimesSave,

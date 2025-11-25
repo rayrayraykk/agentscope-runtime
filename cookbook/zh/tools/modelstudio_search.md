@@ -8,6 +8,7 @@
 核心的智能搜索服务，支持多种搜索策略和信息源。
 
 **前置使用条件：**
+
 - 有效的DashScope API密钥， **该组件目前属于要邀测阶段，请联系开发者，并提供DASHSCOPE_API_KEY**
 - 配置搜索服务策略
 - 网络连接稳定
@@ -68,7 +69,7 @@
 ### 基础搜索示例
 
 ```python
-from agentscope_runtime.common.tools.searches import ModelstudioSearch
+from agentscope_runtime.tools.searches import ModelstudioSearch
 import asyncio
 
 # 初始化搜索组件

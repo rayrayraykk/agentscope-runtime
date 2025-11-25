@@ -110,7 +110,7 @@
 
 ### 百炼ASR使用示例
 ```python
-from agentscope_runtime.common.tools.realtime_clients import (
+from agentscope_runtime.tools.realtime_clients import (
     ModelstudioAsrClient,
     ModelstudioAsrCallbacks,
 )
@@ -159,7 +159,7 @@ asyncio.run(asr_example())
 
 ### 百炼TTS使用示例
 ```python
-from agentscope_runtime.common.tools.realtime_clients import (
+from agentscope_runtime.tools.realtime_clients import (
     ModelstudioTtsClient,
     ModelstudioTtsCallbacks,
 )
@@ -214,11 +214,11 @@ asyncio.run(tts_example())
 
 ### Azure语音服务示例
 ```python
-from agentscope_runtime.common.tools.realtime_clients import (
+from agentscope_runtime.tools.realtime_clients import (
     AzureAsrClient,
     AzureAsrCallbacks,
 )
-from agentscope_runtime.common.tools.realtime_clients import (
+from agentscope_runtime.tools.realtime_clients import (
     AzureTtsClient,
     AzureTtsCallbacks,
 )
