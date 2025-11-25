@@ -38,7 +38,7 @@ These principles mirror the design motifs in the example README (modular bricks,
 ```python
 import asyncio
 from pydantic import BaseModel, Field
-from agentscope_runtime.common.tools import Tool
+from agentscope_runtime.tools import Tool
 
 
 class WeatherInput(BaseModel):
@@ -72,7 +72,7 @@ asyncio.run(main())
 
 Use this pattern for every custom tool: define Pydantic models, extend `Tool`, implement `_arun`, instantiate once, and pass the instance into whichever agent framework you use.
 
-## AgentScope Runtime Integration Example
+## AgentScope Integration Example
 
 The classic “Build agent with AgentScope family” example now wraps a tool instead of the older component class. We convert the tool into an AgentScope tool via `FunctionTool`, register it on an `AgentScopeAgent`, and let the runtime handle streaming results.
 

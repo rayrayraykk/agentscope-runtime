@@ -38,7 +38,7 @@ AgentScope Runtime 通过组件化方案，支持将API转成原子能力，供m
 ```python
 import asyncio
 from pydantic import BaseModel, Field
-from agentscope_runtime.common.tools import Tool
+from agentscope_runtime.tools import Tool
 
 
 class WeatherInput(BaseModel):
@@ -72,7 +72,7 @@ asyncio.run(main())
 
 编写自定义 Tool 时都可沿用此模板：定义 Pydantic 模型，继承 `Tool`，实现 `_arun`，在 Agent 初始化阶段实例化一次即可，并传入任意 Agent 框架。
 
-## AgentScope Runtime 集成示例
+## AgentScope集成示例
 
 经典的 “Build agent with AgentScope family” 示例如今以 Tool 替代旧组件：我们通过 `FunctionTool` 将 Tool 暴露给 AgentScope Agent，并由 Runtime 处理流式结果。
 
