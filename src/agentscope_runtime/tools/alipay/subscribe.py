@@ -21,11 +21,12 @@ from ..base import Tool
 
 logger = logging.getLogger(__name__)
 
-# 订阅计划id - 研发者在支付宝管理的订阅计划
+# Subscription plan ID - Set by developer in Alipay subscription management
 SUBSCRIBE_PLAN_ID = os.getenv("SUBSCRIBE_PLAN_ID", "")
-# 智能体名称 - 用于标识AI智能体名称
+# AI agent name - Used to identify the AI agent
 X_AGENT_NAME = os.getenv("X_AGENT_NAME", "")
-# 订阅使用次数 - 用于服务提供后扣减次数设置，不设置默认为1
+# Subscription usage count - Number of uses deducted after service, default
+# is 1 if not set
 USE_TIMES = int(os.getenv("USE_TIMES", "1"))
 
 
@@ -116,7 +117,25 @@ class SubscribeCheckOrInitializeOutput(BaseModel):
 class AlipaySubscribeStatusCheck(
     Tool[SubscribeStatusCheckInput, SubscribeStatusOutput],
 ):
-    """支付宝订阅状态检查组件
+    """
+    Alipay Subscription Status Check Component
+
+    This component checks whether the user is an active subscriber and returns
+    subscription details if valid. Information such as validity period,
+    remaining times, etc.
+
+    Features:
+    - Query subscription status of an AI agent
+    - Returns detailed membership package info
+
+    Input type: SubscribeStatusCheckInput
+    Output type: SubscribeStatusOutput
+
+    Usage scenarios:
+    - AI Agent subscription payment scenario
+
+    ---
+    支付宝订阅状态检查组件
 
     功能：
     - 判断用户是否为有效会员
@@ -142,16 +161,17 @@ class AlipaySubscribeStatusCheck(
         args: SubscribeStatusCheckInput,
         **kwargs: Any,
     ) -> SubscribeStatusOutput:
-        """检查订阅状态"""
+        """Check subscription status."""
         try:
             if not SUBSCRIBE_PLAN_ID:
                 raise ValueError(
-                    "订阅配置错误：请设置SUBSCRIBE_PLAN_ID环境变量",
+                    "Subscription configuration error: Please set the "
+                    "SUBSCRIBE_PLAN_ID environment variable",
                 )
-            # 创建支付宝客户端实例
+            # Create Alipay client instance
             alipay_client = _create_alipay_client()
 
-            # 创建订阅状态检查请求
+            # Create subscription status check request
             request = AlipayAipaySubscribeStatusCheckRequest()
             biz_content = {
                 "uuid": args.uuid,
@@ -174,14 +194,16 @@ class AlipaySubscribeStatusCheck(
                     package_type = info.subscribe_package_type
 
                     if package_type == "byCount":
-                        # 计次套餐：订阅X次，还剩Y次
+                        # Count-based subscription: subscribed X times,
+                        # Y times remaining
                         total_times = info.subscribe_times
                         left_times = info.left_times
                         subscribe_package_desc = (
                             f"订阅{total_times}次，还剩{left_times}次"
                         )
                     elif package_type == "byTime":
-                        # 时间期限套餐：过期时间后过期
+                        # Time-based subscription: expires after expiration
+                        # date
                         expired_date = info.expired_date
                         subscribe_package_desc = f"{expired_date}后过期"
                 return SubscribeStatusOutput(
@@ -190,7 +212,7 @@ class AlipaySubscribeStatusCheck(
                 )
             else:
                 error_msg = (
-                    f"订阅校验API返回错误: "
+                    f"Subscription check API returned an error: "
                     f"{response.sub_code or response.code} - "
                     f"{response.sub_msg or response.msg}"
                 )
@@ -202,14 +224,15 @@ class AlipaySubscribeStatusCheck(
 
         except ImportError:
             logger.error(
-                "请安装官方支付宝SDK: pip install alipay-sdk-python",
+                "Please install the official Alipay SDK: pip install "
+                "alipay-sdk-python",
             )
             return SubscribeStatusOutput(
                 subscribe_flag=False,
                 subscribe_package=None,
             )
         except Exception as e:
-            logger.error(f"检查订阅状态失败: {str(e)}")
+            logger.error(f"Failed to check subscription status: {str(e)}")
             return SubscribeStatusOutput(
                 subscribe_flag=False,
                 subscribe_package=None,
@@ -222,7 +245,23 @@ class AlipaySubscribePackageInitialize(
         SubscribePackageInitializeOutput,
     ],
 ):
-    """支付宝订阅开通组件
+    """
+    Alipay Subscription Package Initialize Component
+
+    This component returns a purchase link for the subscription package
+    along with pricing configuration info.
+
+    Features:
+    - AI Agent subscription initialization
+
+    Input type: SubscribePackageInitializeInput
+    Output type: SubscribePackageInitializeOutput
+
+    Usage scenarios:
+    - AI Agent subscription payment scenario
+
+    ---
+    支付宝订阅开通组件
 
     功能：
     - 返回订阅套餐的购买链接
@@ -247,16 +286,17 @@ class AlipaySubscribePackageInitialize(
         args: SubscribePackageInitializeInput,
         **kwargs: Any,
     ) -> SubscribePackageInitializeOutput:
-        """发起订阅服务"""
+        """Initialize subscription package."""
         try:
             if not SUBSCRIBE_PLAN_ID or not X_AGENT_NAME:
                 raise ValueError(
-                    "订阅配置错误：请设置SUBSCRIBE_PLAN_ID,X_AGENT_NAME环境变量",
+                    "Subscription config error: set SUBSCRIBE_PLAN_ID and "
+                    "X_AGENT_NAME env variables.",
                 )
-            # 创建支付宝客户端实例
+            # Create Alipay client instance
             alipay_client = _create_alipay_client()
 
-            # 创建订阅状态检查请求
+            # Create subscription initialize request
             request = AlipayAipaySubscribePackageInitializeRequest()
             biz_content = {
                 "uuid": args.uuid,
@@ -274,7 +314,7 @@ class AlipaySubscribePackageInitialize(
                 )
             else:
                 error_msg = (
-                    f"订阅初始化API返回错误: "
+                    f"Subscription init API error:: "
                     f"{response.sub_code or response.code} - "
                     f"{response.sub_msg or response.msg}"
                 )
@@ -283,11 +323,11 @@ class AlipaySubscribePackageInitialize(
 
         except ImportError:
             logger.error(
-                "请安装官方支付宝SDK: pip install alipay-sdk-python",
+                "Alipay SDK not installed: pip install alipay-sdk-python",
             )
             return SubscribePackageInitializeOutput(subscribe_url=None)
         except Exception as e:
-            logger.error(f"发起订阅状态失败: {str(e)}")
+            logger.error(f"Subscription init failed: {str(e)}")
             return SubscribePackageInitializeOutput(subscribe_url=None)
 
 
@@ -297,7 +337,23 @@ class AlipaySubscribeTimesSave(
         SubscribeTimesSaveOutput,
     ],
 ):
-    """支付宝订阅计次组件
+    """
+    Alipay Subscription Times Save Component
+
+    This component records the usage count for count-based subscription
+    billing models.
+
+    Features:
+    - AI Agent subscription usage count tracking
+
+    Input type: SubscribeTimesSaveInput
+    Output type: SubscribeTimesSaveOutput
+
+    Usage scenarios:
+    - Count-based subscription scenario
+
+    ---
+    支付宝订阅计次组件
 
     功能：
     - 针对按次付费的计费模式，记录会员用户消耗的使用次数。
@@ -321,16 +377,17 @@ class AlipaySubscribeTimesSave(
         args: SubscribeTimesSaveInput,
         **kwargs: Any,
     ) -> SubscribeTimesSaveOutput:
-        """发起订阅计次服务"""
+        """Save subscription usage times."""
         try:
             if not SUBSCRIBE_PLAN_ID:
                 raise ValueError(
-                    "订阅配置错误：请设置SUBSCRIBE_PLAN_ID环境变量",
+                    "Subscription configuration error: Please set the "
+                    "SUBSCRIBE_PLAN_ID environment variable",
                 )
-            # 创建支付宝客户端实例
+            # Create Alipay client instance
             alipay_client = _create_alipay_client()
 
-            # 创建订阅状态检查请求
+            # Create subscription times save request
             request = AlipayAipaySubscribeTimesSaveRequest()
             biz_content = {
                 "uuid": args.uuid,
@@ -349,7 +406,7 @@ class AlipaySubscribeTimesSave(
                 )
             else:
                 error_msg = (
-                    f"订阅计次API返回错误: "
+                    f"Times save API error:"
                     f"{response.sub_code or response.code} - "
                     f"{response.sub_msg or response.msg}"
                 )
@@ -358,11 +415,11 @@ class AlipaySubscribeTimesSave(
 
         except ImportError:
             logger.error(
-                "请安装官方支付宝SDK: pip install alipay-sdk-python",
+                "Alipay SDK not installed: pip install alipay-sdk-python",
             )
             return SubscribeTimesSaveOutput(success=False)
         except Exception as e:
-            logger.error(f"发起订阅计次失败: {str(e)}")
+            logger.error(f"Subscription times save failed: {str(e)}")
             return SubscribeTimesSaveOutput(success=False)
 
 
@@ -372,7 +429,24 @@ class AlipaySubscribeCheckOrInitialize(
         SubscribeCheckOrInitializeOutput,
     ],
 ):
-    """支付宝订阅检查或初始化组件
+    """
+    Alipay Subscription Check or Initialize Component
+
+    This component checks subscription status for count-based billing mode
+    and initializes subscription if not already active.
+
+    Features:
+    - Verify user subscription status and return state if active
+    - If not active, return subscription link
+
+    Input type: SubscribeCheckOrInitializeInput
+    Output type: SubscribeCheckOrInitializeOutput
+
+    Usage scenarios:
+    - Count-based subscription validation or initialization
+
+    ---
+    支付宝订阅检查或初始化组件
 
     功能：
     - 针对按次付费的计费模式，进行订阅状态检查或初始化。
@@ -396,13 +470,14 @@ class AlipaySubscribeCheckOrInitialize(
         args: SubscribeCheckOrInitializeInput,
         **kwargs: Any,
     ) -> SubscribeCheckOrInitializeOutput:
-        """检查订阅状态或初始化订阅"""
+        """Check subscription status or initialize if not subscribed."""
         try:
             if not SUBSCRIBE_PLAN_ID or not X_AGENT_NAME:
                 raise ValueError(
-                    "订阅配置错误：请设置SUBSCRIBE_PLAN_ID,X_AGENT_NAME环境变量",
+                    "Subscription config error: set SUBSCRIBE_PLAN_ID and "
+                    "X_AGENT_NAME env variables.",
                 )
-            # 先检查订阅状态
+            # First, check subscription status
             status_check = AlipaySubscribeStatusCheck()
             status_input = SubscribeStatusCheckInput(
                 uuid=args.uuid,
@@ -411,14 +486,14 @@ class AlipaySubscribeCheckOrInitialize(
             )
             status_output = await status_check._arun(status_input)
 
-            # 如果检查成功且用户已订阅，直接返回状态
+            # If subscribed, return status
             if status_output.subscribe_flag:
                 return SubscribeCheckOrInitializeOutput(
                     subscribe_flag=True,
                     subscribe_url=None,
                 )
 
-            # 如果未订阅，获取订阅链接
+            # If not subscribed, initialize
             init_component = AlipaySubscribePackageInitialize()
             init_input = SubscribePackageInitializeInput(
                 uuid=args.uuid,
@@ -435,14 +510,14 @@ class AlipaySubscribeCheckOrInitialize(
 
         except ImportError:
             logger.error(
-                "请安装官方支付宝SDK: pip install alipay-sdk-python",
+                "Alipay SDK not installed: pip install alipay-sdk-python",
             )
             return SubscribeCheckOrInitializeOutput(
                 subscribe_flag=False,
                 subscribe_url=None,
             )
         except Exception as e:
-            logger.error(f"检查订阅状态或初始化订阅: {str(e)}")
+            logger.error(f"Subscription check or init failed: {str(e)}")
             return SubscribeCheckOrInitializeOutput(
                 subscribe_flag=False,
                 subscribe_url=None,

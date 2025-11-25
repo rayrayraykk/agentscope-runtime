@@ -123,6 +123,27 @@ class PaymentOutput(BaseModel):
 
 class MobileAlipayPayment(Tool[MobilePaymentInput, PaymentOutput]):
     """
+    Mobile Alipay Payment Component
+
+    This component is used to create Alipay payment orders suitable for
+    mobile clients. The generated payment link can be opened in a mobile
+    browser to redirect users to the Alipay application for payment or
+    complete payment directly in the browser.
+
+    Key features:
+    - Suitable for mobile websites and mobile applications
+    - Supports in-app payment and in-browser payment via Alipay
+    - Uses the QUICK_WAP_WAY product code
+    - Returns a ready-to-use payment link
+
+    Input type: MobilePaymentInput
+    Output type: PaymentOutput
+
+    Usage scenarios:
+    - Mobile website payment
+    - Embedded mobile App payment
+
+    ---
     手机端支付宝支付组件
 
     该组件用于创建适合手机端的支付宝支付订单。生成的支付链接可以在手机浏览器中打开，
@@ -155,6 +176,29 @@ class MobileAlipayPayment(Tool[MobilePaymentInput, PaymentOutput]):
         **kwargs: Any,
     ) -> PaymentOutput:
         """
+        Create a mobile Alipay payment order.
+
+        This method is used to create an Alipay payment order suitable for
+        mobile browsers. The generated payment link can be opened in a
+        mobile browser, and the user can complete the payment either in the
+        Alipay app or within the browser.
+
+        Args:
+            args (MobilePaymentInput): Object containing payment parameters
+                - out_trade_no: Merchant order number
+                - order_title: Order title
+                - total_amount: Payment amount (in yuan)
+            **kwargs: Additional keyword arguments
+
+        Returns:
+            PaymentOutput: Markdown text output containing the payment link
+
+        Raises:
+            ValueError: If configuration parameters are incorrect
+            ImportError: If Alipay SDK is not available
+            Exception: For any other error during order creation
+
+        ---
         创建手机支付宝支付订单
 
         该方法用于创建适用于手机浏览器的支付宝支付订单。生成的支付链接可以在手机浏览器中
@@ -176,33 +220,31 @@ class MobileAlipayPayment(Tool[MobilePaymentInput, PaymentOutput]):
             Exception: 当创建订单过程中发生其他错误时
         """
         try:
-            # 创建支付宝客户端实例
+            # Create an Alipay client instance
             alipay_client = _create_alipay_client()
 
-            # 创建手机网站支付模型并设置参数
+            # Create the mobile payment model and set parameters
             model = AlipayTradeWapPayModel()
-            model.out_trade_no = args.out_trade_no  # 商户订单号
-            model.total_amount = str(
-                args.total_amount,
-            )  # 支付金额（转换为字符串）
-            model.subject = args.order_title  # 订单标题
-            model.product_code = "QUICK_WAP_WAY"  # 产品码，固定值
+            model.out_trade_no = args.out_trade_no  # Merchant order number
+            model.total_amount = str(args.total_amount)  # Amount as string
+            model.subject = args.order_title  # Order title
+            model.product_code = "QUICK_WAP_WAY"  # Fixed product code
 
-            # 使用自定义的扩展参数类
+            # Use custom extend parameters
             extend_params = AgentExtendParams()
             extend_params.request_channel_source = X_AGENT_CHANNEL
             model.extend_params = extend_params
 
-            # 创建手机网站支付请求
+            # Create the mobile payment request
             request = AlipayTradeWapPayRequest(biz_model=model)
 
-            # 设置回调地址（如果配置了环境变量）
+            # Set callback URL if configured
             if AP_RETURN_URL:
                 request.return_url = AP_RETURN_URL
             if AP_NOTIFY_URL:
                 request.notify_url = AP_NOTIFY_URL
 
-            # 执行请求获取支付链接
+            # Execute the request to get the payment link
             response = alipay_client.page_execute(request, http_method="GET")
             return PaymentOutput(
                 result=f"支付链接: [点击完成支付]({response})",
@@ -308,18 +350,42 @@ class WebPageAlipayPayment(Tool[WebPagePaymentInput, PaymentOutput]):
             )
 
         except (ValueError, ImportError) as e:
-            # 配置或SDK错误，直接抛出
-            logger.error(f"网页支付配置或SDK错误: {str(e)}")
+            # Configuration or SDK error
+            logger.error(
+                f"Mobile payment configuration or SDK error: {str(e)}",
+            )
             raise
         except Exception as e:
-            # 其他异常，包装后抛出
-            error_msg = f"创建网页支付订单失败: {str(e)}"
-            logger.error(f"网页支付执行异常: {error_msg}")
+            # Wrap and raise other exceptions
+            error_msg = f"Failed to create mobile payment order: {str(e)}"
+            logger.error(f"Mobile payment execution exception: {error_msg}")
             raise RuntimeError(error_msg) from e
 
 
 class AlipayPaymentQuery(Tool[PaymentQueryInput, PaymentOutput]):
     """
+    Alipay Transaction Query Component
+
+    This component is used to query the current status of an existing
+    Alipay transaction order. It can obtain the payment status, transaction
+    amount, Alipay transaction number, and other details.
+
+    Key features:
+    - Supports querying by merchant order number
+    - Returns detailed transaction status information
+    - Supports real-time queries
+    - Includes error handling and logging
+
+    Input type: PaymentQueryInput
+    Output type: PaymentOutput
+
+    Usage scenarios:
+    - Query payment status of an order
+    - Verify payment results
+    - Synchronize order status
+    - Confirm status after payment failure
+
+    ---
     支付宝交易查询组件
 
     该组件用于查询已创建的支付宝交易订单的当前状态。可以获取订单的支付状态、
@@ -350,6 +416,25 @@ class AlipayPaymentQuery(Tool[PaymentQueryInput, PaymentOutput]):
         **kwargs: Any,
     ) -> PaymentOutput:
         """
+        Query Alipay transaction order status.
+
+        This method queries an existing Alipay order's current status,
+        including payment status, amount, and Alipay transaction number.
+
+        Args:
+            args (PaymentQueryInput): Object containing query parameters
+                - out_trade_no: Merchant order number
+            **kwargs: Additional keyword arguments
+
+        Returns:
+            PaymentOutput: Text output containing query result information
+
+        Raises:
+            ValueError: If configuration parameters are incorrect
+            ImportError: If Alipay SDK is unavailable
+            Exception: For any other query errors
+
+        ---
         查询支付宝交易订单状态
 
         该方法用于查询已创建的支付宝交易订单的当前状态，包括交易状态、金额、
@@ -369,52 +454,73 @@ class AlipayPaymentQuery(Tool[PaymentQueryInput, PaymentOutput]):
             Exception: 当查询过程中发生其他错误时
         """
         try:
-            # 创建支付宝客户端实例
+            # Create an Alipay client instance
             alipay_client = _create_alipay_client()
 
-            # 创建交易查询模型并设置参数
+            # Create transaction query model
             model = AlipayTradeQueryModel()
-            model.out_trade_no = args.out_trade_no  # 商户订单号
+            model.out_trade_no = args.out_trade_no  # Merchant order number
 
-            # 使用自定义的扩展参数类
+            # Set custom extended parameters
             extend_params = AgentExtendParams()
             extend_params.request_channel_source = X_AGENT_CHANNEL
             model.extend_params = extend_params
 
-            # 创建交易查询请求
+            # Create transaction query request
             request = AlipayTradeQueryRequest(biz_model=model)
 
-            # 执行查询请求
+            # Execute query request
             response_content = alipay_client.execute(request)
             response = AlipayTradeQueryResponse()
             response.parse_response_content(response_content)
 
-            # 处理响应结果
-            if response.is_success():  # 查询成功
+            # Handle response results
+            if response.is_success():  # Query success
                 result = (
                     f"交易状态: {response.trade_status}, "
                     f"交易金额: {response.total_amount}, "
                     f"支付宝交易号: {response.trade_no}"
                 )
                 return PaymentOutput(result=result)
-            else:  # 查询失败
+            else:  # Query failed
                 return PaymentOutput(
                     result=f"交易查询失败. 错误信息: {response.msg}",
                 )
 
         except (ValueError, ImportError) as e:
-            # 配置或SDK错误，直接抛出
-            logger.error(f"订单查询配置或SDK错误: {str(e)}")
+            # Configuration or SDK error
+            logger.error(f"Order query configuration or SDK error: {str(e)}")
             raise
         except Exception as e:
-            # 其他异常，包装后抛出
-            error_msg = f"查询订单失败: {str(e)}"
-            logger.error(f"订单查询执行异常: {error_msg}")
+            # Other exceptions with wrapped error message
+            error_msg = f"Order query failed: {str(e)}"
+            logger.error(f"Order query execution exception: {error_msg}")
             raise RuntimeError(error_msg) from e
 
 
 class AlipayPaymentRefund(Tool[PaymentRefundInput, PaymentOutput]):
     """
+    Alipay Transaction Refund Component
+
+    This component initiates a refund request for a successfully paid
+    Alipay transaction. It supports full and partial refunds as well as
+    custom refund reasons.
+
+    Key features:
+    - Supports full and partial refunds
+    - Allows specifying refund reasons
+    - Idempotent refund requests when repeated
+
+    Input type: PaymentRefundInput
+    Output type: PaymentOutput
+
+    Usage scenarios:
+    - Customer-initiated refund
+    - Order cancellation refund
+    - After-sales refund processing
+    - System-initiated automatic refund
+
+    ---
     支付宝交易退款组件
 
     该组件用于对已成功支付的订单发起退款申请。支持全额退款和部分退款，
@@ -443,6 +549,30 @@ class AlipayPaymentRefund(Tool[PaymentRefundInput, PaymentOutput]):
         **kwargs: Any,
     ) -> PaymentOutput:
         """
+        Initiate a refund request for an Alipay transaction.
+
+        This method initiates a refund request for an already paid Alipay
+        order. It supports both partial and full refunds, allows specifying
+        refund reason, and uses an idempotency key.
+
+        Args:
+            args (PaymentRefundInput): Object containing refund parameters
+                - out_trade_no: Merchant order number
+                - refund_amount: Refund amount (yuan)
+                - refund_reason: Refund reason (optional)
+                - out_request_no: Refund request number (optional;
+                    generated if not provided)
+            **kwargs: Additional keyword arguments
+
+        Returns:
+            PaymentOutput: Text output containing refund result
+
+        Raises:
+            ValueError: If configuration parameters are incorrect
+            ImportError: If Alipay SDK is unavailable
+            Exception: For any other refund errors
+
+        ---
         对支付宝交易订单发起退款
 
         该方法用于对已成功支付的订单发起退款申请。支持部分退款和全额退款，
@@ -470,25 +600,25 @@ class AlipayPaymentRefund(Tool[PaymentRefundInput, PaymentOutput]):
             out_request_no = f"{args.out_trade_no}_refund_{timestamp}"
 
         try:
-            # 创建支付宝客户端
+            # Create an Alipay client instance
             alipay_client = _create_alipay_client()
 
-            # 创建退款模型
+            # Create refund model
             model = AlipayTradeRefundModel()
             model.out_trade_no = args.out_trade_no
             model.refund_amount = str(args.refund_amount)
             model.refund_reason = args.refund_reason
             model.out_request_no = out_request_no
 
-            # 使用自定义的扩展参数类
+            # Set custom extended parameters
             extend_params = AgentExtendParams()
             extend_params.request_channel_source = X_AGENT_CHANNEL
             model.extend_params = extend_params
 
-            # 创建退款请求
+            # Create refund request
             request = AlipayTradeRefundRequest(biz_model=model)
 
-            # 执行请求
+            # Execute refund request
             response_content = alipay_client.execute(request)
             response = AlipayTradeRefundResponse()
             response.parse_response_content(response_content)
@@ -505,16 +635,37 @@ class AlipayPaymentRefund(Tool[PaymentRefundInput, PaymentOutput]):
                 )
 
         except (ValueError, ImportError) as e:
-            logger.error(f"退款配置或SDK错误: {str(e)}")
+            # Configuration or SDK error
+            logger.error(f"Refund configuration or SDK error: {str(e)}")
             raise
         except Exception as e:
-            error_msg = f"退款失败: {str(e)}"
-            logger.error(f"退款执行异常: {error_msg}")
+            # Other exceptions with wrapped error message
+            error_msg = f"Refund failed: {str(e)}"
+            logger.error(f"Refund execution exception: {error_msg}")
             raise RuntimeError(error_msg) from e
 
 
 class AlipayRefundQuery(Tool[RefundQueryInput, PaymentOutput]):
     """
+    Alipay Refund Query Component
+
+    This component queries the current status of a refund request that has
+    been initiated. It can determine if the refund was successful, refund
+    amount, and refund status.
+
+    Key features:
+    - Supports querying by merchant order number and refund request number
+    - Returns detailed refund status information
+
+    Input type: RefundQueryInput
+    Output type: PaymentOutput
+
+    Usage scenarios:
+    - Query refund processing status
+    - Verify refund results
+    - Customer support inquiries
+
+    ---
     支付宝退款查询组件
 
     该组件用于查询已发起的退款申请的当前状态。可以获取退款是否成功、
@@ -542,6 +693,27 @@ class AlipayRefundQuery(Tool[RefundQueryInput, PaymentOutput]):
         **kwargs: Any,
     ) -> PaymentOutput:
         """
+        Query Alipay refund status.
+
+        This method queries the current status of a refund request,
+        including whether it was successful, the refunded amount,
+        and refund status code.
+
+        Args:
+            args (RefundQueryInput): Object containing query parameters
+                - out_trade_no: Merchant order number
+                - out_request_no: Refund request number
+            **kwargs: Additional keyword arguments
+
+        Returns:
+            PaymentOutput: Text output containing refund status result
+
+        Raises:
+            ValueError: If configuration parameters are incorrect
+            ImportError: If Alipay SDK is unavailable
+            Exception: For any other query errors
+
+        ---
         查询支付宝退款状态
 
         该方法用于查询已发起的退款申请的当前状态，包括退款是否成功、
@@ -562,53 +734,56 @@ class AlipayRefundQuery(Tool[RefundQueryInput, PaymentOutput]):
             Exception: 当查询过程中发生其他错误时
         """
         try:
-            # 创建支付宝客户端实例
+            # Create an Alipay client instance
             alipay_client = _create_alipay_client()
 
-            # 创建快捷支付退款查询模型并设置参数
+            # Create fastpay refund query model
             model = AlipayTradeFastpayRefundQueryModel()
-            model.out_trade_no = args.out_trade_no  # 商户订单号
-            model.out_request_no = args.out_request_no  # 退款请求号
+            model.out_trade_no = args.out_trade_no  # Merchant order number
+            model.out_request_no = args.out_request_no  # Refund request number
 
-            # 使用自定义的扩展参数类
+            # Set custom extended parameters
             extend_params = AgentExtendParams()
             extend_params.request_channel_source = X_AGENT_CHANNEL
             model.extend_params = extend_params
 
-            # 创建快捷支付退款查询请求
+            # Create refund query request
             request = AlipayTradeFastpayRefundQueryRequest(biz_model=model)
 
-            # 执行退款查询请求
+            # Execute refund query
             response_content = alipay_client.execute(request)
             response = AlipayTradeFastpayRefundQueryResponse()
             response.parse_response_content(response_content)
 
-            # 处理响应结果
-            if response.is_success():  # 查询成功
-                if response.refund_status == "REFUND_SUCCESS":  # 退款成功
+            # Process response
+            if response.is_success():  # Query success
+                if response.refund_status == "REFUND_SUCCESS":
+                    # Refund succeeded
                     result = (
                         f"查询到退款成功, 退款交易: {response.trade_no}, "
                         f"退款金额: {response.refund_amount}, "
                         f"退款状态: {response.refund_status}"
                     )
                     return PaymentOutput(result=result)
-                else:  # 退款未成功或其他状态
+                else:
+                    # Refund not successful
                     return PaymentOutput(
                         result=(
                             f"未查询到退款成功. " f"退款状态: {response.refund_status}"
                         ),
                     )
-            else:  # 查询失败
+            else:
+                # Query failed
                 return PaymentOutput(
                     result=f"退款查询失败. 错误信息: {response.msg}",
                 )
 
         except (ValueError, ImportError) as e:
-            # 配置或SDK错误，直接抛出
-            logger.error(f"退款查询配置或SDK错误: {str(e)}")
+            # Configuration or SDK error
+            logger.error(f"Refund query configuration or SDK error: {str(e)}")
             raise
         except Exception as e:
-            # 其他异常，包装后抛出
-            error_msg = f"退款查询失败: {str(e)}"
-            logger.error(f"退款查询执行异常: {error_msg}")
+            # Other exceptions with wrapped error message
+            error_msg = f"Refund query failed: {str(e)}"
+            logger.error(f"Refund query execution exception: {error_msg}")
             raise RuntimeError(error_msg) from e
