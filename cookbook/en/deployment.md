@@ -14,7 +14,7 @@ Most deployments follow these stages:
 
 1. **Preparation**: Install Runtime, provision models and tools, and configure environment variables plus credentials.
 2. **Core services**: Spin up the required services such as memory, session history, sandbox, and state.
-3. **Agent App definition**: Use the `agent_app` module to orchestrate roles, tools, and state machines into a deployable entry point.
+3. **Agent App definition**: Use the `AgentApp` module to orchestrate Agent, tools, and workflow into a deployable entry point.
 4. **Run and observe**: Launch Runtime locally, in containers, or on Kubernetes, then wire up health probes, logs, and tracing.
 5. **Upgrade and scale**: Rely on advanced deployment patterns and React Agent capabilities for multi-region setups, hybrid orchestration, or UI integrations.
 

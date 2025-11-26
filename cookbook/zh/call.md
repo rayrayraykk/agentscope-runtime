@@ -1,4 +1,4 @@
-# 服务调用
+# 智能体应用API调用
 
 当 `AgentApp` 成功部署并监听 `127.0.0.1:8090` 后，可以通过流式接口和 OpenAI 兼容接口完成推理调用。
 
@@ -28,7 +28,7 @@
 ```
 
 - `input` 遵循 Agentscope 消息格式，可包含多条消息及富媒体内容。
-- `session_id` 用于让 `InMemoryStateService` / `InMemorySessionHistoryService` 记录上下文，支持多轮记忆。
+- `session_id` 用于让 `StateService` / `SessionHistoryService` 等服务记录上下文，支持多轮记忆以及智能体状态持久化。
 - `user_id` 默认可缺省，如需统计不同账号可自行传入。
 
 ### 解析流式响应
@@ -54,12 +54,88 @@ async with session.post(url, json=payload) as resp:
 
 ### 多轮对话示例
 
-`test_multi_turn_stream_async` 展示了如何在多次请求中复用 `session_id`，实现“记住用户姓名”等效果：
+下面的例子展示了如何在多次请求中复用 `session_id`，实现“记住用户姓名”等效果：
 
 1. 第一次调用：`"My name is Alice."`
 2. 第二次调用：`"What is my name?"`
 
 SSE 输出中会包含 “Alice”，表明状态与会话历史已经生效。
+
+```python
+session_id = "123456"
+
+url = f"http://localhost:{PORT}/process"
+
+async with aiohttp.ClientSession() as session:
+    payload1 = {
+        "input": [
+            {
+                "role": "user",
+                "content": [{"type": "text", "text": "My name is Alice."}],
+            },
+        ],
+        "session_id": session_id,
+    }
+    async with session.post(url, json=payload1) as resp:
+        assert resp.status == 200
+        assert resp.headers.get("Content-Type", "").startswith(
+            "text/event-stream",
+        )
+        async for chunk, _ in resp.content.iter_chunks():
+            if not chunk:
+                continue
+            line = chunk.decode("utf-8").strip()
+            if (
+                line.startswith("data:")
+                and line[len("data:") :].strip() == "[DONE]"
+            ):
+                break
+
+payload2 = {
+    "input": [
+        {
+            "role": "user",
+            "content": [{"type": "text", "text": "What is my name?"}],
+        },
+    ],
+    "session_id": session_id,
+}
+
+async with aiohttp.ClientSession() as session:
+    async with session.post(url, json=payload2) as resp:
+        assert resp.status == 200
+        assert resp.headers.get("Content-Type", "").startswith(
+            "text/event-stream",
+        )
+
+        found_name = False
+
+        async for chunk, _ in resp.content.iter_chunks():
+            if not chunk:
+                continue
+            line = chunk.decode("utf-8").strip()
+            if line.startswith("data:"):
+                data_str = line[len("data:") :].strip()
+                if data_str == "[DONE]":
+                    break
+                try:
+                    event = json.loads(data_str)
+                except json.JSONDecodeError:
+                    continue
+
+                if "output" in event:
+                    try:
+                        text_content = event["output"][0]["content"][0][
+                            "text"
+                        ].lower()
+                        if "alice" in text_content:
+                            found_name = True
+                    except Exception:
+                        pass
+
+        assert found_name, "Did not find 'Alice' in the second turn output"
+
+```
 
 ## `/compatible-mode/v1/responses`：OpenAI 兼容接口
 

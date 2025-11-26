@@ -1,4 +1,4 @@
-# Service Invocation
+# AgentApp API Invocation
 
 Once an `AgentApp` is deployed and listening on `127.0.0.1:8090`, you can issue inference calls via the streaming endpoint or the OpenAI-compatible endpoint.
 
@@ -28,7 +28,7 @@ Once an `AgentApp` is deployed and listening on `127.0.0.1:8090`, you can issue 
 ```
 
 - `input` follows the Agentscope message schema and can hold multiple messages and rich content.
-- `session_id` allows `InMemoryStateService` / `InMemorySessionHistoryService` to retain context for multi-turn memory.
+- `session_id` is used to enable services like `StateService` and `SessionHistoryService` to record context, support multi‑turn memory, and persist the agent’s state.
 - `user_id` defaults to empty; supply it if you need per-account accounting.
 
 ### Parsing the Stream
@@ -54,12 +54,86 @@ async with session.post(url, json=payload) as resp:
 
 ### Multi-turn Example
 
-`test_multi_turn_stream_async` shows how reusing the same `session_id` across calls enables continuity such as “remember my name”:
+The following example shows how to reuse `session_id` across multiple requests to achieve effects such as “remembering the user’s name.”
 
 1. First call: `"My name is Alice."`
 2. Second call: `"What is my name?"`
 
 The SSE stream will mention “Alice”, confirming that session state is in effect.
+
+```python
+session_id = "123456"
+
+async with aiohttp.ClientSession() as session:
+    payload1 = {
+        "input": [
+            {
+                "role": "user",
+                "content": [{"type": "text", "text": "My name is Alice."}],
+            },
+        ],
+        "session_id": session_id,
+    }
+    async with session.post(url, json=payload1) as resp:
+        assert resp.status == 200
+        assert resp.headers.get("Content-Type", "").startswith(
+            "text/event-stream",
+        )
+        async for chunk, _ in resp.content.iter_chunks():
+            if not chunk:
+                continue
+            line = chunk.decode("utf-8").strip()
+            if (
+                line.startswith("data:")
+                and line[len("data:") :].strip() == "[DONE]"
+            ):
+                break
+
+payload2 = {
+    "input": [
+        {
+            "role": "user",
+            "content": [{"type": "text", "text": "What is my name?"}],
+        },
+    ],
+    "session_id": session_id,
+}
+
+async with aiohttp.ClientSession() as session:
+    async with session.post(url, json=payload2) as resp:
+        assert resp.status == 200
+        assert resp.headers.get("Content-Type", "").startswith(
+            "text/event-stream",
+        )
+
+        found_name = False
+
+        async for chunk, _ in resp.content.iter_chunks():
+            if not chunk:
+                continue
+            line = chunk.decode("utf-8").strip()
+            if line.startswith("data:"):
+                data_str = line[len("data:") :].strip()
+                if data_str == "[DONE]":
+                    break
+                try:
+                    event = json.loads(data_str)
+                except json.JSONDecodeError:
+                    continue
+
+                if "output" in event:
+                    try:
+                        text_content = event["output"][0]["content"][0][
+                            "text"
+                        ].lower()
+                        if "alice" in text_content:
+                            found_name = True
+                    except Exception:
+                        pass
+
+        assert found_name, "Did not find 'Alice' in the second turn output"
+
+```
 
 ## `/compatible-mode/v1/responses`: OpenAI-Compatible Endpoint
 
