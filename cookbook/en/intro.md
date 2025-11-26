@@ -32,6 +32,8 @@ At the same time, the way agents integrate with runtime services has evolved fro
 - **Richer built-in tools** — Production-ready modules for Search, RAG, AIGC, Payment, and more
 - **Flexible deployment modes** — Local threads/processes, Docker, Kubernetes, or hosted cloud
 
+For more detailed change descriptions and the migration guide, please refer to: [CHANGELOG](CHANGELOG.md)
+
 ## What is AgentScope Runtime?
 
 **AgentScope Runtime** is a full-stack agent runtime that tackles two core challenges: **efficient agent deployment** and **secure sandbox execution**. It ships with foundational services such as short- and long-term memory plus agent state persistence, along with hardened sandbox infrastructure. Whether you need to orchestrate production-grade agents or guarantee safe tool interactions, AgentScope Runtime provides developer-friendly workflows with complete observability.
@@ -55,6 +57,7 @@ Secure, isolated environments that let agents execute code, control browsers, ma
 Built on trusted third‑party API capabilities (such as Search, RAG, AIGC, Payment, etc.), these services are exposed through a unified SDK that provides standardized call interfaces, enabling agents to integrate and utilize these capabilities in a consistent way without worrying about differences or complexities in the underlying APIs.
 
 **🔌 Adapter Pattern (Adapter)**
+
 Adapts various runtime service modules (state management, session history, tool execution, etc.) to the native module interfaces of agent frameworks, allowing developers to directly invoke these capabilities while preserving native behaviors — enabling seamless integration and flexible extension.
 
 ## Why AgentScope Runtime?

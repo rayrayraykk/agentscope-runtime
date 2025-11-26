@@ -38,6 +38,7 @@ parts:
   - file: en/contribute.md
     sections:
     - file: en/README.md
+  - file: en/CHANGELOG.md
 
 - caption: API Reference
   chapters:
@@ -91,6 +92,7 @@ parts:
   - file: zh/contribute.md
     sections:
     - file: zh/README.md
+  - file: zh/CHANGELOG.md
 
 - caption: API 参考
   chapters:
