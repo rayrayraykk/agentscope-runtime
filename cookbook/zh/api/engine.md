@@ -321,12 +321,6 @@ Engine 模块涵盖 AgentScope Runtime 的核心执行、部署与服务能力�
    :show-inheritance:
    :no-index:
 
-.. automodule:: agentscope_runtime.engine.schemas.context
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :no-index:
-
 .. automodule:: agentscope_runtime.engine.schemas.session
    :members:
    :undoc-members:
