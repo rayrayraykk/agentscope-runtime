@@ -18,11 +18,7 @@ kernelspec:
 
 ## 安装方式
 
-### 1. 通过 PyPI 安装
-
-```{warning}
-本项目正在快速开发和迭代中。我们建议从源码安装以获取最新功能和Bug修复。
-```
+### 通过 PyPI 安装
 
 要通过 PyPI 安装Agentscope Runtime的稳定版本，请使用：
 
@@ -30,7 +26,19 @@ kernelspec:
 pip install agentscope-runtime
 ```
 
-### 2. （可选）从源码安装
+### （可选）安装预览版本（Beta/RC）
+
+如果您想体验尚未正式发布的功能，可以安装最新的预览版本：
+
+```bash
+pip install --pre agentscope-runtime
+```
+
+```{note}
+提示： 预发布版本可能含有尚未完全稳定的功能或接口变动，请在测试环境中使用。
+```
+
+### （可选）从源码安装
 
 如果您想要使用最新的开发版本或为项目做贡献，可以从源码安装：
 

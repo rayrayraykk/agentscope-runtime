@@ -22,20 +22,22 @@ Agentscope Runtime supports two installation methods: **PyPI** and **from source
 
 ### Install via PyPI
 
-```{warning}
-This project is under rapid development and iteration. We recommend installing from source to get the latest features and bug fixes.
-```
-
 To install the stable release of Agentscope Runtime via PyPI, use:
 
 ```bash
 pip install agentscope-runtime
 ```
 
-For the whole experience, including sandbox capabilities:
+### (Optional) Install preview version (Beta/RC)
+
+If you want to try features that have not been officially released yet, you can install the latest preview version:
 
 ```bash
-pip install agentscope-runtime
+pip install --pre agentscope-runtime
+```
+
+```{note}
+Note: Preview versions may contain features or interface changes that are not fully stable yet. It is recommended to use them in a testing environment.
 ```
 
 ### (Optional) Install from Source
@@ -66,18 +68,7 @@ import agentscope_runtime
 print(f"AgentScope Runtime {agentscope_runtime.__version__} is ready!")
 ```
 
-You should see the version number printed out. The expected output should look like: `AgentScope Runtime 0.1.0 is ready!`
-
-### Check AgentScope Agent
-
-```{code-cell}
-try:
-    from agentscope_runtime.engine.agents.agentscope_agent import AgentScopeAgent
-    print(f"✅ {AgentScopeAgent.__name__} - Successfully imported")
-except ImportError as e:
-    print(f"❌ AgentScopeAgent - Import failed: {e}")
-    print('💡 Try installing via: pip install "agentscope-runtime[agentscope]"')
-```
+You should see the version number printed out.
 
 
 ## Installation Options Explained
