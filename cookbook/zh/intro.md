@@ -32,7 +32,7 @@ AgentScope Runtime V1.0 在高效智能体部署与安全沙箱执行的坚实�
 - **更丰富的内置工具** —— 面向生产的搜索、RAG、AIGC、支付等模块
 - **灵活的部署模式** —— 本地线程/进程、Docker、Kubernetes、或托管云端
 
-更详细的变更说明，以及迁移指南请参考：[CHANGELOG](CHANGELOG.md)
+更详细的变更说明，以及迁移指南请参考：{doc}`CHANGELOG`
 
 ## 什么是AgentScope Runtime？
 

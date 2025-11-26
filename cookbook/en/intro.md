@@ -32,7 +32,7 @@ At the same time, the way agents integrate with runtime services has evolved fro
 - **Richer built-in tools** — Production-ready modules for Search, RAG, AIGC, Payment, and more
 - **Flexible deployment modes** — Local threads/processes, Docker, Kubernetes, or hosted cloud
 
-For more detailed change descriptions and the migration guide, please refer to: [CHANGELOG](CHANGELOG.md)
+For more detailed change descriptions and the migration guide, please refer to: {doc}`CHANGELOG`
 
 ## What is AgentScope Runtime?
 
