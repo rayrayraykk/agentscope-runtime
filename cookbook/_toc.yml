@@ -9,6 +9,11 @@ parts:
   - file: en/quickstart.md
   - file: en/tool.md
     sections:
+    - file: en/sandbox/sandbox.md
+      sections:
+        - file: en/sandbox/advanced.md
+        - file: en/sandbox/training_sandbox.md
+        - file: en/sandbox/troubleshooting.md
     - file: en/tools/tools.md
       sections:
         - file: en/tools/modelstudio_search.md
@@ -16,11 +21,6 @@ parts:
         - file: en/tools/modelstudio_generations.md
         - file: en/tools/alipay.md
         - file: en/tools/realtime_clients.md
-    - file: en/sandbox/sandbox.md
-      sections:
-        - file: en/sandbox/advanced.md
-        - file: en/sandbox/training_sandbox.md
-        - file: en/sandbox/troubleshooting.md
   - file: en/deployment.md
     sections:
     - file: en/service.md
@@ -63,6 +63,11 @@ parts:
   - file: zh/quickstart.md
   - file: zh/tool.md
     sections:
+      - file: zh/sandbox/sandbox.md
+        sections:
+          - file: zh/sandbox/advanced.md
+          - file: zh/sandbox/training_sandbox.md
+          - file: zh/sandbox/troubleshooting.md
       - file: zh/tools/tools.md
         sections:
           - file: zh/tools/modelstudio_search.md
@@ -70,11 +75,6 @@ parts:
           - file: zh/tools/modelstudio_generations.md
           - file: zh/tools/alipay.md
           - file: zh/tools/realtime_clients.md
-      - file: zh/sandbox/sandbox.md
-        sections:
-          - file: zh/sandbox/advanced.md
-          - file: zh/sandbox/training_sandbox.md
-          - file: zh/sandbox/troubleshooting.md
   - file: zh/deployment.md
     sections:
       - file: zh/service.md
