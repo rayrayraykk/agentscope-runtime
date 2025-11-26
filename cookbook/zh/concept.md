@@ -1,26 +1,106 @@
 # 概念
 
-本章介绍了AgentScope Runtime的核心概念，它提供了两种主要的使用模式：
+本章介绍了AgentScope Runtime的核心概念。
 
-- **智能体部署**: 使用引擎模块进行功能完整的智能体部署，包括运行时编排、长短期记忆和生产就绪的服务
-- **沙箱工具使用**: 独立使用沙箱模块，在您自己的应用程序中进行安全的工具执行和集成
-
-## Engine模块概念
-
-### 架构
+## 架构
 
 AgentScope Runtime使用模块化架构，包含几个关键组件：
 
-```{figure} ../_static/agent_architecture_zh.png
-:alt: 智能体架构
-:width: 75%
-:align: center
+```mermaid
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#0066FF',
+      'primaryTextColor': '#FFFFFF',
+      'primaryBorderColor': '#004CBE',
+      'lineColor': '#004CBE',
+      'secondaryColor': '#0066FF',
+      'tertiaryColor': '#E6F0FF',
+      'nodeBorder': '#004CBE'
+    }
+  }
+}%%
+flowchart LR
+    %% 工具模块
+    subgraph Tools["🛠 工具模块"]
+        RT["RAG 工具"]
+        ST["搜索工具"]
+        PT["支付工具"]
+    end
 
-智能体架构
+    %% 服务模块
+    subgraph Service["💼 服务模块"]
+        MS["记忆服务"]
+        SS["会话服务"]
+        STS["状态服务"]
+        SBS["沙箱服务"]
+    end
+
+    %% 沙箱模块
+    subgraph Sandbox["🐳 沙箱模块"]
+        BS["浏览器沙箱"]
+        FS["文件系统沙箱"]
+        GS["图形界面沙箱"]
+        CSB["云端沙箱"]
+        MSB["移动端沙箱"]
+        ETC["更多..."]:::note
+    end
+
+    %% Agent 模块
+    subgraph Agent["🤖 Agent 模块"]
+        AG["AgentScope"]
+        AG_NOTE["（更多...）"]:::note
+    end
+
+    %% 应用层
+    subgraph AgentAPP["📦 Agent 应用"]
+        RA["运行器"]
+    end
+
+    %% 部署模块
+    subgraph Deployer["🚀 部署模块"]
+        CT["容器部署"]
+        KD["K8s 部署"]
+        DP["云部署"]
+        LD["本地部署"]
+    end
+
+    %% 外部协议（白底黑字）
+    OAI["OpenAI SDK"]:::ext
+    A2A["Google A2A 协议"]:::ext
+
+    %% 内部连接
+    RT --> AG
+    MS --> AG
+    SS --> AG
+    STS --> AG
+    SBS --> AG
+    BS --> SBS
+    FS --> SBS
+    GS --> SBS
+    CSB --> SBS
+    MSB --> SBS
+    ETC --> SBS
+
+    AG --> RA
+    RA --> CT
+    RA --> KD
+    RA --> DP
+    RA --> LD
+
+    %% 部署连接到外部协议
+    Deployer --> OAI
+    Deployer --> A2A
+
+    %% 样式
+    classDef ext fill:#FFFFFF,stroke:#000000,color:#000000
+    classDef note fill:#0066FF,stroke:#004CBE,color:#FFFFFF,stroke-dasharray: 3 3
+
 ```
 
 - **Agent**：处理请求并生成响应的核心AI组件，在Runtime中，Agent的构建推荐使用AgentScope框架。
-- **AgentApp**: 继承于 FastAPI App，作为应用入口，负责对外提供 API 接口、路由注册、配置加载，并将请求交由 Runner 调用执行
+- **AgentApp**: 作为智能体应用入口，负责对外提供 API 接口、路由注册、配置加载，并将请求交由 Runner 调用执行
 - **Runner**：在运行时编排智能体执行并管理部署。它处理智能体生命周期、会话管理、流式响应和服务部署。
 - **Deployer**：将Runner部署为服务，提供健康检查、监控、生命周期管理、使用SSE的实时响应流式传输、错误处理、日志记录和优雅关闭。
 - **Tool**: 提供即用型服务，比如RAG。
@@ -34,7 +114,7 @@ AgentScope Runtime使用模块化架构，包含几个关键组件：
 
 #### 2. AgentApp
 
-`AgentApp` 是 AgentScope Runtime 中的 **应用入口点**，继承自 `BaseApp`（一个扩展了 FastAPI 并可选集成 Celery 的基类），用于将 Agent 部署为可对外提供服务的 API 应用。
+`AgentApp` 是 AgentScope Runtime 中的 **应用入口点**，用于将 Agent 部署为可对外提供服务的 API 应用。
 
 它的职责是：
 
@@ -63,12 +143,11 @@ AgentScope Runtime使用模块化架构，包含几个关键组件：
 - 错误处理、日志记录和优雅关闭
 - 支持多种部署模式（本地、容器化、Kubernetes等）
 
-#### 5. Tool
+#### 5. Sandbox & Tool
 
-Runtime提供三种工具接入方式
+Runtime提供两种工具接入方式
 - 即用型工具，即由服务提供商提供的开箱即用的服务，比如RAG
 - 工具沙箱，即运行在runtime里安全可控的工具，比如浏览器
-- 自定义工具，即开发者自由定义自由部署的工具。
 
 
 #### 6. Service
@@ -78,41 +157,3 @@ Runtime提供三种工具接入方式
 - `memory_service` 智能体记忆服务
 - `sandbox_service` 即沙箱服务
 - `session_history_service` 即会话历史记录保存服务
-
-## 沙箱模块概念
-
-### 架构
-
-沙箱模块为各种操作提供了一个**安全**且**隔离**的执行环境，包括MCP工具执行、浏览器自动化和文件系统操作。
-
-系统支持多种沙箱类型，每种都针对特定用例进行了优化：
-
-#### 1. BaseSandbox（基础沙箱）
-
-- **用途**: 基本Python代码执行和shell命令
-- **使用场景**: 基础工具执行和脚本编写的必需品
-- **能力**: IPython环境、shell命令执行
-
-#### 2. GuiSandbox （GUI沙箱）
-
-- **用途**：具有安全访问控制的图形用户界面（GUI）交互与自动化
-- **使用场景**：用户界面测试、桌面自动化、交互式工作流程
-- **功能**：模拟用户输入（点击、键盘输入）、窗口管理、屏幕捕获等
-
-#### 3. FilesystemSandbox（文件系统沙箱）
-
-- **用途**: 具有安全访问控制的文件系统操作
-- **使用场景**: 文件管理、文本处理和数据操作
-- **能力**: 文件读写、目录操作、文件搜索和元数据等
-
-#### 4. BrowserSandbox（浏览器沙箱）
-
-- **用途**: Web浏览器自动化和控制
-- **使用场景**: 网页抓取、UI测试和基于浏览器的交互
-- **能力**: 页面导航、元素交互、截图捕获等
-
-#### 5. TrainingSandbox（训练沙箱）
-
-- **用途**:智能体训练和评估环境
-- **使用场景**: 基准测试和性能评估
-- **能力**: 环境分析、训练数据管理
