@@ -16,9 +16,25 @@
 [![Discord](https://img.shields.io/badge/Discord-Join_Us-blueviolet.svg?logo=discord)](https://discord.gg/eYMpfnkG8h)
 [![DingTalk](https://img.shields.io/badge/DingTalk-Join_Us-orange.svg)](https://qr.dingtalk.com/action/joingroup?code=v1,k1,OmDlBXpjW+I2vWjKDsjvI9dhcXjGZi3bQiojOq3dlDw=&_dt_no_comment=1&origin=11)
 
+## AgentScope Runtime V1.0 Release
+
+AgentScope Runtime V1.0 builds upon the solid foundation of efficient agent deployment and secure sandbox execution, now offering **a unified “Agent as API” experience** across the full agent development lifecycle — from local development to production deployment — with expanded sandbox types, protocol compatibility, and a richer set of built‑in tools.
+
+**Key improvements in V1.0:**
+
+- **Unified dev/prod architecture** — Consistent APIs, tool usage, and resource management in both development and production environments.
+- **Native multi-agent support** — Full compatibility with AgentScope’s multi-agent paradigms
+- **Mainstream SDK & protocol integration** — OpenAI SDK support and Google A2A protocol compatibility
+- **Visual Web UI** — Ready-to-use web chat interface immediately available after deployment
+- **Expanded sandbox types** — GUI, Browser, FileSystem, Mobile, Cloud (most visualized via VNC)
+- **Richer built-in tools** — Production-ready modules for Search, RAG, AIGC, Payment, and more
+- **Flexible deployment modes** — Local threads/processes, Docker, Kubernetes, or hosted cloud
+
 ## What is AgentScope Runtime?
 
-**AgentScope Runtime** is a full-stack agent runtime that tackles two core challenges: **efficient agent deployment** and **secure sandbox execution**. It ships with foundational services such as short- and long-term memory plus external knowledge access, along with hardened sandbox infrastructure. Whether you need to orchestrate production-grade agents or guarantee safe tool interactions, AgentScope Runtime provides developer-friendly workflows with complete observability.
+**AgentScope Runtime** is a full-stack agent runtime that tackles two core challenges: **efficient agent deployment** and **secure sandbox execution**. It ships with foundational services such as short- and long-term memory plus agent state persistence, along with hardened sandbox infrastructure. Whether you need to orchestrate production-grade agents or guarantee safe tool interactions, AgentScope Runtime provides developer-friendly workflows with complete observability.
+
+In V1.0, these services are exposed via an **adapter pattern**, enabling seamless integration with the native modules of different agent frameworks while preserving their native interfaces and behaviors, ensuring both compatibility and flexibility.
 
 This cookbook walks you through building service-ready agent applications with **AgentScope Runtime**.
 
@@ -26,17 +42,17 @@ This cookbook walks you through building service-ready agent applications with *
 
 **⚙️ Agent Deployment Runtime (Engine)**
 
-Production infrastructure for deploying, managing, and observing agent applications, complete with built‑in services such as session context, long/short memory, and knowledge connectors.
+Production infrastructure for deploying, managing, and observing agent applications, complete with built‑in services such as session history, long memory, and agent states.
 
-**🛠️ Tool Execution Runtime (Sandbox)**
+**🛠️ Sandbox Execution Runtime (Sandbox)**
 
 Secure, isolated environments that let agents execute tools, control browsers, manipulate files, and integrate MCP tools—without exposing your host system.
 
 ## Why AgentScope Runtime?
 
-* **🏗️ Deployment Infrastructure**: Built-in long/short memory, session services, and sandbox control
-* **🔒 Sandboxed Tool Execution**: Isolated sandboxes keep browser, file, and MCP tooling safe
-* ⚡ **Developer Friendly**: Simple deployment flows plus rich customization hooks
+* **🏗️ Deployment Infrastructure**: Built-in long memory, session, agent state, and sandbox control services
+* **🔒 Sandbox Execution**: Isolated sandboxes keep browser, file, and MCP tooling safe
+* ⚡ **Developer Friendly**: Simple deployment flows plus rich customization endpoints
 * **📊 Observability**: End-to-end tracing and monitoring for runtime behavior
 
 Start deploying agents and experimenting with the sandbox today!
