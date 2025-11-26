@@ -1,3 +1,17 @@
+---
+jupytext:
+  formats: md:myst
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.11.5
+kernelspec:
+  display_name: Python 3.10
+  language: python
+  name: python3
+---
+
 # Concepts
 
 This chapter introduces the core concepts of AgentScope Runtime.
@@ -6,21 +20,7 @@ This chapter introduces the core concepts of AgentScope Runtime.
 
 AgentScope Runtime uses a modular architecture with several key components:
 
-```mermaid
-%%{
-  init: {
-    'theme': 'base',
-    'themeVariables': {
-      'primaryColor': '#0066FF',
-      'primaryTextColor': '#FFFFFF',
-      'primaryBorderColor': '#004CBE',
-      'lineColor': '#004CBE',
-      'secondaryColor': '#0066FF',
-      'tertiaryColor': '#E6F0FF',
-      'nodeBorder': '#004CBE'
-    }
-  }
-}%%
+```{mermaid}
 flowchart LR
     %% Tools Module
     subgraph Tools["🛠 Tools"]
@@ -44,13 +44,13 @@ flowchart LR
         GS["GUI Sandbox"]
         CSB["Cloud Sandbox"]
         MSB["Mobile Sandbox"]
-        ETC["More..."]:::note
+        ETC["More..."]
     end
 
     %% Agent Module
     subgraph Agent["🤖 Agent"]
         AG["AgentScope"]
-        AG_NOTE["(More...)"]:::note
+        AG_NOTE["(More...)"]
     end
 
     %% Application Layer
@@ -66,9 +66,10 @@ flowchart LR
         LD["Local Deployment"]
     end
 
-    %% External Protocols - white background, black text
+    %% External Protocols
     OAI["OpenAI SDK"]:::ext
     A2A["Google A2A Protocol"]:::ext
+    CUS["自定义Endpoint"]:::ext
 
     %% Internal connections
     RT --> AG
@@ -92,10 +93,15 @@ flowchart LR
     %% Entire Deployer connects to external protocols
     Deployer --> OAI
     Deployer --> A2A
+    Deployer --> CUS
 
     %% Styles
-    classDef ext fill:#FFFFFF,stroke:#000000,color:#000000
-    classDef note fill:#0066FF,stroke:#004CBE,color:#FFFFFF,stroke-dasharray: 3 3
+    classDef small fill:#0066FF,stroke:#004CBE,color:#FFFFFF,font-weight:bold
+    classDef big fill:#99D6FF,stroke:#004CBE,color:#FFFFFF,font-weight:bold
+    classDef ext fill:#FFFFFF,stroke:#000000,color:#000000,font-weight:bold
+
+    class Tools,Service,Sandbox,Agent,AgentAPP,Deployer big
+    class RT,ST,PT,MS,SS,STS,SBS,BS,FS,GS,CSB,MSB,ETC,AG,AG_NOTE,RA,CT,KD,DP,LD small
 
 ```
 

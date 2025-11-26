@@ -1,3 +1,17 @@
+---
+jupytext:
+  formats: md:myst
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.11.5
+kernelspec:
+  display_name: Python 3.10
+  language: python
+  name: python3
+---
+
 # 概念
 
 本章介绍了AgentScope Runtime的核心概念。
@@ -6,21 +20,7 @@
 
 AgentScope Runtime使用模块化架构，包含几个关键组件：
 
-```mermaid
-%%{
-  init: {
-    'theme': 'base',
-    'themeVariables': {
-      'primaryColor': '#0066FF',
-      'primaryTextColor': '#FFFFFF',
-      'primaryBorderColor': '#004CBE',
-      'lineColor': '#004CBE',
-      'secondaryColor': '#0066FF',
-      'tertiaryColor': '#E6F0FF',
-      'nodeBorder': '#004CBE'
-    }
-  }
-}%%
+```{mermaid}
 flowchart LR
     %% 工具模块
     subgraph Tools["🛠 工具模块"]
@@ -34,27 +34,27 @@ flowchart LR
         MS["记忆服务"]
         SS["会话服务"]
         STS["状态服务"]
-        SBS["沙箱服务"]
+        SBS["沙盒服务"]
     end
 
-    %% 沙箱模块
-    subgraph Sandbox["🐳 沙箱模块"]
-        BS["浏览器沙箱"]
-        FS["文件系统沙箱"]
-        GS["图形界面沙箱"]
-        CSB["云端沙箱"]
-        MSB["移动端沙箱"]
-        ETC["更多..."]:::note
+    %% 沙盒模块
+    subgraph Sandbox["🐳 沙盒模块"]
+        BS["浏览器沙盒"]
+        FS["文件系统沙盒"]
+        GS["图形界面沙盒"]
+        CSB["云端沙盒"]
+        MSB["移动端沙盒"]
+        ETC["更多..."]
     end
 
-    %% Agent 模块
-    subgraph Agent["🤖 Agent 模块"]
-        AG["AgentScope"]
-        AG_NOTE["（更多...）"]:::note
+    %% 智能体模块
+    subgraph Agent["🤖 智能体模块"]
+        AG["AgentScope 引擎"]
+        AG_NOTE["（更多...）"]
     end
 
     %% 应用层
-    subgraph AgentAPP["📦 Agent 应用"]
+    subgraph AgentAPP["📦 智能体应用"]
         RA["运行器"]
     end
 
@@ -62,13 +62,14 @@ flowchart LR
     subgraph Deployer["🚀 部署模块"]
         CT["容器部署"]
         KD["K8s 部署"]
-        DP["云部署"]
+        DP["云端部署"]
         LD["本地部署"]
     end
 
-    %% 外部协议（白底黑字）
+    %% 外部协议
     OAI["OpenAI SDK"]:::ext
     A2A["Google A2A 协议"]:::ext
+    CUS["自定义Endpoint"]:::ext
 
     %% 内部连接
     RT --> AG
@@ -89,13 +90,18 @@ flowchart LR
     RA --> DP
     RA --> LD
 
-    %% 部署连接到外部协议
+    %% 部署模块连接外部协议
     Deployer --> OAI
     Deployer --> A2A
+    Deployer --> CUS
 
-    %% 样式
-    classDef ext fill:#FFFFFF,stroke:#000000,color:#000000
-    classDef note fill:#0066FF,stroke:#004CBE,color:#FFFFFF,stroke-dasharray: 3 3
+    %% 样式定义
+    classDef small fill:#0066FF,stroke:#004CBE,color:#FFFFFF,font-weight:bold
+    classDef big fill:#99D6FF,stroke:#004CBE,color:#FFFFFF,font-weight:bold
+    classDef ext fill:#FFFFFF,stroke:#000000,color:#000000,font-weight:bold
+
+    class Tools,Service,Sandbox,Agent,AgentAPP,Deployer big
+    class RT,ST,PT,MS,SS,STS,SBS,BS,FS,GS,CSB,MSB,ETC,AG,AG_NOTE,RA,CT,KD,DP,LD small
 
 ```
 
