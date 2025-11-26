@@ -1,29 +1,26 @@
 format: jb-book
 root: en/intro
 parts:
-
-
-
 - caption: Tutorial
   numbered: 1
   chapters:
   - file: en/install.md
   - file: en/concept.md
   - file: en/quickstart.md
-  - file: en/tools/tools.md
-    sections:
-      - file: en/tools/modelstudio_search.md
-      - file: en/tools/modelstudio_rag.md
-      - file: en/tools/modelstudio_generations.md
-      - file: en/tools/alipay.md
-      - file: en/tools/realtime_clients.md
   - file: en/tool.md
     sections:
-    - file: en/dashscope_tools.md
-    - file: en/sandbox.md
-    - file: en/sandbox_advanced.md
-    - file: en/training_sandbox.md
-    - file: en/sandbox_troubleshooting.md
+    - file: en/tools/tools.md
+      sections:
+        - file: en/tools/modelstudio_search.md
+        - file: en/tools/modelstudio_rag.md
+        - file: en/tools/modelstudio_generations.md
+        - file: en/tools/alipay.md
+        - file: en/tools/realtime_clients.md
+    - file: en/sandbox/sandbox.md
+      sections:
+        - file: en/sandbox/advanced.md
+        - file: en/sandbox/training_sandbox.md
+        - file: en/sandbox/troubleshooting.md
   - file: en/deployment.md
     sections:
     - file: en/service.md
@@ -42,6 +39,16 @@ parts:
     sections:
     - file: en/README.md
 
+- caption: API Reference
+  chapters:
+  - file: en/api/index.md
+    title: "API Reference"
+    sections:
+    - file: en/api/sandbox.md
+      title: "Sandbox"
+    - file: en/api/engine.md
+      title: "Engine"
+
 - caption: 简介
   chapters:
   - file: zh/intro.md
@@ -53,20 +60,20 @@ parts:
   - file: zh/install.md
   - file: zh/concept.md
   - file: zh/quickstart.md
-  - file: en/tools/tools.md
-    sections:
-      - file: en/tools/modelstudio_search.md
-      - file: en/tools/modelstudio_rag.md
-      - file: en/tools/modelstudio_generations.md
-      - file: en/tools/alipay.md
-      - file: en/tools/realtime_clients.md
   - file: zh/tool.md
     sections:
-      - file: zh/dashscope_tools.md
-      - file: zh/sandbox.md
-      - file: zh/sandbox_advanced.md
-      - file: zh/training_sandbox.md
-      - file: zh/sandbox_troubleshooting.md
+      - file: zh/tools/tools.md
+        sections:
+          - file: zh/tools/modelstudio_search.md
+          - file: zh/tools/modelstudio_rag.md
+          - file: zh/tools/modelstudio_generations.md
+          - file: zh/tools/alipay.md
+          - file: zh/tools/realtime_clients.md
+      - file: zh/sandbox/sandbox.md
+        sections:
+          - file: zh/sandbox/advanced.md
+          - file: zh/sandbox/training_sandbox.md
+          - file: zh/sandbox/troubleshooting.md
   - file: zh/deployment.md
     sections:
       - file: zh/service.md
