@@ -79,10 +79,12 @@ class BaseApp(FastAPI, CeleryMixin):
         """
         Unified POST endpoint decorator.
         Pure FastAPI functionality, independent of Celery.
-        Supports:
-          - Sync functions
-          - Async functions (coroutines)
-          - Sync/async generator functions (streaming responses)
+
+        Supports::
+
+            - Sync functions
+            - Async functions (coroutines)
+            - Sync/async generator functions (streaming responses)
         """
 
         def decorator(func: Callable):
