@@ -10,6 +10,13 @@ parts:
   - file: en/install.md
   - file: en/concept.md
   - file: en/quickstart.md
+  - file: en/tools/tools.md
+    sections:
+      - file: en/tools/modelstudio_search.md
+      - file: en/tools/modelstudio_rag.md
+      - file: en/tools/modelstudio_generations.md
+      - file: en/tools/alipay.md
+      - file: en/tools/realtime_clients.md
   - file: en/tool.md
     sections:
     - file: en/dashscope_tools.md
@@ -46,6 +53,13 @@ parts:
   - file: zh/install.md
   - file: zh/concept.md
   - file: zh/quickstart.md
+  - file: en/tools/tools.md
+    sections:
+      - file: en/tools/modelstudio_search.md
+      - file: en/tools/modelstudio_rag.md
+      - file: en/tools/modelstudio_generations.md
+      - file: en/tools/alipay.md
+      - file: en/tools/realtime_clients.md
   - file: zh/tool.md
     sections:
       - file: zh/dashscope_tools.md
