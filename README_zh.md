@@ -492,7 +492,7 @@ limitations under the License.
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 
-感谢这些优秀的贡献者们 ([表情符号说明](https://allcontributors.org/docs/en/emoji-key)):
+感谢这些优秀的贡献者们 ([表情符号说明](https://allcontributors.org/emoji-key/)):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
