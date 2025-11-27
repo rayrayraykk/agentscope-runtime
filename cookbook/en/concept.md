@@ -69,7 +69,7 @@ flowchart LR
     %% External Protocols
     OAI["OpenAI SDK"]:::ext
     A2A["Google A2A Protocol"]:::ext
-    CUS["自定义Endpoint"]:::ext
+    CUS["Custom Endpoint"]:::ext
 
     %% Internal connections
     RT --> AG
