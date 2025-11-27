@@ -51,7 +51,6 @@ jobs:
       - name: Pull Docker images
         run: |
           DOCKER_IMAGES=(
-            "agentscope/runtime-sandbox-bfcl:latest"
             "agentscope/runtime-sandbox-appworld:latest"
           )
 

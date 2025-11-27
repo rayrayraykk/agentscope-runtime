@@ -87,6 +87,9 @@
 # 安装核心依赖
 pip install agentscope-runtime
 
+# 安装拓展
+pip install "agentscope-runtime[ext]"
+
 # 安装预览版本
 pip install --pre agentscope-runtime
 ```

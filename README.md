@@ -87,6 +87,9 @@ From PyPI:
 # Install core dependencies
 pip install agentscope-runtime
 
+# Install extension
+pip install "agentscope-runtime[ext]"
+
 # Install preview version
 pip install --pre agentscope-runtime
 ```
