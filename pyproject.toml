@@ -21,7 +21,6 @@ dependencies = [
     "shortuuid>=1.0.13",
     "celery[redis]>=5.3.1",
     "a2a-sdk>=0.3.0",
-    "wuying-agentbay-sdk>=0.5.0",
 ]
 
 [tool.setuptools]
@@ -29,7 +28,7 @@ packages = { find = { where = ["src"] } }
 include-package-data = true
 
 [tool.setuptools.package-data]
-"agentscope_runtime.engine.deployers.utils.service_utils" = ["*.j2"]
+"agentscope_runtime.engine.deployers.utils.templates" = ["*.j2"]
 
 [build-system]
 requires = ["setuptools>=42", "wheel"]
@@ -86,7 +85,8 @@ deployment = [
     "psutil",
     "shortuuid>=1.0.13",
     "PyYAML",
-    "oss2>=2.19.1"
+    "oss2>=2.19.1",
+    "wuying-agentbay-sdk>=0.5.0",
 ]
 
 tool = [
