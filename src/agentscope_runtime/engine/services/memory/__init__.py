@@ -16,21 +16,9 @@ install_lazy_loader(
         "MemoryService": ".memory_service",
         "InMemoryMemoryService": ".memory_service",
         "RedisMemoryService": ".redis_memory_service",
-        "ReMeTaskMemoryService": {
-            "module": ".reme_task_memory_service",
-            "hint": "pip install agentscope-runtime[ext]",
-        },
-        "ReMePersonalMemoryService": {
-            "module": ".reme_personal_memory_service",
-            "hint": "pip install agentscope-runtime[ext]",
-        },
-        "Mem0MemoryService": {
-            "module": ".mem0_memory_service",
-            "hint": "pip install agentscope-runtime[ext]",
-        },
-        "TablestoreMemoryService": {
-            "module": ".tablestore_memory_service",
-            "hint": "pip install agentscope-runtime[ext]",
-        },
+        "ReMeTaskMemoryService": ".reme_task_memory_service",
+        "ReMePersonalMemoryService": ".reme_personal_memory_service",
+        "Mem0MemoryService": ".mem0_memory_service",
+        "TablestoreMemoryService": ".tablestore_memory_service",
     },
 )
