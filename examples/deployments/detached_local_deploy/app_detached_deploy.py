@@ -1,54 +1,52 @@
 # -*- coding: utf-8 -*-
+# pylint:disable=wrong-import-order
+
 import asyncio
 import time
 
-from agent_run import agent
-from agentscope_runtime.engine.app import AgentApp
 from agentscope_runtime.engine.deployers.local_deployer import (
     LocalDeployManager,
-)
-from agentscope_runtime.engine.deployers.utils.deployment_modes import (
     DeploymentMode,
 )
 from agentscope_runtime.engine.schemas.agent_schemas import AgentRequest
-
-# Create AgentApp
-app = AgentApp(agent=agent)
+from app_agent import agent_app
 
 
-# Define endpoints
-@app.endpoint("/sync")
+@agent_app.endpoint("/sync")
 def sync_handler(request: AgentRequest):
-    return {"status": "ok", "payload": request}
+    yield {"status": "ok", "payload": request}
 
 
-@app.endpoint("/async")
+@agent_app.endpoint("/async")
 async def async_handler(request: AgentRequest):
-    return {"status": "ok", "payload": request}
+    yield {"status": "ok", "payload": request}
 
 
-@app.endpoint("/stream_async")
+@agent_app.endpoint("/stream_async")
 async def stream_async_handler(request: AgentRequest):
     for i in range(5):
         yield f"async chunk {i}, with request payload {request}\n"
 
 
-@app.endpoint("/stream_sync")
+@agent_app.endpoint("/stream_sync")
 def stream_sync_handler(request: AgentRequest):
     for i in range(5):
         yield f"sync chunk {i}, with request payload {request}\n"
 
 
-@app.task("/task", queue="celery1")
+@agent_app.task("/task", queue="celery1")
 def task_handler(request: AgentRequest):
     time.sleep(30)
-    return {"status": "ok", "payload": request}
+    yield {"status": "ok", "payload": request}
 
 
-@app.task("/atask")
+@agent_app.task("/atask")
 async def atask_handler(request: AgentRequest):
     await asyncio.sleep(15)
-    return {"status": "ok", "payload": request}
+    yield {"status": "ok", "payload": request}
+
+
+# agent_app.run()
 
 
 async def main():
@@ -61,8 +59,8 @@ async def main():
         port=8080,
     )
 
-    # Deploy in detached mode
-    deployment_info = await app.deploy(
+    # Deploy in detached mode:q
+    deployment_info = await agent_app.deploy(
         deploy_manager,
         mode=DeploymentMode.DETACHED_PROCESS,
     )

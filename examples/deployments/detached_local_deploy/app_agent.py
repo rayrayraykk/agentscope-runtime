@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-# pylint:disable=wrong-import-position, wrong-import-order, unused-argument
-import asyncio
 import os
 
 from agentscope.agent import ReActAgent
 from agentscope.formatter import DashScopeChatFormatter
 from agentscope.model import DashScopeChatModel
 from agentscope.pipeline import stream_printing_messages
-from agentscope.tool import Toolkit
+from agentscope.tool import Toolkit, execute_python_code
 
 from agentscope_runtime.adapters.agentscope.memory import (
     AgentScopeSessionHistoryMemory,
@@ -20,30 +18,10 @@ from agentscope_runtime.engine.services.agent_state import (
 from agentscope_runtime.engine.services.session_history import (
     InMemorySessionHistoryService,
 )
-from others.other_project import version
 
-
-def weather_search(query: str) -> str:
-    """Search for weather information based on location query.
-
-    Args:
-        query: Location query string
-
-    Returns:
-        Weather information string
-    """
-    if "sf" in query.lower() or "san francisco" in query.lower():
-        result = "It's 60 degrees and foggy."
-    else:
-        result = "It's 90 degrees and sunny."
-
-    return result
-
-
-# Create AgentApp
 agent_app = AgentApp(
     app_name="Friday",
-    app_description="A helpful assistant with weather tool",
+    app_description="A helpful assistant",
 )
 
 
@@ -51,6 +29,7 @@ agent_app = AgentApp(
 async def init_func(self):
     self.state_service = InMemoryStateService()
     self.session_service = InMemorySessionHistoryService()
+
     await self.state_service.start()
     await self.session_service.start()
 
@@ -68,6 +47,7 @@ async def query_func(
     request: AgentRequest = None,
     **kwargs,
 ):
+    assert kwargs is not None, "kwargs is Required for query_func"
     session_id = request.session_id
     user_id = request.user_id
 
@@ -77,13 +57,14 @@ async def query_func(
     )
 
     toolkit = Toolkit()
-    toolkit.register_tool_function(weather_search)
+    toolkit.register_tool_function(execute_python_code)
 
     agent = ReActAgent(
         name="Friday",
         model=DashScopeChatModel(
             "qwen-turbo",
             api_key=os.getenv("DASHSCOPE_API_KEY"),
+            enable_thinking=True,
             stream=True,
         ),
         sys_prompt="You're a helpful assistant named Friday.",
@@ -112,22 +93,3 @@ async def query_func(
         session_id=session_id,
         state=state,
     )
-
-
-print(f"AgentScope Runtime with dependencies version: {version}")
-
-
-async def run():
-    # This function demonstrates how the app would be used
-    # In actual tests, the agent_app can be deployed directly
-    from agentscope_runtime.engine.deployers.local_deployer import (
-        LocalDeployManager,
-    )
-
-    deploy_manager = LocalDeployManager(host="localhost", port=8090)
-    deployment_info = await agent_app.deploy(deploy_manager)
-    print(f"Deployed at: {deployment_info['url']}")
-
-
-if __name__ == "__main__":
-    asyncio.run(run())
