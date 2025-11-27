@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import inspect
+import traceback
 import uuid
 from contextlib import AsyncExitStack
 from typing import (
@@ -29,6 +30,7 @@ from .schemas.agent_schemas import (
     RunStatus,
     AgentResponse,
     SequenceNumberGenerator,
+    Error,
 )
 from .tracing import TraceType
 from .tracing.wrapper import trace
@@ -264,25 +266,36 @@ class Runner:
 
             stream_adapter = identity_stream_adapter
 
-        async for event in stream_adapter(
-            source_stream=self._call_handler_streaming(
-                self.query_handler,
-                **query_kwargs,
-                **kwargs,
-            ),
-        ):
-            if (
-                event.status == RunStatus.Completed
-                and event.object == "message"
+        try:
+            async for event in stream_adapter(
+                source_stream=self._call_handler_streaming(
+                    self.query_handler,
+                    **query_kwargs,
+                    **kwargs,
+                ),
             ):
-                response.add_new_message(event)
-            yield seq_gen.yield_with_sequence(event)
+                if (
+                    event.status == RunStatus.Completed
+                    and event.object == "message"
+                ):
+                    response.add_new_message(event)
+                yield seq_gen.yield_with_sequence(event)
+        except Exception as e:
+            # TODO: fix code
+            error = Error(
+                code="500",
+                message=f"Error happens in `query_handler`: {e}",
+            )
+            logger.error(f"{error.model_dump()}: {traceback.format_exc()}")
+            yield seq_gen.yield_with_sequence(response.failed(error))
+            return
 
         # Obtain token usage
         try:
             if response.output:
                 response.usage = response.output[-1].usage
         except IndexError:
+            # Avoid empty message
             pass
 
         yield seq_gen.yield_with_sequence(response.completed())
