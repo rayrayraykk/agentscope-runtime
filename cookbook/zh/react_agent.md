@@ -31,7 +31,7 @@ pip install agentscope-runtime
 ### 沙箱
 
 ```{note}
-确保您的浏览器沙箱环境已准备好使用，详细信息请参见{doc}`sandbox`。
+确保您的浏览器沙箱环境已准备好使用，详细信息请参见{doc}`sandbox/sandbox`。
 ```
 
 确保浏览器沙箱镜像可用：

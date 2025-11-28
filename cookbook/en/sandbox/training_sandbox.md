@@ -81,7 +81,7 @@ print(profile_list[0])
 #### (Optional) Build the Docker Image from Scratch
 
 f you prefer to build images locally via `Dockerfile` or need custom modifications, you can build them from scratch.
-Please refer to {doc}`sandbox_advanced` for detailed instructions.
+Please refer to {doc}`advanced` for detailed instructions.
 
 For training sandboxes, different datasets use different Dockerfiles, located at
 `src/agentscope_runtime/sandbox/box/training_box/environments/{dataset_name}`.

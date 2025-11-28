@@ -72,7 +72,7 @@ print(profile_list[0])
 
 #### （可选）从头构建Docker镜像
 
-如果您更倾向于在本地自己通过`Dockerfile`构建镜像或需要自定义修改，可以从头构建它们。请参阅 {doc}`sandbox_advanced` 了解详细说明。
+如果您更倾向于在本地自己通过`Dockerfile`构建镜像或需要自定义修改，可以从头构建它们。请参阅 {doc}`advanced` 了解详细说明。
 
 对于训练用沙箱，不同数据集使用不同的DockerFile，其路径在
 `src/agentscope_runtime/sandbox/box/training_box/environments/{dataset_name}`下

@@ -31,7 +31,7 @@ pip install agentscope-runtime
 ### Sandbox
 
 ```{note}
-Make sure the browser sandbox environment is ready; refer to {doc}`sandbox` for details.
+Make sure the browser sandbox environment is ready; refer to {doc}`sandbox/sandbox` for details.
 ```
 
 Pull the browser sandbox image:

@@ -101,7 +101,7 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 ### (Optional) Built the Docker Images from Scratch
 
-If you prefer to build the Docker images yourself or need custom modifications, you can build them from scratch. Please refer to {doc}`sandbox_advanced` for detailed instructions.
+If you prefer to build the Docker images yourself or need custom modifications, you can build them from scratch. Please refer to {doc}`advanced` for detailed instructions.
 
 ## Sandbox Usage
 
@@ -203,7 +203,7 @@ with MobileSandbox() as box:
     input("Press Enter to continue...")
 ```
 
-* **TrainingSandbox**: Sandbox for training and evaluation，please refer to {doc}`sandbox/training_sandbox` for details.
+* **TrainingSandbox**: Sandbox for training and evaluation，please refer to {doc}`training_sandbox` for details.
 
 ```{code-cell}
 from agentscope_runtime.sandbox import TrainingSandbox
@@ -294,7 +294,7 @@ Remote deployment is beneficial for:
 * Developing on resource-constrained local machines while executing on high-performance servers
 * Deploy sandbox server with K8S
 
-For more advanced usage of sandbox-server, please refer to {doc}`sandbox_advanced` for detailed instructions.
+For more advanced usage of sandbox-server, please refer to {doc}`advanced` for detailed instructions.
 ```
 
 You can start the sandbox server on your local machine or different machines for convenient remote access. You should start a sandbox server via:
