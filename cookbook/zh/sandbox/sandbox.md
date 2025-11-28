@@ -101,7 +101,7 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 ### （可选）从头构建Docker镜像
 
-如果您更倾向于在本地自己通过`Dockerfile`构建镜像或需要自定义修改，可以从头构建它们。请参阅 {doc}`sandbox_advanced` 了解详细说明。
+如果您更倾向于在本地自己通过`Dockerfile`构建镜像或需要自定义修改，可以从头构建它们。请参阅 {doc}`advanced` 了解详细说明。
 
 ## 沙箱使用
 
@@ -235,7 +235,7 @@ with MobileSandbox() as box:
     input("按 Enter 键继续...")
 ```
 
-* **TrainingSandbox**：训练评估沙箱，详情请参考：{doc}`sandbox/training_sandbox`。
+* **TrainingSandbox**：训练评估沙箱，详情请参考：{doc}`training_sandbox`。
 
 ```{code-cell}
 from agentscope_runtime.sandbox import TrainingSandbox
@@ -326,7 +326,7 @@ with BaseSandbox() as sandbox:
 * 在资源受限的本地机器上开发，同时在高性能服务器上执行
 * K8S集群部署沙盒服务
 
-有关sandbox-server的更高级用法，请参阅{doc}`sandbox_advanced`了解详细说明。
+有关sandbox-server的更高级用法，请参阅{doc}`advanced`了解详细说明。
 ```
 
 您可以在本地机器或不同机器上启动沙箱服务器，以便于远程访问。您应该通过以下命令启动沙箱服务器：

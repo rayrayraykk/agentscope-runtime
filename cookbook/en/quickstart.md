@@ -99,10 +99,17 @@ async def shutdown_func(self):
 
 ### Step 4: Define the AgentScope Query Logic
 
+```{important}
+⚠️ Important
+The Agent setup shown here (model, tools, conversation memory, formatter, etc.) is provided as an example configuration only.
+Please adapt and replace these components with your own implementations based on your requirements.
+For details on available service types, adapter usage, and how to swap them out, see {doc}`service/service`.
+```
+
 When the agent endpoint is invoked, we:
 
 - **Load session context** to keep different sessions isolated.
-- **Construct the agent** with model, tools (e.g., Python execution), memory, and formatter.
+- **Build an Agent**: includes the model, tools (such as executing Python code), conversation memory modules, and formatter — for details, please refer to {doc}`service/service`.
 - **Stream responses** via `stream_printing_messages`, yielding `(msg, last)` so clients receive output as it is generated.
 - **Persist state** so the next request can resume.
 
