@@ -173,7 +173,11 @@ async def query_func(
 Start the Agent API server. After launch it listens on `http://localhost:8090/process`:
 
 ```{code-cell}
+# Start the service (listen on port 8090)
 agent_app.run(host="0.0.0.0", port=8090)
+
+# If you want to enable the built-in web chat interface at the same time, set web_ui=True
+# agent_app.run(host="0.0.0.0", port=8090, web_ui=True)
 ```
 
 ### Step 6: Send a Request
