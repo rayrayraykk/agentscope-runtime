@@ -229,6 +229,7 @@ class AgentApp(BaseApp):
         """Get the FastAPI application"""
 
         self._build_runner()
+        mode = kwargs.pop("mode", DeploymentMode.DAEMON_THREAD)
 
         return FastAPIAppFactory.create_app(
             runner=self._runner,
@@ -238,7 +239,7 @@ class AgentApp(BaseApp):
             stream=self.stream,
             before_start=self.before_start,
             after_finish=self.after_finish,
-            mode=DeploymentMode.DAEMON_THREAD,
+            mode=mode,
             protocol_adapters=self.protocol_adapters,
             custom_endpoints=self.custom_endpoints,
             broker_url=self.broker_url,
@@ -255,13 +256,14 @@ class AgentApp(BaseApp):
         self._build_runner()
 
         deploy_kwargs = {
-            **kwargs,
+            "app": self,
             "custom_endpoints": self.custom_endpoints,
             "runner": self._runner,
             "endpoint_path": self.endpoint_path,
             "stream": self.stream,
             "protocol_adapters": self.protocol_adapters,
         }
+        deploy_kwargs.update(kwargs)
         return await deployer.deploy(**deploy_kwargs)
 
     def endpoint(self, path: str, methods: Optional[List[str]] = None):
