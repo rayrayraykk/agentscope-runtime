@@ -14,231 +14,115 @@ kernelspec:
 
 # 记忆服务
 
-记忆服务设计用于从数据库或内存存储中存储和检索长期记忆。 记忆在顶层按用户ID组织，消息列表作为存储在不同位置的基本值。此外，消息可以按会话ID分组。
+## 概述
 
-### 核心功能
+**记忆服务**（Memory Service）用于管理智能体的**长期记忆**，将用户对话和其他关联信息进行存储、检索、管理，以便在后续交互中进行知识引用、个性化回应或者任务跟踪。
 
-#### 添加记忆
+与**会话历史服务**的区别在于：
 
- `add_memory` 方法允许您为特定用户存储消息，可选择性地提供会话ID：
+- 会话历史服务主要保存**短期上下文**（最近几轮对话）
+- 记忆服务则可以保存**长期、跨会话**的信息，例如用户的偏好、长期任务计划、知识库等
 
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.memory import InMemoryMemoryService
-from agentscope_runtime.engine.schemas.agent_schemas import Message, TextContent
+记忆服务的核心接口定义了四种重要功能：
 
-async def main():
-    # 创建并启动记忆服务
-    memory_service = InMemoryMemoryService()
-    await memory_service.start()
+- **新增记忆**：将一批消息或信息存入记忆存储
+- **搜索记忆**：根据当前用户的查询或上下文内容筛选相关信息
+- **列出记忆**：支持分页遍历某用户的所有记忆内容
+- **删除记忆**：清理指定会话或用户的全部记忆
 
-    # 不带会话ID添加记忆
-    user_id = "user1"
-    messages = [
-        Message(
-            role="user",
-            content=[TextContent(type="text", text="hello world")]
-        )
-    ]
-    await memory_service.add_memory(user_id, messages)
-
-    await memory_service.stop()
-
-await main()
-```
-
-#### 搜索记忆
-
-`search_memory`方法基于内容关键词搜索消息：
-
-在内存记忆服务中，实现了一个简单的关键词搜索算法， 基于查询从历史消息中搜索相关内容。 其他复杂的搜索算法可以通过实现或重写类来替换简单方法。
-
-用户可以使用消息作为查询来搜索相关内容。
-
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.memory import InMemoryMemoryService
-from agentscope_runtime.engine.schemas.agent_schemas import Message, TextContent
-
-async def main():
-    memory_service = InMemoryMemoryService()
-    await memory_service.start()
-
-    user_id = "user1"
-    # 先添加一些记忆
-    messages = [
-        Message(
-            role="user",
-            content=[TextContent(type="text", text="hello world")]
-        )
-    ]
-    await memory_service.add_memory(user_id, messages)
-
-    # 搜索记忆
-    search_query = [
-        Message(
-            role="user",
-            content=[TextContent(type="text", text="hello")]
-        )
-    ]
-    retrieved = await memory_service.search_memory(user_id, search_query)
-
-    await memory_service.stop()
-
-await main()
-```
-
-#### 列出记忆
-
-`list_memory`方法提供了一个分页接口来列出记忆，如下所示：
-
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.memory import InMemoryMemoryService
-from agentscope_runtime.engine.schemas.agent_schemas import Message, TextContent
-
-async def main():
-    memory_service = InMemoryMemoryService()
-    await memory_service.start()
-
-    user_id = "user1"
-    # 先添加一些记忆
-    messages = [
-        Message(
-            role="user",
-            content=[TextContent(type="text", text="hello world")]
-        )
-    ]
-    await memory_service.add_memory(user_id, messages)
-
-    # List memory with pagination
-    memory_list = await memory_service.list_memory(
-        user_id,
-        filters={"page_size": 10, "page_num": 1}
-    )
-
-    await memory_service.stop()
-
-await main()
-```
-
-#### 删除记忆
-
-用户可以删除特定会话或整个用户的记忆：
-
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.memory import InMemoryMemoryService
-from agentscope_runtime.engine.schemas.agent_schemas import Message, TextContent
-
-async def main():
-    memory_service = InMemoryMemoryService()
-    await memory_service.start()
-
-    user_id = "user1"
-    session_id = "session1"
-
-    # 先添加一些记忆
-    messages = [
-        Message(
-            role="user",
-            content=[TextContent(type="text", text="hello world")]
-        )
-    ]
-    await memory_service.add_memory(user_id, messages, session_id=session_id)
-
-    # 删除特定会话的记忆
-    await memory_service.delete_memory(user_id, session_id)
-
-    # 删除用户的所有记忆
-    await memory_service.delete_memory(user_id)
-
-    await memory_service.stop()
-
-await main()
-```
-
-### 服务生命周期
-
-#### 服务生命周期管理
-
-记忆服务遵循标准的生命周期模式，可以通过`start()`、`stop()`、`health()` 管理：
-
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.memory import InMemoryMemoryService
-
-async def main():
-    # 创建记忆服务
-    memory_service = InMemoryMemoryService()
-
-    # 启动服务
-    await memory_service.start()
-
-    # 检查服务健康状态
-    is_healthy = await memory_service.health()
-    print(f"Service health status: {is_healthy}")
-
-    # 停止服务
-    await memory_service.stop()
-
-await main()
-```
-
-#### 实现细节
-
-`InMemoryMemoryService` 将数据存储在字典结构中：
-
-+ 顶层：`{user_id: {session_id: [messages]}}`
-+ 未指定会话时使用默认会话ID
-+ 基于关键词的搜索不区分大小写
-+ 消息在每个会话中按时间顺序存储
-
-## 可用的记忆服务
-
-|          记忆类型          | 导入语句                                                     |                             说明                             |
-| :------------------------: | ------------------------------------------------------------ | :----------------------------------------------------------: |
-|   InMemoryMemoryService    | `from agentscope_runtime.engine.services.memory import InMemoryMemoryService` |                                                              |
-|     RedisMemoryService     | `from agentscope_runtime.engine.services.memory import RedisMemoryService` |                                                              |
-| ReMe.PersonalMemoryService | `from reme_ai.service.personal_memory_service import PersonalMemoryService` |        [用户指南](https://github.com/modelscope/ReMe)        |
-|   ReMe.TaskMemoryService   | `from reme_ai.service.task_memory_service import TaskMemoryService` |        [用户指南](https://github.com/modelscope/ReMe)        |
-|     Mem0MemoryService      | `from agentscope_runtime.engine.services.memory import Mem0MemoryService` |                                                              |
-|  TablestoreMemoryService   | `from agentscope_runtime.engine.services.memory import TablestoreMemoryService` | 通过[tablestore-for-agent-memory](https://github.com/aliyun/alibabacloud-tablestore-for-agent-memory/blob/main/python/docs/knowledge_store_tutorial.ipynb)开发实现 |
-
-### 描述
-- **InMemoryMemoryService**: 一种内存内记忆服务，无持久化存储。
-- **RedisMemoryService**: 利用 Redis 实现持久化存储的记忆服务。
-- **ReMe.PersonalMemoryService**: ReMe 的个性化记忆服务（原名 MemoryScope），支持生成、检索和共享定制化记忆。依托LLM、VectorStore，构建具备智能、上下文感知与时序感知的完整记忆系统，可无缝配置与部署强大的 AI 智能体。
-- **ReMe.TaskMemoryService**: ReMe 的任务导向型记忆服务，帮助您高效管理与调度任务相关记忆，提升任务执行的准确性与效率。依托LLM，支持在多样化任务场景中灵活创建、检索、更新与删除记忆，助您轻松构建并扩展强大的基于智能体的任务系统。
-- **Mem0MemoryService**: 基于 mem0 平台的智能记忆服务，提供长期记忆存储与管理功能。支持异步操作，可自动提取、存储和检索对话中的关键信息，为 AI 智能体提供上下文感知的记忆能力。适用于需要持久化记忆的复杂对话场景和智能体应用。(具体可参考 [mem0 平台文档](https://docs.mem0.ai/platform/quickstart))
-- **TablestoreMemoryService**: 基于阿里云表格存储的记忆服务（Tablestore 为海量结构化数据提供 Serverless 表存储服务，并为物联网（IoT）场景深度优化提供一站式 IoTstore 解决方案。它适用于海量账单、即时消息（IM）、物联网（IoT）、车联网、风控和推荐等场景中的结构化数据存储，提供海量数据的低成本存储、毫秒级在线数据查询检索和灵活的数据分析能力）, 通过[tablestore-for-agent-memory](https://github.com/aliyun/alibabacloud-tablestore-for-agent-memory/blob/main/python/docs/knowledge_store_tutorial.ipynb)开发实现。使用示例：
-```python
-from agentscope_runtime.engine.services.memory import TablestoreMemoryService
-from agentscope_runtime.engine.services.utils.tablestore_service_utils import create_tablestore_client
-from agentscope_runtime.engine.services.memory.tablestore_memory_service import SearchStrategy
-
-# 创建表格存储记忆服务，默认使用全文检索
-tablestore_memory_service = TablestoreMemoryService(
-    tablestore_client=create_tablestore_client(
-        end_point="your_endpoint",
-        instance_name="your_instance_name",
-        access_key_id="your_access_key_id",
-        access_key_secret="your_access_key_secret",
-    ),
-)
-
-# 创建基于向量检索的表格存储记忆服务，编码模型默认使用DashScopeEmbeddings()
-tablestore_memory_service = TablestoreMemoryService(
-    tablestore_client=create_tablestore_client(
-        end_point="your_endpoint",
-        instance_name="your_instance_name",
-        access_key_id="your_access_key_id",
-        access_key_secret="your_access_key_secret",
-    ),
-    search_strategy=SearchStrategy.VECTOR,
-)
-```
+类似会话历史服务，记忆服务也有多种后端实现，支持不同的存储方式和生产级需求。
 
 ```{note}
-对于更高级的记忆实现，请考虑扩展 `MemoryService` 抽象基类以支持持久化存储或向量数据库。
+推荐总是通过**适配器（adapter）**使用记忆服务，而不是在业务逻辑中直接调用底层实现类。
+这样可以：
+- 无感知切换存储类型
+- 生命周期由框架统一管理
+- 与业务逻辑解耦
 ```
+
+## 在 AgentScope 中使用 Adapter
+
+在 **AgentScope** 框架中，可以通过 `AgentScopeLongTermMemory` 或其他记忆适配器，将底层 `MemoryService` 封装为智能体的 **LongTermMemory** 模块进行调用：
+
+```{code-cell}
+from agentscope_runtime.engine.services.memory import InMemoryMemoryService
+from agentscope_runtime.adapters.agentscope.long_term_memory import AgentScopeLongTermMemory
+
+# 选择后端实现（此例为 InMemory，方便本地测试）
+memory_service = InMemoryMemoryService()
+
+# 用 adapter 包装，绑定到 LongTermMemory 模块
+long_term_memory = AgentScopeLongTermMemory(
+    service=memory_service,
+    session_id="Test Session",
+    user_id="User1",
+)
+
+# 之后在 Agent 内即可直接使用 long_term_memory 存取跨会话的长期记忆
+```
+
+## 可选的后端实现类型
+
+虽然通过适配器使用时无需关心底层调用，但为了配置和选型，需要了解可用实现类型的特点：
+
+| 服务类型                      | 导入路径                                                     | 存储位置          | 持久化          | 生产可用性 | 特点 & 优缺点                               | 适用场景                       |
+| ----------------------------- | ------------------------------------------------------------ | ----------------- | --------------- | ---------- | ------------------------------------------- | ------------------------------ |
+| **InMemoryMemoryService**     | `from agentscope_runtime.engine.services.memory import InMemoryMemoryService` | 进程内存          | ❌ 否            | ❌          | 高速、无依赖；进程退出即丢失                | 开发调试、单元测试             |
+| **RedisMemoryService**        | `from agentscope_runtime.engine.services.memory import RedisMemoryService` | Redis 内存数据库  | ✅ 是（RDB/AOF） | ✅          | 高性能、跨进程共享、可集群；需运维 Redis    | 高性能生产部署、分布式共享记忆 |
+| **TablestoreMemoryService**   | `from agentscope_runtime.engine.services.memory import TablestoreMemoryService` | 阿里云 Tablestore | ✅ 是            | ✅          | 海量存储、全文/向量检索、高可用；需云资源   | 企业级生产、长期知识存档       |
+| **Mem0MemoryService**         | `from agentscope_runtime.engine.services.memory import Mem0MemoryService` | mem0.ai 云服务    | ✅ 是            | ✅          | 内置 AI 语义记忆，外部 API 调用；需 API key | 语义化长期记忆、智能化匹配     |
+| **ReMePersonalMemoryService** | `from agentscope_runtime.engine.services.memory import ReMePersonalMemoryService` | ReMe 云服务       | ✅ 是            | ✅          | 个人信息长期存储；需外部 API Key            | 个性化 AI、用户档案            |
+| **ReMeTaskMemoryService**     | `from agentscope_runtime.engine.services.memory import ReMeTaskMemoryService` | ReMe 云服务       | ✅ 是            | ✅          | 任务型记忆存储；需外部 API Key              | 长期任务管理 AI                |
+
+## 切换不同实现的方法
+
+适配器让切换存储后端非常简单，只需替换 `service` 实例即可。
+
+### 示例：切换为 Redis 存储
+
+```{code-cell}
+from agentscope_runtime.engine.services.memory import RedisMemoryService
+from agentscope_runtime.adapters.agentscope.long_term_memory import AgentScopeLongTermMemory
+
+redis_service = RedisMemoryService(redis_url="redis://localhost:6379/0")
+
+long_term_memory = AgentScopeLongTermMemory(
+    service=redis_service,
+    session_id="ProdSession",
+    user_id="UserABC",
+)
+```
+
+### 示例：切换为 Tablestore 存储
+
+```{code-cell}
+from agentscope_runtime.engine.services.memory import TablestoreMemoryService
+from tablestore import AsyncOTSClient
+
+client = AsyncOTSClient(
+    "https://<endpoint>", "<access_key_id>", "<secret>", "<instance_name>"
+)
+tablestore_service = TablestoreMemoryService(tablestore_client=client)
+
+long_term_memory = AgentScopeLongTermMemory(
+    service=tablestore_service,
+    session_id="EnterpriseSession",
+    user_id="CorpUser",
+)
+```
+
+## 选型建议
+
+- **开发调试 / 原型验证** → `InMemoryMemoryService`
+- **生产环境高性能共享记忆** → `RedisMemoryService`
+- **企业级生产 & 海量长期存储** → `TablestoreMemoryService`
+- **需要语义查询的智能记忆** → `Mem0MemoryService`
+- **结合任务管理或个性化的智能体** → `ReMePersonalMemoryService` / `ReMeTaskMemoryService`
+
+------
+
+## 小结
+
+- 记忆服务是**跨会话、长期知识存储**的核心组件
+- 使用 `AgentScopeLongTermMemory` 适配器，可与业务逻辑解耦
+- 多种后端实现可按场景灵活选择、随时切换

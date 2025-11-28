@@ -68,7 +68,7 @@ memory = AgentScopeSessionHistoryMemory(
 )
 ```
 
-For more service types and detailed usage, see {doc}`session_service`.
+For more service types and detailed usage, see {doc}`session_history`.
 
 ### 2. Memory Service (`MemoryService`)
 

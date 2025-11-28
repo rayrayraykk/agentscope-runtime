@@ -14,232 +14,106 @@ kernelspec:
 
 # 会话历史服务
 
-会话历史服务管理用户的对话会话，提供处理对话历史和消息存储的结构化方式。每个会话包含一个对话的历史记录，并通过其ID唯一标识。
+## 概述
 
-### 会话对象结构
+**会话历史服务**用于管理用户的对话会话，为智能体在多轮对话中提供处理对话历史和消息存储的结构化方式。每个会话（Session）都有一个唯一的 `session_id`，包含该会话从开始到当前的全部消息列表（消息对象 `Message` 或其字典表示）。
 
-每个会话由具有以下结构的`Session` 对象表示：
+在智能体运行过程中，会话历史服务的典型作用包括：
 
-```{code-cell}
-from agentscope_runtime.engine.schemas.session import Session
-from agentscope_runtime.engine.schemas.agent_schemas import Message, TextContent, Role
+- **新建会话**：在用户首次发起对话时，为其创建一个会话。
+- **读取会话**：在对话过程中获取已有的历史记录，保证上下文连贯。
+- **追加消息**：智能体或用户发送的消息都会追加到会话的存储中。
+- **列出会话**：查看某个用户的所有会话。
+- **删除会话**：根据业务需求清理某个会话。
 
-# 会话对象结构
-session_obj = Session(
-    id="session_123",
-    user_id="user_456",
-    messages=[
-        Message(role=Role.USER, content=[TextContent(type="text", text="Hello")]),
-        Message(role=Role.ASSISTANT, content=[TextContent(type="text", text="Hi there!")]),
-    ],
-)
-
-print(f"Session ID: {session_obj.id}")
-print(f"User ID: {session_obj.user_id}")
-print(f"Message count: {len(session_obj.messages)}")
-```
-
-### 核心功能
-
-#### 创建会话
-
- `create_session` 方法为用户创建新的对话会话：
-
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.session_history import InMemorySessionHistoryService
-
-async def main():
-    # 创建并启动会话历史服务
-    session_history_service = InMemorySessionHistoryService()
-    await session_history_service.start()
-
-    # 创建带自动生成ID的会话
-    user_id = "test_user"
-    session = await session_history_service.create_session(user_id)
-    print(f"Created session: {session.id}")
-    print(f"User ID: {session.user_id}")
-    print(f"Messages count: {len(session.messages)}")
-
-    # 创建带自定义ID的会话
-    custom_session = await session_history_service.create_session(
-        user_id,
-        session_id="my_custom_session_id",
-    )
-    print(f"Custom session ID: {custom_session.id}")
-
-    await session_history_service.stop()
-
-await main()
-```
-
-#### 检索会话
-
-`get_session`方法通过用户ID和会话ID检索特定会话：
-
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.session_history import InMemorySessionHistoryService
-
-async def main():
-    session_history_service = InMemorySessionHistoryService()
-    await session_history_service.start()
-
-    user_id = "u1"
-    # 检索现有会话（在内存实现中如果不存在会自动创建）
-    retrieved_session = await session_history_service.get_session(user_id, "s1")
-    assert retrieved_session is not None
-
-    await session_history_service.stop()
-
-await main()
-```
-
-#### 列出会话
-
-`list_sessions` 方法提供用户的所有会话列表：
-
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.session_history import InMemorySessionHistoryService
-
-async def main():
-    session_history_service = InMemorySessionHistoryService()
-    await session_history_service.start()
-
-    user_id = "u_list"
-    # 创建多个会话
-    session1 = await session_history_service.create_session(user_id)
-    session2 = await session_history_service.create_session(user_id)
-
-    # 列出所有会话（为了效率不包含消息历史）
-    listed_sessions = await session_history_service.list_sessions(user_id)
-    assert len(listed_sessions) >= 2
-
-    # 返回的会话不包含消息历史
-    for s in listed_sessions:
-        assert s.messages == [], "History should be empty in list view"
-
-    await session_history_service.stop()
-
-await main()
-```
-
-#### 添加消息
-
-`append_message` 方法向会话历史添加消息，支持多种消息格式：
-
-##### 使用字典格式
-
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.session_history import InMemorySessionHistoryService
-from agentscope_runtime.engine.schemas.agent_schemas import Message, TextContent
-
-async def main():
-    session_history_service = InMemorySessionHistoryService()
-    await session_history_service.start()
-
-    user_id = "u_append"
-    # 创建会话并添加消息（也接受字典格式）
-    session = await session_history_service.create_session(user_id)
-
-    # 添加单个消息（Message对象）
-    message1 = Message(role="user", content=[TextContent(type="text", text="Hello, world!")])
-    await session_history_service.append_message(session, message1)
-
-    # 验证消息已添加
-    assert len(session.messages) == 1
-
-    # 一次添加多个消息（混合格式）
-    messages3 = [
-        {"role": "user", "content": [{"type": "text", "text": "How are you?"}]},
-        Message(role="assistant", content=[TextContent(type="text", text="I am fine, thank you.")]),
-    ]
-    await session_history_service.append_message(session, messages3)
-
-    # Verify all messages were added
-    assert len(session.messages) == 3
-
-    await session_history_service.stop()
-
-await main()
-```
-
-#### 删除会话
-
-`delete_session`方法删除特定会话：
-
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.session_history import InMemorySessionHistoryService
-
-async def main():
-    session_history_service = InMemorySessionHistoryService()
-    await session_history_service.start()
-
-    user_id = "test_user"
-    # 创建然后删除会话
-    session_to_delete = await session_history_service.create_session(user_id)
-    session_id = session_to_delete.id
-
-    # 验证会话存在
-    assert await session_history_service.get_session(user_id, session_id) is not None
-
-    # 删除会话
-    await session_history_service.delete_session(user_id, session_id)
-
-    # 验证会话已删除
-    assert await session_history_service.get_session(user_id, session_id) is None
-
-    # 删除不存在的会话不会引发错误
-    await session_history_service.delete_session(user_id, "non_existent_id")
-
-    await session_history_service.stop()
-
-await main()
-```
-
-### 服务生命周期
-
-会话服务遵循简单的生命周期模式：
-
-```{code-cell}
-# 启动服务（对于InMemorySessionHistoryService是可选的）
-await session_history_service.start()
-
-# 检查服务健康状态
-is_healthy = await session_history_service.health()
-
-# 停止服务（对于InMemorySessionHistoryService是可选的）
-await session_history_service.stop()
-```
-
-### 实现细节
-
-`InMemorySessionHistoryService` 将数据存储在嵌套字典结构中：
-
-+ 顶层: `{user_id: {session_id: Session}}`
-+ 每个Session对象包含id、user_id和messages列表
-+ 如果未提供会话ID，会使用UUID自动生成
-+ 空的或仅包含空格的会话ID会被替换为自动生成的ID
-
-`TablestoreSessionHistoryService`将数据存储在阿里云表格存储，使用示例：
-
-```python
-from agentscope_runtime.engine.services.session_history import TablestoreSessionHistoryService
-from agentscope_runtime.engine.services.utils.tablestore_service_utils import create_tablestore_client
-
-tablestore_session_history_service = TablestoreSessionHistoryService(
-    tablestore_client=create_tablestore_client(
-        end_point="your_endpoint",
-        instance_name="your_instance_name",
-        access_key_id="your_access_key_id",
-        access_key_secret="your_access_key_secret",
-    ),
-)
-```
+会话历史服务在不同实现中，差异主要体现在**存储位置**、**是否持久化**、**可扩展性**以及**生产可用性**。
 
 ```{note}
-对于生产使用，请考虑通过扩展`SessionHistoryService`抽象基类来实现持久化存储，以支持数据库或文件系统。
+在大多数情况下，**不建议在业务代码中直接调用底层会话历史服务类**（如 `InMemorySessionHistoryService`、`RedisSessionHistoryService` 等）。
+更推荐通过 **适配器（adapter）** 的方式使用，这样可以：
+- 屏蔽底层实现细节，业务无感知切换存储类型
+- 统一由 Runner/Engine 管理生命周期
+- 保证跨框架复用与解耦
 ```
+
+## 在 AgentScope 中使用 Adapter
+
+在 **AgentScope** 框架中，我们使用 `AgentScopeSessionHistoryMemory` 适配器，将底层会话历史服务绑定为智能体的 `Memory` 模块：
+
+```{code-cell}
+from agentscope_runtime.engine.services.session_history import InMemorySessionHistoryService
+from agentscope_runtime.adapters.agentscope.memory import AgentScopeSessionHistoryMemory
+
+# 选择后端实现（此例为 InMemory，方便本地测试）
+session_history_service = InMemorySessionHistoryService()
+
+# 用 adapter 包装，绑定到 Memory 模块
+memory = AgentScopeSessionHistoryMemory(
+    service=session_history_service,
+    session_id="TestSession",
+    user_id="User1",
+)
+
+# 之后在 Agent 内即可直接使用 memory 存取会话历史
+```
+
+## 可选的后端实现类型
+
+虽然通过适配器使用时无需关心底层调用，但为了配置和选型，需要了解可用实现类型的特点：
+
+| 服务类型                            | 导入路径                                                     | 存储位置                  | 持久化          | 生产可用性 | 特点 & 优缺点                            | 适用场景                       |
+| ----------------------------------- | ------------------------------------------------------------ | ------------------------- | --------------- | ---------- | ---------------------------------------- | ------------------------------ |
+| **InMemorySessionHistoryService**   | `from agentscope_runtime.engine.services.session_history import InMemorySessionHistoryService` | 进程内存                  | ❌ 否            | ❌          | 快速、无依赖，退出即丢失                 | 开发调试、单元测试             |
+| **RedisSessionHistoryService**      | `from agentscope_runtime.engine.services.session_history import RedisSessionHistoryService` | Redis 内存数据库          | ✅ 是（RDB/AOF） | ✅          | 快速、支持集群、跨进程共享；需运维 Redis | 高性能生产部署、分布式会话共享 |
+| **TablestoreSessionHistoryService** | `from agentscope_runtime.engine.services.session_history import TablestoreSessionHistoryService` | 阿里云 Tablestore云数据库 | ✅ 是            | ✅          | 海量存储、高可用、复杂索引查询；需云服务 | 企业级生产、长期历史存档       |
+
+## 切换不同实现的方法
+
+adapter 的好处是，你只需替换传入的 `service` 实例，就能切换存储后端，而不用修改业务逻辑：
+
+```{code-cell}
+from agentscope_runtime.engine.services.session_history import RedisSessionHistoryService
+from agentscope_runtime.adapters.agentscope.memory import AgentScopeSessionHistoryMemory
+
+# 切换为 Redis 存储
+session_history_service = RedisSessionHistoryService(redis_url="redis://localhost:6379/0")
+
+memory = AgentScopeSessionHistoryMemory(
+    service=session_history_service,
+    session_id="ProdSession",
+    user_id="UserABC",
+)
+
+# Agent 中代码无需变动
+```
+
+例如，将 InMemory 切换为 Tablestore：
+
+```{code-cell}
+from agentscope_runtime.engine.services.session_history import TablestoreSessionHistoryService
+from tablestore import AsyncOTSClient
+
+client = AsyncOTSClient(
+    "https://<endpoint>", "<access_key_id>", "<secret>", "<instance_name>"
+)
+session_history_service = TablestoreSessionHistoryService(tablestore_client=client)
+
+memory = AgentScopeSessionHistoryMemory(
+    service=session_history_service,
+    session_id="EnterpriseSession",
+    user_id="CorpUser",
+)
+```
+
+## 选型建议
+
+- **开发调试/快速原型**：`InMemorySessionHistoryService`
+- **生产环境中高性能共享会话**：`RedisSessionHistoryService`（可配合 Redis 集群和持久化机制）
+- **企业级生产 & 海量数据存储**：`TablestoreSessionHistoryService`（需要阿里云账号与资源）
+
+## 小结
+
+- 会话历史服务是智能体保持上下文记忆的核心组件
+- 推荐通过 **适配器**（如 `AgentScopeSessionHistoryMemory`）来使用，实现与业务逻辑解耦
+- 选型时根据数据量、持久化要求和运维条件选择后端实现
+- adapter 让存储后端的替换变得非常简单，无需修改智能体逻辑

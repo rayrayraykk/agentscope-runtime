@@ -52,7 +52,7 @@ AgentScope Runtime 中的服务（`Service`）为智能体运行环境提供核�
 
 #### AgentScope用法
 
-在 AgentScope 框架中，通过runtime的`AgentScopeSessionHistoryMemory`适配器来绑定会话历史服务到`Memory`模块：
+在 AgentScope 框架中，通过Runtime的`AgentScopeSessionHistoryMemory`适配器来绑定会话历史服务到`Memory`模块：
 
 ```{code-cell}
 from agentscope_runtime.engine.services.session_history import InMemorySessionHistoryService
@@ -67,7 +67,7 @@ memory = AgentScopeSessionHistoryMemory(
 )
 ```
 
-更多可用服务类型与详细的用法请参见{doc}`session_service`。
+更多可用服务类型与详细的用法请参见{doc}`session_history`。
 
 ### 2. 记忆服务（MemoryService）
 
@@ -75,7 +75,7 @@ memory = AgentScopeSessionHistoryMemory(
 
 #### AgentScope用法
 
-在 AgentScope 框架中，通过runtime的`AgentScopeLongTermMemory`适配器来绑定会话历史服务到`LongTermMemory`模块：
+在 AgentScope 框架中，通过Runtime的`AgentScopeLongTermMemory`适配器来绑定会话历史服务到`LongTermMemory`模块：
 
 ```{code-cell}
 from agentscope_runtime.engine.services.memory import InMemoryMemoryService
@@ -98,7 +98,7 @@ long_term_memory = AgentScopeLongTermMemory(
 
 #### AgentScope用法
 
-在 AgentScope 框架中，通过runtime的`sandbox_tool_adapter`适配器来绑定沙箱服务提供的沙箱的方法到`ToolKit`模块：
+在 AgentScope 框架中，通过Runtime的`sandbox_tool_adapter`适配器来绑定沙箱服务提供的沙箱的方法到`ToolKit`模块：
 
 ```{code-cell}
 from agentscope_runtime.engine.services.sandbox import SandboxService

@@ -12,233 +12,152 @@ kernelspec:
   name: python3
 ---
 
-# 沙箱服务
+# Sandbox Service
 
-记忆服务设计用于从数据库或内存存储中存储和检索长期记忆。 记忆在顶层按用户ID组织，消息列表作为存储在不同位置的基本值。此外，消息可以按会话ID分组。
+## Overview
 
-### 核心功能
+The **Sandbox Service** provides isolated **tool execution environments** (sandboxes) for different users and sessions, allowing agents to use tools (such as browsers, code executors, etc.) in a controlled and secure environment.
+For more on sandboxes, see {doc}`../sandbox/sandbox`.
 
-#### 添加记忆
+In the course of agent execution, typical roles of the sandbox service include:
 
- `add_memory` 方法允许您为特定用户存储消息，可选择性地提供会话ID：
+- **Creating execution environments**: Generate a sandbox instance (e.g., a browser sandbox) for a new user/session.
+- **Connecting to existing environments**: In multi-turn conversations, connect the agent to a previously created sandbox to continue operations.
+- **Tool invocation**: Provide callable methods (such as `browser_navigate`, `browser_take_screenshot`, etc.) that can be registered as tools in an agent.
+- **Releasing environments**: Release the corresponding environment resources when the session ends or requirements change.
+- **Multi-type support**: Supports different types of sandboxes (`BASE`, `BROWSER`, `CODE`, `AGENTBAY`, etc.).
 
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.memory import InMemoryMemoryService
-from agentscope_runtime.engine.schemas.agent_schemas import Message, TextContent
+In different implementations, sandbox services mainly differ in:
+**running modes** (embedded/remote), **supported types**, **management methods**, and **extensibility**.
 
-async def main():
-    # 创建并启动记忆服务
-    memory_service = InMemoryMemoryService()
-    await memory_service.start()
+```{note}
+In business code, it is not recommended to directly implement the sandbox service and `SandboxManager`'s low-level management logic.
 
-    # 不带会话ID添加记忆
-    user_id = "user1"
-    messages = [
-        Message(
-            role="user",
-            content=[TextContent(type="text", text="hello world")]
-        )
-    ]
-    await memory_service.add_memory(user_id, messages)
-
-    await memory_service.stop()
-
-await main()
+Instead, it is better to **use an adapter to bind sandbox methods to the agent framework’s tool module**:
+- Hide low-level sandbox API details
+- Let Runner/Engine manage the lifecycle uniformly
+- Ensure that switching running modes or sandbox types does not affect business logic
 ```
 
-#### 搜索记忆
+## Using Adapters in AgentScope
 
-`search_memory`方法基于内容关键词搜索消息：
-
-在内存记忆服务中，实现了一个简单的关键词搜索算法， 基于查询从历史消息中搜索相关内容。 其他复杂的搜索算法可以通过实现或重写类来替换简单方法。
-
-用户可以使用消息作为查询来搜索相关内容。
+In the **AgentScope** framework, we can use `sandbox_tool_adapter` to wrap sandbox methods into **tool functions** and register them into the Agent's `Toolkit`:
 
 ```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.memory import InMemoryMemoryService
-from agentscope_runtime.engine.schemas.agent_schemas import Message, TextContent
+from agentscope_runtime.engine.services.sandbox import SandboxService
+from agentscope_runtime.adapters.agentscope.tools import sandbox_tool_adapter
+from agentscope import Toolkit
 
-async def main():
-    memory_service = InMemoryMemoryService()
-    await memory_service.start()
+# 1. Start the service (usually managed by Runner/Engine)
+sandbox_service = SandboxService()
+await sandbox_service.start()
 
-    user_id = "user1"
-    # 先添加一些记忆
-    messages = [
-        Message(
-            role="user",
-            content=[TextContent(type="text", text="hello world")]
-        )
-    ]
-    await memory_service.add_memory(user_id, messages)
-
-    # 搜索记忆
-    search_query = [
-        Message(
-            role="user",
-            content=[TextContent(type="text", text="hello")]
-        )
-    ]
-    retrieved = await memory_service.search_memory(user_id, search_query)
-
-    await memory_service.stop()
-
-await main()
-```
-
-#### 列出记忆
-
-`list_memory`方法提供了一个分页接口来列出记忆，如下所示：
-
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.memory import InMemoryMemoryService
-from agentscope_runtime.engine.schemas.agent_schemas import Message, TextContent
-
-async def main():
-    memory_service = InMemoryMemoryService()
-    await memory_service.start()
-
-    user_id = "user1"
-    # 先添加一些记忆
-    messages = [
-        Message(
-            role="user",
-            content=[TextContent(type="text", text="hello world")]
-        )
-    ]
-    await memory_service.add_memory(user_id, messages)
-
-    # List memory with pagination
-    memory_list = await memory_service.list_memory(
-        user_id,
-        filters={"page_size": 10, "page_num": 1}
-    )
-
-    await memory_service.stop()
-
-await main()
-```
-
-#### 删除记忆
-
-用户可以删除特定会话或整个用户的记忆：
-
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.memory import InMemoryMemoryService
-from agentscope_runtime.engine.schemas.agent_schemas import Message, TextContent
-
-async def main():
-    memory_service = InMemoryMemoryService()
-    await memory_service.start()
-
-    user_id = "user1"
-    session_id = "session1"
-
-    # 先添加一些记忆
-    messages = [
-        Message(
-            role="user",
-            content=[TextContent(type="text", text="hello world")]
-        )
-    ]
-    await memory_service.add_memory(user_id, messages, session_id=session_id)
-
-    # 删除特定会话的记忆
-    await memory_service.delete_memory(user_id, session_id)
-
-    # 删除用户的所有记忆
-    await memory_service.delete_memory(user_id)
-
-    await memory_service.stop()
-
-await main()
-```
-
-### 服务生命周期
-
-#### 服务生命周期管理
-
-记忆服务遵循标准的生命周期模式，可以通过`start()`、`stop()`、`health()` 管理：
-
-```{code-cell}
-import asyncio
-from agentscope_runtime.engine.services.memory import InMemoryMemoryService
-
-async def main():
-    # 创建记忆服务
-    memory_service = InMemoryMemoryService()
-
-    # 启动服务
-    await memory_service.start()
-
-    # 检查服务健康状态
-    is_healthy = await memory_service.health()
-    print(f"Service health status: {is_healthy}")
-
-    # 停止服务
-    await memory_service.stop()
-
-await main()
-```
-
-#### 实现细节
-
-`InMemoryMemoryService` 将数据存储在字典结构中：
-
-+ 顶层：`{user_id: {session_id: [messages]}}`
-+ 未指定会话时使用默认会话ID
-+ 基于关键词的搜索不区分大小写
-+ 消息在每个会话中按时间顺序存储
-
-## 可用的记忆服务
-
-|          记忆类型          | 导入语句                                                     |                             说明                             |
-| :------------------------: | ------------------------------------------------------------ | :----------------------------------------------------------: |
-|   InMemoryMemoryService    | `from agentscope_runtime.engine.services.memory import InMemoryMemoryService` |                                                              |
-|     RedisMemoryService     | `from agentscope_runtime.engine.services.memory import RedisMemoryService` |                                                              |
-| ReMe.PersonalMemoryService | `from reme_ai.service.personal_memory_service import PersonalMemoryService` |        [用户指南](https://github.com/modelscope/ReMe)        |
-|   ReMe.TaskMemoryService   | `from reme_ai.service.task_memory_service import TaskMemoryService` |        [用户指南](https://github.com/modelscope/ReMe)        |
-|     Mem0MemoryService      | `from agentscope_runtime.engine.services.memory import Mem0MemoryService` |                                                              |
-|  TablestoreMemoryService   | `from agentscope_runtime.engine.services.memory import TablestoreMemoryService` | 通过[tablestore-for-agent-memory](https://github.com/aliyun/alibabacloud-tablestore-for-agent-memory/blob/main/python/docs/knowledge_store_tutorial.ipynb)开发实现 |
-
-### 描述
-- **InMemoryMemoryService**: 一种内存内记忆服务，无持久化存储。
-- **RedisMemoryService**: 利用 Redis 实现持久化存储的记忆服务。
-- **ReMe.PersonalMemoryService**: ReMe 的个性化记忆服务（原名 MemoryScope），支持生成、检索和共享定制化记忆。依托LLM、VectorStore，构建具备智能、上下文感知与时序感知的完整记忆系统，可无缝配置与部署强大的 AI 智能体。
-- **ReMe.TaskMemoryService**: ReMe 的任务导向型记忆服务，帮助您高效管理与调度任务相关记忆，提升任务执行的准确性与效率。依托LLM，支持在多样化任务场景中灵活创建、检索、更新与删除记忆，助您轻松构建并扩展强大的基于智能体的任务系统。
-- **Mem0MemoryService**: 基于 mem0 平台的智能记忆服务，提供长期记忆存储与管理功能。支持异步操作，可自动提取、存储和检索对话中的关键信息，为 AI 智能体提供上下文感知的记忆能力。适用于需要持久化记忆的复杂对话场景和智能体应用。(具体可参考 [mem0 平台文档](https://docs.mem0.ai/platform/quickstart))
-- **TablestoreMemoryService**: 基于阿里云表格存储的记忆服务（Tablestore 为海量结构化数据提供 Serverless 表存储服务，并为物联网（IoT）场景深度优化提供一站式 IoTstore 解决方案。它适用于海量账单、即时消息（IM）、物联网（IoT）、车联网、风控和推荐等场景中的结构化数据存储，提供海量数据的低成本存储、毫秒级在线数据查询检索和灵活的数据分析能力）, 通过[tablestore-for-agent-memory](https://github.com/aliyun/alibabacloud-tablestore-for-agent-memory/blob/main/python/docs/knowledge_store_tutorial.ipynb)开发实现。使用示例：
-```python
-from agentscope_runtime.engine.services.memory import TablestoreMemoryService
-from agentscope_runtime.engine.services.utils.tablestore_service_utils import create_tablestore_client
-from agentscope_runtime.engine.services.memory.tablestore_memory_service import SearchStrategy
-
-# 创建表格存储记忆服务，默认使用全文检索
-tablestore_memory_service = TablestoreMemoryService(
-    tablestore_client=create_tablestore_client(
-        end_point="your_endpoint",
-        instance_name="your_instance_name",
-        access_key_id="your_access_key_id",
-        access_key_secret="your_access_key_secret",
-    ),
+# 2. Connect to or create a sandbox (creating a browser type here)
+sandboxes = sandbox_service.connect(
+    session_id="TestSession",
+    user_id="User1",
+    sandbox_types=["browser"],
 )
 
-# 创建基于向量检索的表格存储记忆服务，编码模型默认使用DashScopeEmbeddings()
-tablestore_memory_service = TablestoreMemoryService(
-    tablestore_client=create_tablestore_client(
-        end_point="your_endpoint",
-        instance_name="your_instance_name",
-        access_key_id="your_access_key_id",
-        access_key_secret="your_access_key_secret",
-    ),
-    search_strategy=SearchStrategy.VECTOR,
+# 3. Get tool methods and register into the Agent's Toolkit
+toolkit = Toolkit()
+for tool in [
+    sandboxes[0].browser_navigate,
+    sandboxes[0].browser_take_screenshot,
+]:
+    toolkit.register_tool_function(sandbox_tool_adapter(tool))
+
+# After this, the Agent can call these tools to perform safe operations in the sandbox
+```
+
+## Optional Running Modes and Types
+
+### 1. **Embedded Mode**
+
+- **Characteristics**: The sandbox manager and AgentScope Runtime run in the same process.
+- **Config**: `base_url=None`
+- **Advantages**: Simple deployment, no external API needed; suitable for local development and single-machine testing.
+- **Disadvantages**: The environment is released when the process exits; not suitable for distributed deployment.
+
+### 2. **Remote API Mode**
+
+- **Characteristics**: Connect to remote sandbox instances via the sandbox management API (`SandboxManager`).
+- **Config**: `base_url="http://host:port"`, `bearer_token="..."`
+- **Advantages**: Can share environments across processes/machines, supporting distributed scalability.
+- **Disadvantages**: Requires deployment and maintenance of a remote sandbox management service.
+
+### Supported Sandbox Types
+
+| Type Value   | Description                                  | Common Usage Examples                                        |
+| ------------ | -------------------------------------------- | ------------------------------------------------------------ |
+| `DUMMY`      | Null implementation / placeholder sandbox    | Test workflows, simulate sandbox APIs without actual execution |
+| `BASE`       | Basic sandbox environment                    | General tool execution environment                           |
+| `BROWSER`    | Browser sandbox                              | Web navigation, screenshots, data crawling                   |
+| `FILESYSTEM` | File system sandbox                          | Reading/writing files in a secure isolated file system       |
+| `GUI`        | Graphical interface sandbox                  | Interacting with GUI apps (clicking, typing, screenshots)    |
+| `MOBILE`     | Mobile device emulation sandbox              | Simulating mobile app operations and touch interactions      |
+| `APPWORLD`   | App world emulation sandbox                  | Simulating cross-app interactions in a virtual environment   |
+| `BFCL`       | BFCL (domain-specific execution environment) | Running business process scripts (depends on implementation) |
+| `AGENTBAY`   | Session-based AgentBay sandbox               | Dedicated for multi-agent collaboration or complex task orchestration |
+
+## Example: Switching Running Modes
+
+### **Embedded Mode (good for dev/testing)**
+
+```{code-cell}
+sandbox_service = SandboxService(base_url=None)  # local mode
+await sandbox_service.start()
+
+sandboxes = sandbox_service.connect(
+    session_id="DevSession",
+    sandbox_types=["browser"]
 )
+```
+
+### **Remote Mode (good for production)**
+
+```{code-cell}
+sandbox_service = SandboxService(
+    base_url="https://sandbox-manager.com",
+    bearer_token="YOUR_AUTH_TOKEN"
+)
+await sandbox_service.start()
+
+sandboxes = sandbox_service.connect(
+    session_id="ProdSession",
+    user_id="UserABC",
+    sandbox_types=["browser", "code"]
+)
+```
+
+### Releasing environments
+
+Explicitly release resources when the session ends:
+
+```{code-cell}
+sandbox_service.release(session_id="ProdSession", user_id="UserABC")
 ```
 
 ```{note}
-对于更高级的记忆实现，请考虑扩展 `MemoryService` 抽象基类以支持持久化存储或向量数据库。
+Sandboxes of type AGENTBAY will be automatically cleaned up when the object is destroyed.
 ```
+
+## Recommendations
+
+- Rapid prototyping / single-machine development & debugging:
+  - Embedded mode (`base_url=None`)
+  - Use `BROWSER`/`CODE` type as needed
+- Production / multi-user distributed:
+  - Remote API mode (requires deploying a `SandboxManager` service)
+  - Consider clustering and authentication (`bearer_token`)
+- High security/isolation requirements:
+  - Create independent sandboxes for different user sessions
+  - Use `release()` to free resources in time
+
+## Summary
+
+- **SandboxService** is the core component for managing sandbox execution environments, supporting multiple types.
+- It is recommended to use **adapters** (`sandbox_tool_adapter`) to register sandbox methods as tools, avoiding direct manipulation of low-level APIs.
+- You can choose **embedded mode** (simple, single-machine) or **remote mode** (scalable, production-ready).
+- Lifecycle is managed by Runner/Engine, ensuring consistent startup, health checks, and cleanup.
+- Switching modes or types only requires changing service initialization parameters, without affecting agent business logic.
