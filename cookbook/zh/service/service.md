@@ -10,48 +10,9 @@ kernelspec:
   display_name: Python 3
   language: python
   name: python3
-
 ---
 
 # 服务与适配器
-
-flowchart LR
-
-```mermaid
-graph TD
-    A[智能体框架 (Agent Frameworks)] --> B[适配器 (Adapters)] --> C[Runtime 服务层 (Services Layer)]
-
-    subgraph 框架示例
-        A1[AgentScope]
-        A2[LlamaIndex]
-        A3[LangChain]
-        A --> A1
-        A --> A2
-        A --> A3
-    end
-
-    subgraph 适配器类型
-        B1[Memory Adapter]
-        B2[Sandbox Tool Adapter]
-        B3[SessionHistory Adapter]
-        B4[State Adapter]
-        B --> B1
-        B --> B2
-        B --> B3
-        B --> B4
-    end
-
-    subgraph 服务类型
-        C1[SessionHistoryService]
-        C2[MemoryService]
-        C3[SandboxService]
-        C4[StateService]
-        C --> C1
-        C --> C2
-        C --> C3
-        C --> C4
-    end
-```
 
 ## 概述
 
@@ -131,7 +92,7 @@ long_term_memory = AgentScopeLongTermMemory(
 
 更多可用服务类型与详细的用法请参见{doc}`memory`。
 
-### 沙箱服务（SandboxService）
+### 3. 沙箱服务（SandboxService）
 
 **沙箱服务** 管理并为不同用户和会话提供沙箱化工具执行环境的访问。沙箱通过会话ID和用户ID的复合键组织，为每个用户会话提供隔离的执行环境。
 
@@ -158,7 +119,7 @@ for tool in [
 
 更多可用服务类型与详细的用法请参见{doc}`sandbox`。
 
-### StateService
+### 4. StateService
 
 存取智能体的可序列化状态，让智能体在多轮会话甚至跨会话间保持上下文。
 
@@ -211,6 +172,4 @@ async def main():
     print("Health:", await memory_service.health())
 
     await memory_service.stop()
-
-asyncio.run(main())
 ```
