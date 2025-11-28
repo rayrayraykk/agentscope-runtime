@@ -173,7 +173,11 @@ async def query_func(
 启动 Agent API 服务器，运行后，服务器会启动并监听：`http://localhost:8090/process`：
 
 ```{code-cell}
+# 启动服务（监听8090端口）
 agent_app.run(host="0.0.0.0", port=8090)
+
+# 如果希望同时启用内置的 Web 对话界面，可设置 web_ui=True
+# agent_app.run(host="0.0.0.0", port=8090, web_ui=True)
 ```
 
 ### 步骤6：发送一个请求
