@@ -1,28 +1,24 @@
 # -*- coding: utf-8 -*-
-from typing import TYPE_CHECKING
-from ..common.utils.lazy_loader import install_lazy_loader
-from .custom import *
+# Explicitly import all Sandbox classes so their modules execute immediately.
+# This ensures SandboxRegistry.register() runs at import time.
+# Without this, lazy loading delays module import and types may not be
+# registered.
+from .box.base.base_sandbox import BaseSandbox
+from .box.browser.browser_sandbox import BrowserSandbox
+from .box.filesystem.filesystem_sandbox import FilesystemSandbox
+from .box.gui.gui_sandbox import GuiSandbox
+from .box.training_box.training_box import TrainingSandbox
+from .box.cloud.cloud_sandbox import CloudSandbox
+from .box.mobile.mobile_sandbox import MobileSandbox
+from .box.agentbay.agentbay_sandbox import AgentbaySandbox
 
-if TYPE_CHECKING:
-    from .box.base.base_sandbox import BaseSandbox
-    from .box.browser.browser_sandbox import BrowserSandbox
-    from .box.filesystem.filesystem_sandbox import FilesystemSandbox
-    from .box.gui.gui_sandbox import GuiSandbox
-    from .box.training_box.training_box import TrainingSandbox
-    from .box.cloud.cloud_sandbox import CloudSandbox
-    from .box.agentbay.agentbay_sandbox import AgentbaySandbox
-    from .box.mobile.mobile_sandbox import MobileSandbox
-
-install_lazy_loader(
-    globals(),
-    {
-        "BaseSandbox": ".box.base.base_sandbox",
-        "BrowserSandbox": ".box.browser.browser_sandbox",
-        "FilesystemSandbox": ".box.filesystem.filesystem_sandbox",
-        "GuiSandbox": ".box.gui.gui_sandbox",
-        "TrainingSandbox": ".box.training_box.training_box",
-        "CloudSandbox": ".box.cloud.cloud_sandbox",
-        "AgentbaySandbox": ".box.agentbay.agentbay_sandbox",
-        "MobileSandbox": ".box.mobile.mobile_sandbox",
-    },
-)
+__all__ = [
+    "BaseSandbox",
+    "BrowserSandbox",
+    "FilesystemSandbox",
+    "GuiSandbox",
+    "TrainingSandbox",
+    "CloudSandbox",
+    "MobileSandbox",
+    "AgentbaySandbox",
+]
