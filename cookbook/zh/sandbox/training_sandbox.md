@@ -51,7 +51,10 @@ pip install agentscope-runtime
 ```
 
 ```bash
-# 拉取并标记Appworld架构镜像
+# 从 DockerHub 拉取 Appworld 镜像
+docker pull agentscope/runtime-sandbox-appworld:latest
+
+# 从 ACR 拉取 Appworld 镜像并打标签
 docker pull agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-appworld:latest && docker tag agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-appworld:latest agentscope/runtime-sandbox-appworld:latest
 ```
 
@@ -165,7 +168,10 @@ print(f"Instance released: {success}")
 ```
 
 ```bash
-# 拉取并标记 BFCL 镜像
+# 从 DockerHub 拉取 BFCL 镜像
+docker pull agentscope/runtime-sandbox-bfcl:latest
+
+# 从 ACR 拉取 BFCL 镜像并打标签
 docker pull agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-bfcl:latest && docker tag agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-bfcl:latest agentscope/runtime-sandbox-bfcl:latest
 ```
 

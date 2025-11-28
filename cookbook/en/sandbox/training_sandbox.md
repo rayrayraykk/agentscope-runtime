@@ -58,7 +58,10 @@ All Docker images are hosted on Alibaba Cloud Container Registry (ACR) for optim
 ```
 
 ```bash
-# Pull and tag Appworld image
+# Pull Appworld image from DockerHub
+docker pull agentscope/runtime-sandbox-appworld:latest
+
+# Pull and tag Appworld image from ACR
 docker pull agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-appworld:latest && docker tag agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-appworld:latest agentscope/runtime-sandbox-appworld:latest
 ```
 
@@ -187,7 +190,10 @@ All Docker images are hosted on Alibaba Cloud Container Registry (ACR) for optim
 ```
 
 ```bash
-# Pull and tag BFCL image
+# Pull BFCL image from DockerHub
+docker pull agentscope/runtime-sandbox-bfcl:latest
+
+# Pull and tag BFCL image from ACR
 docker pull agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-bfcl:latest && docker tag agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/runtime-sandbox-bfcl:latest agentscope/runtime-sandbox-bfcl:latest
 ```
 
