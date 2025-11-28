@@ -15,9 +15,47 @@ kernelspec:
 
 # 服务与适配器
 
+flowchart LR
+
+```mermaid
+graph TD
+    A[智能体框架 (Agent Frameworks)] --> B[适配器 (Adapters)] --> C[Runtime 服务层 (Services Layer)]
+
+    subgraph 框架示例
+        A1[AgentScope]
+        A2[LlamaIndex]
+        A3[LangChain]
+        A --> A1
+        A --> A2
+        A --> A3
+    end
+
+    subgraph 适配器类型
+        B1[Memory Adapter]
+        B2[Sandbox Tool Adapter]
+        B3[SessionHistory Adapter]
+        B4[State Adapter]
+        B --> B1
+        B --> B2
+        B --> B3
+        B --> B4
+    end
+
+    subgraph 服务类型
+        C1[SessionHistoryService]
+        C2[MemoryService]
+        C3[SandboxService]
+        C4[StateService]
+        C --> C1
+        C --> C2
+        C --> C3
+        C --> C4
+    end
+```
+
 ## 概述
 
-AgentScope Runtime 中的服务为智能体运行环境提供核心能力，包括：
+AgentScope Runtime 中的服务（`Service`）为智能体运行环境提供核心能力，包括：
 
 - **会话历史管理**
 - **记忆存储**
@@ -55,7 +93,7 @@ AgentScope Runtime 中的服务为智能体运行环境提供核心能力，包�
 
 在 AgentScope 框架中，通过runtime的`AgentScopeSessionHistoryMemory`适配器来绑定会话历史服务到`Memory`模块：
 
-```{code}
+```{code-cell}
 from agentscope_runtime.engine.services.session_history import InMemorySessionHistoryService
 from agentscope_runtime.adapters.agentscope.memory import AgentScopeSessionHistoryMemory
 
@@ -137,11 +175,11 @@ await state_service.save_state(session_id, user_id, state=agent.state_dict())
 
 更多可用服务类型与详细的用法请参见{doc}`state`。
 
-## 服务接口
+## 服务的接口
 
 所有服务必须实现 `ServiceWithLifecycleManager` 抽象类，例如：
 
-```{code}
+```{code-cell}
 from agentscope_runtime.engine.services.base import ServiceWithLifecycleManager
 
 class MockService(ServiceWithLifecycleManager):
@@ -162,7 +200,7 @@ class MockService(ServiceWithLifecycleManager):
 
 生命周期模式示例：
 
-```{code}
+```{code-cell}
 import asyncio
 from agentscope_runtime.engine.services.memory import InMemoryMemoryService
 
