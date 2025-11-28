@@ -111,6 +111,13 @@ Here `sandbox_types=["browser"]` matches the test suite so a single browser sand
 
 ### Step 3: Build the AgentApp
 
+```{important}
+⚠️ Important
+The Agent setup shown here (model, tools, conversation memory, formatter, etc.) is provided as an example configuration only.
+Please adapt and replace these components with your own implementations based on your requirements.
+For details on available service types, adapter usage, and how to swap them out, see {doc}`service/service`.
+```
+
 The logic mirrors the `run_app()` test: initialize services, wire up session memory, and stream responses.
 
 ```{code-cell}

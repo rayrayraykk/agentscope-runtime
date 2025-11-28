@@ -110,6 +110,14 @@ asyncio.run(bootstrap_browser_sandbox())
 
 ### 步骤 3：构建 AgentApp
 
+```{important}
+⚠️ **提示**
+
+此处的 Agent 构建（模型、工具、会话记忆、格式化器等）只是一个示例配置，
+您需要根据实际需求替换为自己的模块实现。
+关于可用的服务类型、适配器用法以及如何替换，请参考 {doc}`service/service`。
+```
+
 下面的逻辑与测试用例 `run_app()` 完全一致，包含状态服务初始化、会话记忆以及流式响应：
 
 ```{code-cell}

@@ -132,6 +132,9 @@ Allows saving and retrieving a serializable state of an agent so that context ca
 In AgentScope, you don’t need an adapter — directly call `StateService`’s `export_state` and `save_state`:
 
 ```{code-cell}
+from agentscope_runtime.engine.services.agent_state import InMemoryStateService
+
+state_service = InMemoryStateService()
 state = await state_service.export_state(session_id, user_id)
 agent.load_state_dict(state)
 

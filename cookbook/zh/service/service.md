@@ -128,6 +128,9 @@ for tool in [
 在 AgentScope 框架中，无需通过适配器，直接调用`StateService`的`export_state`和`save_state`来保：
 
 ```{code-cell}
+from agentscope_runtime.engine.services.agent_state import InMemoryStateService
+
+state_service = InMemoryStateService()
 state = await state_service.export_state(session_id, user_id)
 agent.load_state_dict(state)
 
