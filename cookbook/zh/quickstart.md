@@ -137,7 +137,7 @@ async def query_func(
         model=DashScopeChatModel(
             "qwen-turbo",
             api_key=os.getenv("DASHSCOPE_API_KEY"),
-            stream=True,
+            stream=True,  # 注意: 必须是流式！
         ),
         sys_prompt="You're a helpful assistant named Friday.",
         toolkit=toolkit,
