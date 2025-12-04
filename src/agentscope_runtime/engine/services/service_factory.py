@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import os
+import inspect
+
 from typing import Callable, Dict, Any, Optional, TypeVar, Generic
 
 from .base import ServiceWithLifecycleManager
@@ -98,7 +100,13 @@ class ServiceFactory(Generic[T]):
         # 2. Merge priority: kwargs > environment variables
         final_kwargs = {**env_kwargs, **kwargs}
 
-        # 3. Create instance
-        service = constructor(**final_kwargs)
+        # 3. Filter out kwargs that are not accepted by the constructor
+        sig = inspect.signature(constructor)
+        accepted_keys = sig.parameters.keys()
+        filtered_kwargs = {
+            k: v for k, v in final_kwargs.items() if k in accepted_keys
+        }
 
+        # 4. Create instance
+        service = constructor(**filtered_kwargs)
         return service

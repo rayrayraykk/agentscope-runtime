@@ -147,9 +147,7 @@ class TestMemoryServiceFactory:
         # Register custom backend
         MemoryServiceFactory.register_backend(
             "custom",
-            lambda **kwargs: CustomMemoryService(
-                custom_param=kwargs.get("custom_param"),
-            ),
+            CustomMemoryService,
         )
 
         try:
@@ -210,3 +208,15 @@ class TestMemoryServiceFactory:
         with patch.dict(os.environ, {}, clear=True):
             kwargs = MemoryServiceFactory._load_env_kwargs("redis")
             assert not kwargs
+
+    @pytest.mark.asyncio
+    async def test_create_with_extra_kwargs_filtered(self):
+        """Test that extra kwargs unrelated to the backend are ignored"""
+        # Passing redis_url to in_memory should not cause errors
+        service = await MemoryServiceFactory.create(
+            backend_type="in_memory",
+            redis_url="redis://localhost:6379/0",
+            # extra param for another backend
+            some_unused_param="hello",
+        )
+        assert isinstance(service, InMemoryMemoryService)
