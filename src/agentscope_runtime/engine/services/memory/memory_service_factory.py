@@ -55,6 +55,7 @@ class MemoryServiceFactory(ServiceFactory[MemoryService]):
 
     _registry: Dict[str, Callable[..., MemoryService]] = {}
     _env_prefix = "MEMORY_"
+    _default_backend = "in_memory"
 
 
 # === Default built-in backend registration ===
@@ -66,10 +67,7 @@ MemoryServiceFactory.register_backend(
 
 MemoryServiceFactory.register_backend(
     "redis",
-    lambda **kwargs: RedisMemoryService(
-        redis_url=kwargs.get("redis_url", "redis://localhost:6379/0"),
-        redis_client=kwargs.get("redis_client"),
-    ),
+    RedisMemoryService,
 )
 
 MemoryServiceFactory.register_backend(

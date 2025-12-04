@@ -42,6 +42,7 @@ class SandboxServiceFactory(ServiceFactory[SandboxService]):
 
     _registry: Dict[str, Callable[..., SandboxService]] = {}
     _env_prefix = "SANDBOX_"
+    _default_backend = "default"
 
 
 # === Default backend registration ===

@@ -21,6 +21,7 @@ class ServiceFactory(Generic[T]):
 
     _registry: Dict[str, Callable[..., T]] = {}
     _env_prefix: str = ""
+    _default_backend: str = "in_memory"
 
     @classmethod
     def register_backend(
@@ -81,7 +82,10 @@ class ServiceFactory(Generic[T]):
             ValueError: If the backend_type is unsupported
         """
         if backend_type is None:
-            backend_type = os.getenv(f"{cls._env_prefix}BACKEND", "in_memory")
+            backend_type = os.getenv(
+                f"{cls._env_prefix}BACKEND",
+                cls._default_backend,
+            )
         backend_type = backend_type.lower()
 
         constructor = cls._registry.get(backend_type)

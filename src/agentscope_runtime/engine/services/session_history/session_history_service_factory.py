@@ -55,6 +55,7 @@ class SessionHistoryServiceFactory(ServiceFactory[SessionHistoryService]):
 
     _registry: Dict[str, Callable[..., SessionHistoryService]] = {}
     _env_prefix = "SESSION_HISTORY_"
+    _default_backend = "in_memory"
 
 
 # === Default built-in backend registration ===

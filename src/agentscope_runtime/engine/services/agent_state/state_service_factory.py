@@ -41,6 +41,7 @@ class StateServiceFactory(ServiceFactory[StateService]):
 
     _registry: Dict[str, Callable[..., StateService]] = {}
     _env_prefix = "STATE_"
+    _default_backend = "in_memory"
 
 
 StateServiceFactory.register_backend(
