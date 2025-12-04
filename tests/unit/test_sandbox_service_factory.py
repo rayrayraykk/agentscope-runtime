@@ -172,3 +172,13 @@ class TestSandboxServiceFactory:
         with patch.dict(os.environ, {}, clear=True):
             kwargs = SandboxServiceFactory._load_env_kwargs("default")
             assert not kwargs
+
+    @pytest.mark.asyncio
+    async def test_create_with_extra_kwargs_filtered(self):
+        """Test that extra kwargs unrelated to the backend are ignored"""
+        # Passing redis_url to in_memory should not cause errors
+        service = await SandboxServiceFactory.create(
+            # extra param for another backend
+            some_unused_param="hello",
+        )
+        assert isinstance(service, SandboxService)
