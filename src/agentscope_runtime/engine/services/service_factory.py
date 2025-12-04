@@ -102,11 +102,18 @@ class ServiceFactory(Generic[T]):
 
         # 3. Filter out kwargs that are not accepted by the constructor
         sig = inspect.signature(constructor)
-        accepted_keys = sig.parameters.keys()
-        filtered_kwargs = {
-            k: v for k, v in final_kwargs.items() if k in accepted_keys
-        }
+
+        has_var_kwargs = any(
+            p.kind == inspect.Parameter.VAR_KEYWORD
+            for p in sig.parameters.values()
+        )
+
+        if not has_var_kwargs:
+            accepted_keys = sig.parameters.keys()
+            final_kwargs = {
+                k: v for k, v in final_kwargs.items() if k in accepted_keys
+            }
 
         # 4. Create instance
-        service = constructor(**filtered_kwargs)
+        service = constructor(**final_kwargs)
         return service

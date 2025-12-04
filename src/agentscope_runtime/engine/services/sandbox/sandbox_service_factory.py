@@ -48,8 +48,5 @@ class SandboxServiceFactory(ServiceFactory[SandboxService]):
 # === Default backend registration ===
 SandboxServiceFactory.register_backend(
     "default",
-    lambda **kwargs: SandboxService(
-        base_url=kwargs.get("base_url"),
-        bearer_token=kwargs.get("bearer_token"),
-    ),
+    SandboxService,
 )

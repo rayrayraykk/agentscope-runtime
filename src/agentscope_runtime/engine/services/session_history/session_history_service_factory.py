@@ -62,51 +62,16 @@ class SessionHistoryServiceFactory(ServiceFactory[SessionHistoryService]):
 
 SessionHistoryServiceFactory.register_backend(
     "in_memory",
-    lambda **kwargs: InMemorySessionHistoryService(),
+    InMemorySessionHistoryService,
 )
 
 SessionHistoryServiceFactory.register_backend(
     "redis",
-    lambda **kwargs: RedisSessionHistoryService(
-        redis_url=kwargs.get("redis_url", "redis://localhost:6379/0"),
-        redis_client=kwargs.get("redis_client"),
-    ),
+    RedisSessionHistoryService,
 )
 
 if TABLESTORE_AVAILABLE:
     SessionHistoryServiceFactory.register_backend(
         "tablestore",
-        lambda **kwargs: TablestoreSessionHistoryService(
-            tablestore_client=kwargs["tablestore_client"],  # Must be provided
-            session_table_name=kwargs.get(
-                "session_table_name",
-                "agentscope_runtime_session",
-            ),
-            message_table_name=kwargs.get(
-                "message_table_name",
-                "agentscope_runtime_message",
-            ),
-            session_secondary_index_meta=kwargs.get(
-                "session_secondary_index_meta",
-            ),
-            session_search_index_schema=kwargs.get(
-                "session_search_index_schema",
-            ),
-            message_search_index_schema=kwargs.get(
-                "message_search_index_schema",
-            ),
-            **{
-                k: v
-                for k, v in kwargs.items()
-                if k
-                not in [
-                    "tablestore_client",
-                    "session_table_name",
-                    "message_table_name",
-                    "session_secondary_index_meta",
-                    "session_search_index_schema",
-                    "message_search_index_schema",
-                ]
-            },
-        ),
+        TablestoreSessionHistoryService,
     )
