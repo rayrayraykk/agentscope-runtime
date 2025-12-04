@@ -44,8 +44,7 @@ class SessionHistoryServiceFactory(ServiceFactory[SessionHistoryService]):
                 PostgresSessionHistoryService,
             )
             export SESSION_HISTORY_BACKEND=postgres
-            export SESSION_HISTORY_POSTGRES_DSN="postgresql://user:pass
-                @localhost/db"
+            export SESSION_HISTORY_POSTGRES_DSN="postgresql://user:pass@localhost/db"  # noqa
             export SESSION_HISTORY_POSTGRES_POOL_SIZE="20"
             service = await SessionHistoryServiceFactory.create()
     """

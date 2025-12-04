@@ -176,7 +176,8 @@ class TestSandboxServiceFactory:
     @pytest.mark.asyncio
     async def test_create_with_extra_kwargs_filtered(self):
         """Test that extra kwargs unrelated to the backend are ignored"""
-        # Passing redis_url to in_memory should not cause errors
+        # Passing extra parameters unrelated to the sandbox service should
+        # not cause errors
         service = await SandboxServiceFactory.create(
             # extra param for another backend
             some_unused_param="hello",

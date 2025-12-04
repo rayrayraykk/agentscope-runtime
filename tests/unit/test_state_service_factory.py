@@ -60,7 +60,7 @@ class TestStateServiceFactory:
             os.environ,
             {
                 "STATE_BACKEND": "redis",
-                "STATE_REDIS_URL": "redis://localhost:6379/5",
+                "STATE_REDIS_REDIS_URL": "redis://localhost:6379/5",
             },
             clear=False,
         ):
@@ -144,21 +144,23 @@ class TestStateServiceFactory:
         with patch.dict(
             os.environ,
             {
-                "STATE_REDIS_URL": "redis://localhost:6379/0",
+                "STATE_REDIS_REDIS_URL": "redis://localhost:6379/0",
                 "STATE_REDIS_PASSWORD": "secret",
             },
             clear=False,
         ):
             kwargs = StateServiceFactory._load_env_kwargs("redis")
-            assert kwargs["url"] == "redis://localhost:6379/0"
+            assert kwargs["redis_url"] == "redis://localhost:6379/0"
             assert kwargs["password"] == "secret"
 
     def test_load_env_kwargs_empty(self):
-        """Test that an empty dictionary is returne  when no environment
-        variables exist"""
+        """
+        Test that an empty dictionary is returned  when no environment
+        variables exist
+        """
         with patch.dict(os.environ, {}, clear=True):
             kwargs = StateServiceFactory._load_env_kwargs("redis")
-            assert kwargs == {}
+            assert not kwargs
 
     @pytest.mark.asyncio
     async def test_create_with_extra_kwargs_filtered(self):

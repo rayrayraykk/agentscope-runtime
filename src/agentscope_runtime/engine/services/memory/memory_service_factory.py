@@ -18,7 +18,7 @@ try:
     TABLESTORE_AVAILABLE = True
 except ImportError:
     TABLESTORE_AVAILABLE = False
-    SearchStrategy = None
+    SearchStrategy = None  # type: ignore
 
 
 class MemoryServiceFactory(ServiceFactory[MemoryService]):
