@@ -60,7 +60,7 @@ class TestSessionHistoryServiceFactory:
             os.environ,
             {
                 "SESSION_HISTORY_BACKEND": "redis",
-                "SESSION_HISTORY_REDIS_URL": "redis://localhost:6379/5",
+                "SESSION_HISTORY_REDIS_REDIS_URL": "redis://localhost:6379/5",
             },
             clear=False,
         ):
@@ -145,10 +145,6 @@ class TestSessionHistoryServiceFactory:
         assert isinstance(service2, InMemorySessionHistoryService)
         assert isinstance(service3, InMemorySessionHistoryService)
 
-        await service1.stop()
-        await service2.stop()
-        await service3.stop()
-
     def test_load_env_kwargs(self):
         """Test loading kwargs from environment variables"""
         with patch.dict(
@@ -178,7 +174,6 @@ class TestSessionHistoryServiceFactory:
             # Default should be memory
             service = await SessionHistoryServiceFactory.create()
             assert isinstance(service, InMemorySessionHistoryService)
-            await service.stop()
 
     @pytest.mark.asyncio
     async def test_create_with_extra_kwargs_filtered(self):
