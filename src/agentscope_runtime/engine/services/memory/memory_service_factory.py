@@ -29,12 +29,12 @@ class MemoryServiceFactory(ServiceFactory[MemoryService]):
     Usage examples:
         1. Startup using only environment variables:
             export MEMORY_BACKEND=redis
-            export MEMORY_REDIS_URL="redis://localhost:6379/5"
+            export MEMORY_REDIS_REDIS_URL="redis://localhost:6379/5"
             service = await MemoryServiceFactory.create()
 
         2. Override environment variables using arguments:
             export MEMORY_BACKEND=redis
-            export MEMORY_REDIS_URL="redis://localhost:6379/5"
+            export MEMORY_REDIS_REDIS_URL="redis://localhost:6379/5"
             service = await MemoryServiceFactory.create(
                 redis_url="redis://otherhost:6379/1"
             )
@@ -43,10 +43,7 @@ class MemoryServiceFactory(ServiceFactory[MemoryService]):
             from my_backend import PostgresMemoryService
             MemoryServiceFactory.register_backend(
                 "postgres",
-                lambda **kwargs: PostgresMemoryService(
-                    dsn=kwargs.get("dsn"),
-                    pool_size=int(kwargs.get("pool_size", 10))
-                )
+                PostgresMemoryService,
             )
             export MEMORY_BACKEND=postgres
             export MEMORY_POSTGRES_DSN="postgresql://user:pass@localhost/db"

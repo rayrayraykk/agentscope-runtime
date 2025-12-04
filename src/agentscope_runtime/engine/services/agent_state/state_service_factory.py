@@ -15,12 +15,12 @@ class StateServiceFactory(ServiceFactory[StateService]):
     Usage examples:
         1. Start with environment variables only:
             export STATE_BACKEND=redis
-            export STATE_REDIS_URL="redis://localhost:6379/5"
+            export STATE_REDIS_REDIS_URL="redis://localhost:6379/5"
             service = await StateServiceFactory.create()
 
         2. Override environment variables with arguments:
             export STATE_BACKEND=redis
-            export STATE_REDIS_URL="redis://localhost:6379/5"
+            export STATE_REDIS_REDIS_URL="redis://localhost:6379/5"
             service = await StateServiceFactory.create(
                 redis_url="redis://otherhost:6379/1"
             )
@@ -29,10 +29,7 @@ class StateServiceFactory(ServiceFactory[StateService]):
             from my_backend import PostgresStateService
             StateServiceFactory.register_backend(
                 "postgres",
-                lambda **kwargs: PostgresStateService(
-                    dsn=kwargs.get("dsn"),
-                    pool_size=int(kwargs.get("pool_size", 10))
-                )
+                PostgresStateService,
             )
             export STATE_BACKEND=postgres
             export STATE_POSTGRES_DSN="postgresql://user:pass@localhost/db"

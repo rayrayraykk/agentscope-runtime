@@ -27,12 +27,12 @@ class SessionHistoryServiceFactory(ServiceFactory[SessionHistoryService]):
     Usage examples:
         1. Start with only environment variables:
             export SESSION_HISTORY_BACKEND=redis
-            export SESSION_HISTORY_REDIS_URL="redis://localhost:6379/5"
+            export SESSION_HISTORY_REDIS_REDIS_URL="redis://localhost:6379/5"
             service = await SessionHistoryServiceFactory.create()
 
         2. Override environment variables with arguments:
             export SESSION_HISTORY_BACKEND=redis
-            export SESSION_HISTORY_REDIS_URL="redis://localhost:6379/5"
+            export SESSION_HISTORY_REDIS_REDIS_URL="redis://localhost:6379/5"
             service = await SessionHistoryServiceFactory.create(
                 redis_url="redis://otherhost:6379/1"
             )
@@ -41,10 +41,7 @@ class SessionHistoryServiceFactory(ServiceFactory[SessionHistoryService]):
             from my_backend import PostgresSessionHistoryService
             SessionHistoryServiceFactory.register_backend(
                 "postgres",
-                lambda **kwargs: PostgresSessionHistoryService(
-                    dsn=kwargs.get("dsn"),
-                    pool_size=int(kwargs.get("pool_size", 10))
-                )
+                PostgresSessionHistoryService,
             )
             export SESSION_HISTORY_BACKEND=postgres
             export SESSION_HISTORY_POSTGRES_DSN="postgresql://user:pass
