@@ -362,7 +362,7 @@ async def adapt_agentscope_message_stream(
                                 ] = plugin_call_message
 
                     elif element.get("type") == "tool_result":  # Tool result
-                        call_id = element.get("call_id")
+                        call_id = element.get("id")
 
                         plugin_call_message = tool_use_messages_dict.get(
                             call_id,
