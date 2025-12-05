@@ -56,6 +56,30 @@ def exclude_None_fields_in_place(obj: Dict):
             del obj[key]
 
 
+def stringify_values(d: dict) -> dict:
+    for k, v in d.items():
+        if isinstance(v, (dict, list)):
+            d[k] = json.dumps(v, ensure_ascii=False)
+        elif not isinstance(v, str):
+            d[k] = str(v)
+    return d
+
+
+def _json_loads_if_str(v):
+    if isinstance(v, str):
+        try:
+            return json.loads(v)
+        except Exception:
+            return v
+    return v
+
+
+def restore_json_strings(d: dict) -> dict:
+    for k, v in d.items():
+        d[k] = _json_loads_if_str(v)
+    return d
+
+
 def tablestore_log(msg: str):
     print(msg)
 
@@ -111,6 +135,7 @@ def convert_message_to_tablestore_message(
     """Convert Message to TablestoreMessage"""
     content, content_list = _generate_tablestore_content_from_message(message)
     tablestore_message_metadata = message.model_dump(exclude={"content", "id"})
+    tablestore_message_metadata = stringify_values(tablestore_message_metadata)
     tablestore_message_metadata[content_list_name] = json.dumps(
         content_list,
         ensure_ascii=False,
@@ -241,6 +266,9 @@ def _generate_init_json_from_tablestore_message(
 ) -> Dict[str, Any]:
     """Generate initialization JSON from TablestoreMessage"""
     tablestore_message = copy.deepcopy(tablestore_message)
+    tablestore_message.metadata = restore_json_strings(
+        tablestore_message.metadata,
+    )
     tablestore_message_content_list = tablestore_message.metadata.pop(
         content_list_name,
         None,
@@ -265,6 +293,9 @@ def _generate_init_json_from_tablestore_document(
 ) -> Dict[str, Any]:
     """Generate initialization JSON from TablestoreDocument"""
     tablestore_document = copy.deepcopy(tablestore_document)
+    tablestore_document.metadata = restore_json_strings(
+        tablestore_document.metadata,
+    )
     tablestore_document_content_list = tablestore_document.metadata.pop(
         content_list_name,
         None,
