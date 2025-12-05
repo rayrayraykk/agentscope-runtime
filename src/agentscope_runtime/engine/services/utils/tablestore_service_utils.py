@@ -58,6 +58,8 @@ def exclude_None_fields_in_place(obj: Dict):
 
 def stringify_values(d: dict) -> dict:
     for k, v in d.items():
+        if v is None:
+            continue
         if isinstance(v, (dict, list)):
             d[k] = json.dumps(v, ensure_ascii=False)
         elif not isinstance(v, str):
@@ -277,11 +279,7 @@ def _generate_init_json_from_tablestore_message(
         "id": tablestore_message.message_id,
         "content": _generate_content_from_tablestore_content(
             text=tablestore_message.content,
-            content_list=(
-                json.loads(tablestore_message_content_list)
-                if tablestore_message_content_list
-                else None
-            ),
+            content_list=tablestore_message_content_list,
         ),
     }
     init_json.update(tablestore_message.metadata)
@@ -304,11 +302,7 @@ def _generate_init_json_from_tablestore_document(
         "id": tablestore_document.document_id,
         "content": _generate_content_from_tablestore_content(
             text=tablestore_document.text,
-            content_list=(
-                json.loads(tablestore_document_content_list)
-                if tablestore_document_content_list
-                else None
-            ),
+            content_list=tablestore_document_content_list,
         ),
     }
     init_json.update(tablestore_document.metadata)
