@@ -367,7 +367,9 @@ async def adapt_agentscope_message_stream(
                         plugin_call_message = tool_use_messages_dict.get(
                             call_id,
                         )
-                        # Check if the tool type
+                        # Determine the output message type and class to use
+                        # for the tool result message based on the type of
+                        # the original tool call message.
                         msg_type = MessageType.PLUGIN_CALL_OUTPUT
                         fc_cls = FunctionCallOutput
 
