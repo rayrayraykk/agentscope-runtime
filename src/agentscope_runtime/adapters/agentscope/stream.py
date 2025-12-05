@@ -80,8 +80,6 @@ async def adapt_agentscope_message_stream(
             # Note: Tool use content only happens in the last of messages
             tool_start = False
 
-            tool_use_messages_dict = {}
-
             # Cache msg id
             msg_id = msg.id
 
@@ -372,6 +370,9 @@ async def adapt_agentscope_message_stream(
                         # Check if the tool type
                         msg_type = MessageType.PLUGIN_CALL_OUTPUT
                         fc_cls = FunctionCallOutput
+                        print("@tag@")
+                        print(tool_use_messages_dict)
+
                         if plugin_call_message:
                             if (
                                 plugin_call_message.type
