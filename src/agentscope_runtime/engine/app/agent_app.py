@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 import types
+import platform
 import subprocess
 import shlex
 from typing import Optional, Callable, List
@@ -203,7 +204,13 @@ class AgentApp(BaseApp):
                     "[AgentApp] Note: First WebUI launch may take extra time "
                     "as dependencies are installed.",
                 )
-                with subprocess.Popen(shlex.split(cmd)):
+
+                cmd_kwarg = {}
+                if platform.system() == "Windows":
+                    cmd_kwarg.update({"shell": True})
+                else:
+                    cmd = shlex.split(cmd)
+                with subprocess.Popen(cmd, **cmd_kwarg):
                     uvicorn.run(
                         fastapi_app,
                         host=host,
