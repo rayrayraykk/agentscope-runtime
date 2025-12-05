@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint:disable=too-many-branches,too-many-statements
+# pylint:disable=too-many-branches,too-many-statements,protected-access
 # TODO: support file block
 import json
 
@@ -7,6 +7,7 @@ from collections import OrderedDict
 from typing import Union, List
 from urllib.parse import urlparse
 
+from mcp.types import CallToolResult
 from agentscope.message import (
     Msg,
     ToolUseBlock,
@@ -19,6 +20,7 @@ from agentscope.message import (
     URLSource,
     Base64Source,
 )
+from agentscope.mcp._client_base import MCPClientBase
 
 from ...engine.schemas.agent_schemas import (
     Message,
@@ -401,12 +403,14 @@ def message_to_agentscope_msg(
             # convert PLUGIN_CALL_OUTPUT, FUNCTION_CALL_OUTPUT to
             # ToolResultBlock
             out = None
+            raw_output = ""
             for cnt in reversed(message.content):
                 if hasattr(cnt, "data"):
                     v = cnt.data.get("output")
                     if isinstance(v, (dict, list)) or (
                         isinstance(v, str) and v.strip()
                     ):
+                        raw_output = v
                         out = _try_loads(v, "", keep_original=True)
                         break
             if out is None:
@@ -421,12 +425,19 @@ def message_to_agentscope_msg(
 
             if isinstance(blk, list):
                 if not all(is_valid_block(item) for item in blk):
-                    blk = out
+                    try:
+                        # Try to convert to MCP CallToolResult then to blocks
+                        blk = CallToolResult.model_validate(blk)
+                        blk = MCPClientBase._convert_mcp_content_to_as_blocks(
+                            blk.content,
+                        )
+                    except Exception:
+                        blk = raw_output
             elif isinstance(blk, dict):
                 if not is_valid_block(blk):
-                    blk = out
+                    blk = raw_output
             else:
-                blk = out
+                blk = raw_output
 
             result["content"] = [
                 ToolResultBlock(
