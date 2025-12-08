@@ -371,7 +371,7 @@ async def adapt_agentscope_message_stream(
 
                         json_str = json.dumps(
                             element.get("output"),
-                            ensure_ascii=True,
+                            ensure_ascii=False,
                         )
                         data_delta_content = DataContent(
                             index=index,
