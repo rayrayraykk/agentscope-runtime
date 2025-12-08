@@ -296,7 +296,7 @@ async def adapt_agentscope_message_stream(
 
                             json_str = json.dumps(element.get("input"))
                             data_delta_content = DataContent(
-                                index=None,
+                                index=None,  # Will be set by `add_content`
                                 data=fc_cls(
                                     call_id=element.get("id"),
                                     name=element.get("name"),
