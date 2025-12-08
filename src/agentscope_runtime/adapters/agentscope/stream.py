@@ -276,14 +276,14 @@ async def adapt_agentscope_message_stream(
                                 )
 
                                 data_delta_content = DataContent(
-                                    index=index,
+                                    index=0,
                                     data=fc_cls(
                                         call_id=element.get("id"),
                                         name=element.get("name"),
                                         arguments="",
                                         **fc_kwargs,
                                     ).model_dump(),
-                                    delta=True,
+                                    delta=False,
                                 )
 
                                 plugin_call_message = _update_obj_attrs(
@@ -292,28 +292,21 @@ async def adapt_agentscope_message_stream(
                                     usage=usage,
                                 )
                                 yield plugin_call_message.in_progress()
-                                data_delta_content = (
-                                    plugin_call_message.add_delta_content(
-                                        new_content=data_delta_content,
-                                    )
-                                )
-                                yield data_delta_content
+                                yield data_delta_content.in_progress()
 
                             json_str = json.dumps(element.get("input"))
                             data_delta_content = DataContent(
-                                index=index,
+                                index=None,
                                 data=fc_cls(
                                     call_id=element.get("id"),
                                     name=element.get("name"),
                                     arguments=json_str,
                                     **fc_kwargs,
                                 ).model_dump(),
-                                delta=True,
+                                delta=False,
                             )
-                            data_delta_content = (
-                                plugin_call_message.add_delta_content(
-                                    new_content=data_delta_content,
-                                )
+                            plugin_call_message.add_content(
+                                new_content=data_delta_content,
                             )
                             yield data_delta_content.completed()
                             plugin_call_message = _update_obj_attrs(
@@ -334,14 +327,14 @@ async def adapt_agentscope_message_stream(
                                 )
 
                                 data_delta_content = DataContent(
-                                    index=index,
+                                    index=0,
                                     data=fc_cls(
                                         call_id=element.get("id"),
                                         name=element.get("name"),
                                         arguments="",
                                         **fc_kwargs,
                                     ).model_dump(),
-                                    delta=True,
+                                    delta=False,
                                 )
 
                                 plugin_call_message = _update_obj_attrs(
@@ -350,12 +343,7 @@ async def adapt_agentscope_message_stream(
                                     usage=usage,
                                 )
                                 yield plugin_call_message.in_progress()
-                                data_delta_content = (
-                                    plugin_call_message.add_delta_content(
-                                        new_content=data_delta_content,
-                                    )
-                                )
-                                yield data_delta_content
+                                yield data_delta_content.in_progress()
 
                                 tool_use_messages_dict[
                                     call_id
