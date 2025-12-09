@@ -534,7 +534,15 @@ def message_to_agentscope_msg(
                                 block_cls(type=cnt_type, source=base64_source),
                             )
                 else:
-                    msg_content.append(block_cls(type=cnt_type, text=value))
+                    # Set to text for unexpected types
+                    if isinstance(value, str):
+                        msg_content.append(TextBlock(text=value))
+                    else:
+                        try:
+                            json_str = json.dumps(value, ensure_ascii=False)
+                        except Exception:
+                            json_str = str(value)
+                        msg_content.append(TextBlock(text=json_str))
 
             result["content"] = msg_content
         _msg = Msg(**result)
