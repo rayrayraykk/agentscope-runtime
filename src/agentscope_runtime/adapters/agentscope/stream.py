@@ -289,6 +289,7 @@ async def adapt_agentscope_message_stream(
                                 usage=usage,
                             )
                             yield plugin_call_message.in_progress()
+                            data_delta_content.msg_id = plugin_call_message.id
                             yield data_delta_content.in_progress()
                             tool_use_messages_dict[
                                 call_id
@@ -323,6 +324,7 @@ async def adapt_agentscope_message_stream(
                             yield data_delta_content.completed()
                             yield plugin_call_message.completed()
                         else:
+                            data_delta_content.msg_id = plugin_call_message.id
                             yield data_delta_content.in_progress()
 
                     elif element.get("type") == "tool_result":  # Tool result
@@ -370,6 +372,9 @@ async def adapt_agentscope_message_stream(
                                 usage=usage,
                             )
                             yield plugin_output_message.in_progress()
+                            data_delta_content.msg_id = (
+                                plugin_output_message.id
+                            )
                             yield data_delta_content.in_progress()
                             tool_result_messages_dict[
                                 call_id
@@ -411,6 +416,9 @@ async def adapt_agentscope_message_stream(
                             index = None
 
                         else:
+                            data_delta_content.msg_id = (
+                                plugin_output_message.id
+                            )
                             yield data_delta_content.in_progress()
 
                     else:
