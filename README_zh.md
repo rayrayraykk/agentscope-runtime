@@ -57,7 +57,7 @@
 > | LangGraph                 | ✅           | 🚧    | 🚧    |
 > | AutoGen                   | 🚧           | ✅    | 🚧    |
 > | Microsoft Agent Framework | 🚧           | 🚧    | 🚧    |
-> | Agno                      | 🚧           | 🚧    | 🚧    |
+> | Agno                      | 🧪           | ✅    | 🚧    |
 
 ---
 
