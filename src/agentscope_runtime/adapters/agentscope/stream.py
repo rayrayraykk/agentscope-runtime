@@ -48,6 +48,7 @@ async def adapt_agentscope_message_stream(
     should_start_message = True
     should_start_reasoning_message = True
     tool_use_messages_dict = {}
+    tool_result_messages_dict = {}
     index = None
 
     # Run agent
@@ -372,29 +373,96 @@ async def adapt_agentscope_message_stream(
                                 msg_type = MessageType.MCP_TOOL_CALL_OUTPUT
                                 fc_cls = McpCallOutput
 
-                        json_str = json.dumps(
-                            element.get("output"),
-                            ensure_ascii=False,
-                        )
-                        data_delta_content = DataContent(
-                            index=index,
-                            data=fc_cls(
-                                call_id=element.get("id"),
-                                name=element.get("name"),
-                                output=json_str,
-                            ).model_dump(),
-                        )
-                        plugin_output_message = Message(
-                            type=msg_type,
-                            role="tool",
-                            content=[data_delta_content],
-                        )
-                        plugin_output_message = _update_obj_attrs(
-                            plugin_output_message,
-                            metadata=metadata,
-                            usage=usage,
-                        )
-                        yield plugin_output_message.completed()
+                        try:
+                            json_str = json.dumps(
+                                element.get("output"),
+                                ensure_ascii=False,
+                            )
+                        except Exception:
+                            json_str = str(element.get("output"))
+
+                        if last:
+                            plugin_output_message = (
+                                tool_result_messages_dict.get(
+                                    call_id,
+                                )
+                            )
+
+                            if plugin_output_message is None:
+                                # Only one tool result message yields, we fake
+                                #  Build a new tool call message
+                                plugin_output_message = Message(
+                                    type=msg_type,
+                                    role="tool",
+                                )
+
+                                data_delta_content = DataContent(
+                                    index=0,
+                                    data=fc_cls(
+                                        call_id=element.get("id"),
+                                        name=element.get("name"),
+                                        output="",
+                                    ).model_dump(),
+                                )
+
+                                plugin_output_message = _update_obj_attrs(
+                                    plugin_output_message,
+                                    metadata=metadata,
+                                    usage=usage,
+                                )
+                                yield plugin_output_message.in_progress()
+                                yield data_delta_content.in_progress()
+
+                            data_delta_content = DataContent(
+                                index=index,
+                                data=fc_cls(
+                                    call_id=element.get("id"),
+                                    name=element.get("name"),
+                                    output=json_str,
+                                ).model_dump(),
+                            )
+                            plugin_output_message.add_content(
+                                new_content=data_delta_content,
+                            )
+                            yield data_delta_content.completed()
+                            plugin_output_message = _update_obj_attrs(
+                                plugin_output_message,
+                                metadata=metadata,
+                                usage=usage,
+                            )
+                            yield plugin_output_message.completed()
+                        else:
+                            if call_id in tool_result_messages_dict:
+                                pass
+                            else:
+                                # Build a new tool call message
+                                plugin_output_message = Message(
+                                    type=msg_type,
+                                    role="tool",
+                                )
+
+                                data_delta_content = DataContent(
+                                    index=0,
+                                    data=fc_cls(
+                                        call_id=element.get("id"),
+                                        name=element.get("name"),
+                                        output="",
+                                    ).model_dump(),
+                                )
+
+                                plugin_output_message = _update_obj_attrs(
+                                    plugin_output_message,
+                                    metadata=metadata,
+                                    usage=usage,
+                                )
+                                yield plugin_output_message.in_progress()
+                                yield data_delta_content.in_progress()
+
+                                tool_result_messages_dict[
+                                    call_id
+                                ] = plugin_output_message
+
+                        # Reset the message
                         message = Message(
                             type=MessageType.MESSAGE,
                             role="assistant",
