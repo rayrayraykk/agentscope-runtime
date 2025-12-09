@@ -49,7 +49,15 @@
 
 > [!NOTE]
 >
-> **About Framework-Agnostic**: Currently, AgentScope Runtime supports the **AgentScope** framework. We plan to extend compatibility to more agent development frameworks in the future.
+> **About Framework-Agnostic**: Currently, AgentScope Runtime supports the **AgentScope** framework. We plan to extend compatibility to more agent development frameworks in the future. The table shows the current availability of adapters for each framework:
+>
+> | Framework/Feature         | Message/Event | Tool | Session | Memory |
+> | ------------------------- | ------------- | ---- | ------- | ------ |
+> | AgentScope                | ✅             | ✅    | ✅       | ✅      |
+> | LangGraph                 | ✅             | 🚧    | 🚧       | 🚧      |
+> | AutoGen                   | 🚧             | ✅    | 🚧       | 🚧      |
+> | Microsoft Agent Framework | 🚧             | 🚧    | 🚧       | 🚧      |
+> | Agno                      | 🚧             | 🚧    | 🚧       | 🚧      |
 
 ---
 
