@@ -459,6 +459,7 @@ def message_to_agentscope_msg(
                 "text": (TextBlock, "text"),
                 "image": (ImageBlock, "image_url"),
                 "audio": (AudioBlock, "data"),
+                "data": (TextBlock, "data"),
                 # "video": (VideoBlock, "video_url", True),
                 # TODO: support video
             }
