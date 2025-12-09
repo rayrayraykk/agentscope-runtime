@@ -537,7 +537,7 @@ def message_to_agentscope_msg(
                     # text & data
                     if isinstance(value, str):
                         msg_content.append(
-                            block_cls(type=cnt_type, text=value),
+                            TextBlock(type="text", text=value),
                         )
                     else:
                         try:
