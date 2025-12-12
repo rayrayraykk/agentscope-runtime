@@ -53,10 +53,6 @@ class MyRunner(Runner):
             sandbox.browser_type,
         ]
 
-        tools = []
-        for tool in browser_tools:
-            tools.append(tool)
-
         # Modify agent according to the config
         agent = Agent(
             name="Friday",
@@ -66,7 +62,7 @@ class MyRunner(Runner):
                 api_key=os.getenv("DASHSCOPE_API_KEY"),
                 enable_thinking=True,
             ),
-            tools=tools,
+            tools=browser_tools,
         )
 
         async for event in agent.arun(

@@ -31,13 +31,6 @@ from ...engine.schemas.agent_schemas import (
 )
 
 
-def _update_obj_attrs(obj, **attrs):
-    for key, value in attrs.items():
-        if hasattr(obj, key):
-            setattr(obj, key, value)
-    return obj
-
-
 async def adapt_agno_message_stream(
     source_stream: AsyncIterator[BaseAgentRunEvent],
 ) -> AsyncIterator[Message]:
