@@ -102,6 +102,25 @@ if __name__ == "__main__":
   agent_app.run(host="127.0.0.1", port=8090)
 ```
 
+## ⚙️ Prerequisites
+
+```{note}
+Before you begin, make sure you have installed the full version of AgentScope Runtime and configured the required API keys.
+```
+
+1. **Install dependencies**:
+
+   ```bash
+   pip install "agentscope-runtime[ext]"
+   ```
+
+2. **Set environment variables**:
+
+   ```bash
+   # Required: DashScope API key for Qwen model
+   export DASHSCOPE_API_KEY="your-dashscope-api-key"
+   ```
+
 ## ▶️ Running Examples
 
 ```{tip}

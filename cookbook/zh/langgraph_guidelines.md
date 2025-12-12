@@ -211,6 +211,7 @@ async def query_func(
                 memory,
             )
         yield chunk, is_last_chunk
+
 if __name__ == "__main__":
   agent_app.run(host="127.0.0.1", port=8090)
 ```
@@ -218,12 +219,13 @@ if __name__ == "__main__":
 ## ⚙️ 先决条件
 
 ```{note}
-在开始之前，请确保您已经安装了 AgentScope Runtime 并配置了必要的 API 密钥。
+在开始之前，请确保您已经安装了 AgentScope Runtime 完整版并配置了必要的 API 密钥。
 ```
 
 1. **安装依赖**：
+
    ```bash
-   pip install agentscope-runtime
+   pip install "agentscope-runtime[ext]"
    ```
 
 2. **设置环境变量**：

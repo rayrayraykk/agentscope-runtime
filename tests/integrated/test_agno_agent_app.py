@@ -27,6 +27,8 @@ def run_app():
 
     @agent_app.init
     async def init_func(self):
+        # About Agno DB:
+        # See https://docs.agno.com/reference/storage for details.
         self.db = InMemoryDb()
 
     @agent_app.query(framework="agno")
