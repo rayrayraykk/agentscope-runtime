@@ -149,19 +149,19 @@ async def test_runner_sample1():
         async for message in runner.stream_query(
             request=request,
         ):
-            print(message.model_dump_json())
+            print("message", message.model_dump_json())
             if message.object == "message":
                 if MessageType.MESSAGE == message.type:
                     if RunStatus.Completed == message.status:
                         res = message.content
-                        print(res)
+                        print("res", res)
                         if res and len(res) > 0:
                             final_text = res[0].text
-                            print(final_text)
+                            print("final_text", final_text)
                 if MessageType.FUNCTION_CALL == message.type:
                     if RunStatus.Completed == message.status:
                         res = message.content
-                        print(res)
+                        print("res", res)
 
         print("\n")
     assert "杭州" in final_text

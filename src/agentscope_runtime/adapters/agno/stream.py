@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=too-many-nested-blocks,too-many-branches,too-many-statements
 import json
 
-from typing import AsyncIterator
+from typing import AsyncIterator, Union
 
 from agno.run.agent import (
     BaseAgentRunEvent,
@@ -10,10 +9,9 @@ from agno.run.agent import (
     RunCompletedEvent,
     RunContentCompletedEvent,
     RunStartedEvent,
-    # fixme: Not enable now for dashscope models
-    # ReasoningStartedEvent,
-    # ReasoningStepEvent,
-    # ReasoningCompletedEvent,
+    ReasoningStartedEvent,
+    ReasoningStepEvent,
+    ReasoningCompletedEvent,
     ToolCallStartedEvent,
     ToolCallCompletedEvent,
 )
@@ -21,23 +19,21 @@ from agno.run.agent import (
 
 from ...engine.schemas.agent_schemas import (
     Message,
-    TextContent,
+    Content,
     DataContent,
     FunctionCall,
     FunctionCallOutput,
     MessageType,
 )
+from ...engine.helpers.agent_api_builder import ResponseBuilder
 
 
 async def adapt_agno_message_stream(
     source_stream: AsyncIterator[BaseAgentRunEvent],
-) -> AsyncIterator[Message]:
-    text_message = Message(
-        type=MessageType.MESSAGE,
-        role="assistant",
-    )
-
-    text_delta_content = TextContent(delta=True)
+) -> AsyncIterator[Union[Message, Content]]:
+    rb = ResponseBuilder()
+    mb = None
+    rmb = None
 
     async for event in source_stream:
         if isinstance(event, RunStartedEvent):
@@ -47,14 +43,39 @@ async def adapt_agno_message_stream(
             # Placeholder
             return
         elif isinstance(event, RunContentEvent):
-            text_delta_content.text = event.content
-            text_delta_content = text_message.add_delta_content(
-                new_content=text_delta_content,
-            )
-            yield text_delta_content
+            if mb is None:
+                mb = rb.create_message_builder(
+                    message_type=MessageType.MESSAGE,
+                    role="assistant",
+                )
+                yield mb.get_message_data()
+
+                cb = mb.create_content_builder(
+                    content_type="text",
+                )
+            yield cb.add_text_delta(event.content)
         elif isinstance(event, RunContentCompletedEvent):
-            yield text_message.content_completed(text_delta_content.index)
-            yield text_message.completed()
+            yield cb.complete()
+            yield mb.complete()
+            mb = None
+        elif isinstance(event, ReasoningStartedEvent):
+            pass
+        elif isinstance(event, ReasoningStepEvent):
+            if rmb is None:
+                rmb = rb.create_message_builder(
+                    message_type=MessageType.REASONING,
+                    role="assistant",
+                )
+                yield rmb.get_message_data()
+
+                rcb = rmb.create_content_builder(
+                    content_type="text",
+                )
+            yield rcb.add_text_delta(event.content)
+        elif isinstance(event, ReasoningCompletedEvent):
+            yield rcb.complete()
+            yield rmb.complete()
+            rmb = None
         elif isinstance(event, ToolCallStartedEvent):
             json_str = json.dumps(event.tool.tool_args, ensure_ascii=False)
             data = DataContent(
@@ -64,6 +85,7 @@ async def adapt_agno_message_stream(
                     arguments=json_str,
                 ).model_dump(),
             )
+            # Not support streaming tool call
             message = Message(
                 type=MessageType.PLUGIN_CALL,
                 role="assistant",
