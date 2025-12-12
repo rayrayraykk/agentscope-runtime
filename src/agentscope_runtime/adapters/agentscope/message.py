@@ -427,9 +427,16 @@ def message_to_agentscope_msg(
             if isinstance(blk, list):
                 if not all(is_valid_block(item) for item in blk):
                     try:
-                        # Try to convert to blocks
+                        # Try to convert MCP content list to blocks
+                        call_tool_result = {
+                            "content": blk,
+                            "structuredContent": None,
+                            "isError": False,
+                        }
                         blk = MCPClientBase._convert_mcp_content_to_as_blocks(
-                            blk,
+                            CallToolResult.model_validate(
+                                call_tool_result,
+                            ).content,
                         )
                     except Exception:
                         blk = raw_output
