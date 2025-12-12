@@ -56,6 +56,7 @@ class MyRunner(Runner):
         # Modify agent according to the config
         agent = Agent(
             name="Friday",
+            instructions="You're a helpful assistant named Friday",
             model=DashScope(
                 id="qwen-plus",
                 base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
