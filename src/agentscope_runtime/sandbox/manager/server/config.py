@@ -31,6 +31,7 @@ class Settings(BaseSettings):
         "fc",
         "knative",
         "gvisor",
+        "boxlite",
     ] = "docker"
     DEFAULT_MOUNT_DIR: str = "sessions_mount_dir"
     # Read-only mounts (host_path -> container_path)

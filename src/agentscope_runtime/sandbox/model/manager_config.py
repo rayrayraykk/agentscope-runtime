@@ -35,6 +35,7 @@ class SandboxManagerEnvConfig(BaseModel):
         "fc",
         "knative",
         "gvisor",
+        "boxlite",
     ] = Field(
         ...,
         description="Container deployment backend: 'docker', 'cloud', 'k8s'"
