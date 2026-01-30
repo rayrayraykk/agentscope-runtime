@@ -96,6 +96,7 @@ ext = [
     "alibabacloud-eas20210701>=7.0.0,<8.0.0",
     "alibabacloud-aiworkspace20210204>=7.0.0,<8.0.0",
     "discord-py>=2.3",
+    "dingtalk-stream>=0.24.3",
 ]
 
 [tool.pytest.ini_options]

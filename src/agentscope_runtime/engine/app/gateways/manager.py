@@ -9,6 +9,7 @@ from typing import List
 from .base import BaseGateway, AsyncGenHandler
 from .imessage import IMessageGateway
 from .discord_ import DiscordGateway
+from .dingtalk import DingTalkGateway
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ class GatewayManager:
         gateways: list[BaseGateway] = [
             IMessageGateway.from_env(handler),
             DiscordGateway.from_env(handler),
+            DingTalkGateway.from_env(handler),
         ]
         return cls(gateways)
 

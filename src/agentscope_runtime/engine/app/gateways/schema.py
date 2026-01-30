@@ -3,7 +3,7 @@
 from typing import Literal
 from pydantic import BaseModel
 
-ChannelType = Literal["imessage", "discord"]
+ChannelType = Literal["imessage", "discord", "dingtalk"]
 
 
 class Incoming(BaseModel):
