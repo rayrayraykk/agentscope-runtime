@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
-"""DingTalk Gateway."""
+"""DingTalk Gateway.
+
+Why only one reply by default: DingTalk Stream callback is request-reply.
+The handler process() is awaited until reply_future is set once,
+then reply_text() is called once.
+So we merge all streamed content into one reply. When sessionWebhook is
+present we can send multiple messages via that webhook (one POST per
+completed message), then set the future to a sentinel so process() skips the
+single reply_text.
+"""
 
 from __future__ import annotations
 
@@ -9,6 +18,7 @@ import os
 import threading
 from typing import Any, Dict, List, Optional
 
+import aiohttp
 import dingtalk_stream
 from dingtalk_stream import CallbackMessage, ChatbotMessage
 
@@ -16,6 +26,10 @@ from .schema import Incoming
 from .base import BaseGateway, OutgoingContentPart, ProcessHandler
 
 logger = logging.getLogger(__name__)
+
+# When consumer sends all messages via sessionWebhook, it sets this so
+# process() skips reply_text
+SENT_VIA_WEBHOOK = "__SENT_VIA_WEBHOOK__"
 
 
 class _DingTalkGatewayHandler(dingtalk_stream.ChatbotHandler):
@@ -71,9 +85,15 @@ class _DingTalkGatewayHandler(dingtalk_stream.ChatbotHandler):
             self._emit_incoming_threadsafe(msg)
 
             response_text = await reply_future
-            out = self._bot_prefix + response_text
-            self.reply_text(out, incoming_message)
-            logger.info("sent to=%s text=%r", sender, out[:100])
+            if response_text == SENT_VIA_WEBHOOK:
+                logger.info(
+                    "sent to=%s via sessionWebhook (multi-message)",
+                    sender,
+                )
+            else:
+                out = self._bot_prefix + response_text
+                self.reply_text(out, incoming_message)
+                logger.info("sent to=%s text=%r", sender, out[:100])
             return dingtalk_stream.AckMessage.STATUS_OK, "ok"
 
         except Exception:
@@ -129,6 +149,87 @@ class DingTalkGateway(BaseGateway):
             return
         reply_loop.call_soon_threadsafe(reply_future.set_result, text)
 
+    def _get_session_webhook(
+        self,
+        meta: Optional[Dict[str, Any]],
+    ) -> Optional[str]:
+        """Get sessionWebhook from incoming_message in meta
+        (for multi-message send).
+        """
+        if not meta:
+            return None
+        inc = meta.get("incoming_message")
+        if inc is None:
+            return None
+        return getattr(inc, "sessionWebhook", None) or getattr(
+            inc,
+            "session_webhook",
+            None,
+        )
+
+    def _parts_to_single_text(
+        self,
+        parts: List[OutgoingContentPart],
+        bot_prefix: str = "",
+    ) -> str:
+        """Build one reply text from parts
+        (same logic as send_content_parts body).
+        """
+        text_parts: List[str] = []
+        for p in parts:
+            t = p.get("type")
+            if t == "text" and p.get("text"):
+                text_parts.append(p["text"])
+            elif t == "refusal" and p.get("refusal"):
+                text_parts.append(p["refusal"])
+            elif t == "image" and p.get("image_url"):
+                text_parts.append(f"[Image: {p['image_url']}]")
+            elif t == "video" and p.get("video_url"):
+                text_parts.append(f"[Video: {p['video_url']}]")
+            elif t == "file" and (p.get("file_url") or p.get("file_id")):
+                text_parts.append(
+                    f"[File: {p.get('file_url') or p.get('file_id')}]",
+                )
+            elif t == "audio" and p.get("data"):
+                text_parts.append("[Audio]")
+            elif t == "data":
+                text_parts.append("[Data]")
+        body = "\n".join(text_parts) if text_parts else ""
+        if bot_prefix and body:
+            body = bot_prefix + body
+        return body
+
+    async def _send_via_session_webhook(
+        self,
+        session_webhook: str,
+        body: str,
+        bot_prefix: str = "",
+    ) -> bool:
+        """Send one text message via DingTalk sessionWebhook. Returns True
+        on success."""
+        text = (bot_prefix + body) if body else bot_prefix
+        payload = {"msgtype": "text", "text": {"content": text}}
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    session_webhook,
+                    json=payload,
+                    headers={
+                        "Content-Type": "application/json; charset=utf-8",
+                    },
+                ) as resp:
+                    if resp.status >= 400:
+                        logger.warning(
+                            "sessionWebhook POST status=%s body=%s",
+                            resp.status,
+                            await resp.text(),
+                        )
+                        return False
+                    return True
+        except Exception:
+            logger.exception("sessionWebhook POST failed")
+            return False
+
     async def send_content_parts(
         self,
         to_handle: str,
@@ -176,6 +277,10 @@ class DingTalkGateway(BaseGateway):
                 last_response = None
                 accumulated_parts: list = []
                 event_count = 0
+                send_meta = {**(msg.meta or {}), "bot_prefix": self.bot_prefix}
+                session_webhook = self._get_session_webhook(msg.meta)
+                use_multi = bool(session_webhook)
+
                 async for event in self._process(request):
                     event_count += 1
                     obj = getattr(event, "object", None)
@@ -196,26 +301,50 @@ class DingTalkGateway(BaseGateway):
                             ev_type,
                             len(parts),
                         )
-                        accumulated_parts.extend(parts)
+                        if use_multi and parts:
+                            body = self._parts_to_single_text(
+                                parts,
+                                bot_prefix="",
+                            )
+                            if body.strip() and session_webhook:
+                                await self._send_via_session_webhook(
+                                    session_webhook,
+                                    body.strip(),
+                                    bot_prefix="",
+                                )
+                        else:
+                            accumulated_parts.extend(parts)
                     elif obj == "response":
                         last_response = event
+
                 logger.info(
                     "dingtalk stream done: event_count=%s "
-                    "accumulated_parts=%s",
+                    "accumulated_parts=%s "
+                    "use_session_webhook=%s",
                     event_count,
                     len(accumulated_parts),
+                    use_multi,
                 )
-                send_meta = {**(msg.meta or {}), "bot_prefix": self.bot_prefix}
+
                 if last_response and getattr(last_response, "error", None):
                     err = getattr(
                         last_response.error,
                         "message",
                         str(last_response.error),
                     )
+                    err_text = self.bot_prefix + f"Error: {err}"
+                    if use_multi and session_webhook:
+                        await self._send_via_session_webhook(
+                            session_webhook,
+                            err_text,
+                            bot_prefix="",
+                        )
                     self._reply_sync(
                         send_meta,
-                        self.bot_prefix + f"Error: {err}",
+                        SENT_VIA_WEBHOOK if use_multi else err_text,
                     )
+                elif use_multi:
+                    self._reply_sync(send_meta, SENT_VIA_WEBHOOK)
                 elif accumulated_parts:
                     await self.send_content_parts(
                         msg.sender,
