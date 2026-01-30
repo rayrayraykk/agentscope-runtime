@@ -7,13 +7,13 @@ import asyncio
 import logging
 import os
 import threading
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import dingtalk_stream
 from dingtalk_stream import CallbackMessage, ChatbotMessage
 
 from .schema import Incoming
-from .base import BaseGateway, AsyncGenHandler
+from .base import BaseGateway, OutgoingContentPart, ProcessHandler
 
 logger = logging.getLogger(__name__)
 
@@ -82,21 +82,21 @@ class _DingTalkGatewayHandler(dingtalk_stream.ChatbotHandler):
 
 
 class DingTalkGateway(BaseGateway):
-    """DingTalk Gateway: DingTalk Stream -> Incoming ->
-    AsyncGenHandler -> DingTalk reply.
+    """DingTalk Gateway: DingTalk Stream -> Incoming -> to_agent_request ->
+    process -> send_response -> DingTalk reply.
     """
 
     channel = "dingtalk"
 
     def __init__(
         self,
-        handler: AsyncGenHandler,
+        process: ProcessHandler,
         enabled: bool,
         client_id: str,
         client_secret: str,
         bot_prefix: str,
     ):
-        super().__init__(handler)
+        super().__init__(process)
         self.enabled = enabled
         self.client_id = client_id
         self.client_secret = client_secret
@@ -110,9 +110,9 @@ class DingTalkGateway(BaseGateway):
         self._stop_event = threading.Event()
 
     @classmethod
-    def from_env(cls, handler: AsyncGenHandler) -> "DingTalkGateway":
+    def from_env(cls, process: ProcessHandler) -> "DingTalkGateway":
         return cls(
-            handler=handler,
+            process=process,
             enabled=os.getenv("DINGTALK_GATEWAY_ENABLED", "1") == "1",
             client_id=os.getenv("DINGTALK_CLIENT_ID", ""),
             client_secret=os.getenv("DINGTALK_CLIENT_SECRET", ""),
@@ -129,18 +129,107 @@ class DingTalkGateway(BaseGateway):
             return
         reply_loop.call_soon_threadsafe(reply_future.set_result, text)
 
+    async def send_content_parts(
+        self,
+        to_handle: str,
+        parts: List[OutgoingContentPart],
+        meta: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Build one reply body from parts and deliver via _reply_sync
+        (one reply per request).
+        """
+        text_parts = []
+        for p in parts:
+            t = p.get("type")
+            if t == "text" and p.get("text"):
+                text_parts.append(p["text"])
+            elif t == "refusal" and p.get("refusal"):
+                text_parts.append(p["refusal"])
+            elif t == "image" and p.get("image_url"):
+                text_parts.append(f"[Image: {p['image_url']}]")
+            elif t == "video" and p.get("video_url"):
+                text_parts.append(f"[Video: {p['video_url']}]")
+            elif t == "file" and (p.get("file_url") or p.get("file_id")):
+                text_parts.append(
+                    f"[File: {p.get('file_url') or p.get('file_id')}]",
+                )
+            elif t == "audio" and p.get("data"):
+                text_parts.append("[Audio]")
+            elif t == "data":
+                text_parts.append("[Data]")
+        body = "\n".join(text_parts) if text_parts else ""
+        prefix = (meta or {}).get("bot_prefix", "") or ""
+        if prefix and body:
+            body = prefix + body
+        elif prefix:
+            body = prefix
+        self._reply_sync(meta or {}, body)
+
     async def _consume_loop(self) -> None:
+        from ...schemas.agent_schemas import RunStatus
+
         assert self._queue is not None
         while True:
             msg = await self._queue.get()
             try:
-                accumulated = ""
-                async for chunk in self._handler(msg):
-                    if chunk:
-                        accumulated += chunk
-                self._reply_sync(msg.meta or {}, accumulated)
+                request = self.to_agent_request(msg)
+                last_response = None
+                accumulated_parts: list = []
+                event_count = 0
+                async for event in self._process(request):
+                    event_count += 1
+                    obj = getattr(event, "object", None)
+                    status = getattr(event, "status", None)
+                    ev_type = getattr(event, "type", None)
+                    logger.debug(
+                        "dingtalk event #%s: object=%s status=%s type=%s",
+                        event_count,
+                        obj,
+                        status,
+                        ev_type,
+                    )
+                    if obj == "message" and status == RunStatus.Completed:
+                        parts = self._message_to_content_parts(event)
+                        logger.info(
+                            "dingtalk completed message: type=%s "
+                            "parts_count=%s",
+                            ev_type,
+                            len(parts),
+                        )
+                        accumulated_parts.extend(parts)
+                    elif obj == "response":
+                        last_response = event
+                logger.info(
+                    "dingtalk stream done: event_count=%s "
+                    "accumulated_parts=%s",
+                    event_count,
+                    len(accumulated_parts),
+                )
+                send_meta = {**(msg.meta or {}), "bot_prefix": self.bot_prefix}
+                if last_response and getattr(last_response, "error", None):
+                    err = getattr(
+                        last_response.error,
+                        "message",
+                        str(last_response.error),
+                    )
+                    self._reply_sync(
+                        send_meta,
+                        self.bot_prefix + f"Error: {err}",
+                    )
+                elif accumulated_parts:
+                    await self.send_content_parts(
+                        msg.sender,
+                        accumulated_parts,
+                        send_meta,
+                    )
+                elif last_response is None:
+                    self._reply_sync(
+                        send_meta,
+                        self.bot_prefix
+                        + "An error occurred while processing your request.",
+                    )
             except Exception:
-                logger.exception("handler/reply failed")
+                logger.exception("process/reply failed")
                 self._reply_sync(
                     msg.meta or {},
                     "An error occurred while processing your request.",

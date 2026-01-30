@@ -13,7 +13,7 @@ import asyncio
 from typing import Optional, Dict, Any
 
 from .schema import Incoming
-from .base import BaseGateway, AsyncGenHandler
+from .base import BaseGateway, ProcessHandler
 
 logger = logging.getLogger(__name__)
 
@@ -23,13 +23,13 @@ class IMessageGateway(BaseGateway):
 
     def __init__(
         self,
-        handler: AsyncGenHandler,
+        process: ProcessHandler,
         enabled: bool,
         db_path: str,
         poll_sec: float,
         bot_prefix: str,
     ):
-        super().__init__(handler)
+        super().__init__(process)
         self.enabled = enabled
         self.db_path = os.path.expanduser(db_path)
         self.poll_sec = poll_sec
@@ -44,9 +44,9 @@ class IMessageGateway(BaseGateway):
         self._consumer_task: Optional[asyncio.Task] = None
 
     @classmethod
-    def from_env(cls, handler: AsyncGenHandler) -> "IMessageGateway":
+    def from_env(cls, process: ProcessHandler) -> "IMessageGateway":
         return cls(
-            handler=handler,
+            process=process,
             enabled=os.getenv("IMESSAGE_ENABLED", "1") == "1",
             db_path=os.getenv(
                 "IMESSAGE_DB_PATH",
@@ -125,7 +125,7 @@ ORDER BY m.ROWID ASC
                         msg = Incoming(
                             channel="imessage",
                             sender=sender,
-                            text=text,
+                            text=str(text) if text else "",
                             meta={
                                 "chat_rowid": str(r["chat_rowid"]),
                                 "rowid": int(r["ROWID"]),
@@ -148,18 +148,63 @@ ORDER BY m.ROWID ASC
             logger.info("watcher thread stopped")
 
     async def _consume_loop(self) -> None:
+        from ...schemas.agent_schemas import RunStatus
+
         assert self._queue is not None
         while True:
             msg = await self._queue.get()
             try:
-                async for chunk in self._handler(msg):
-                    if not chunk:
-                        continue
-                    out = self.bot_prefix + chunk
-                    await asyncio.to_thread(self._send_sync, msg.sender, out)
-                    logger.info("sent to=%s text=%r", msg.sender, out)
+                request = self.to_agent_request(msg)
+                last_response = None
+                event_count = 0
+                async for event in self._process(request):
+                    event_count += 1
+                    obj = getattr(event, "object", None)
+                    status = getattr(event, "status", None)
+                    ev_type = getattr(event, "type", None)
+                    logger.debug(
+                        "imessage event #%s: object=%s status=%s type=%s",
+                        event_count,
+                        obj,
+                        status,
+                        ev_type,
+                    )
+                    if obj == "message" and status == RunStatus.Completed:
+                        logger.info(
+                            "imessage sending completed message: type=%s "
+                            "to=%s",
+                            ev_type,
+                            msg.sender,
+                        )
+                        send_meta = {
+                            **(msg.meta or {}),
+                            "bot_prefix": self.bot_prefix,
+                        }
+                        await self.send_message_content(
+                            msg.sender,
+                            event,
+                            send_meta,
+                        )
+                    elif obj == "response":
+                        last_response = event
+                logger.info(
+                    "imessage stream done: event_count=%s has_response=%s",
+                    event_count,
+                    last_response is not None,
+                )
+                if last_response and getattr(last_response, "error", None):
+                    err = getattr(
+                        last_response.error,
+                        "message",
+                        str(last_response.error),
+                    )
+                    await asyncio.to_thread(
+                        self._send_sync,
+                        msg.sender,
+                        self.bot_prefix + f"Error: {err}",
+                    )
             except Exception:
-                logger.exception("handler/send failed")
+                logger.exception("process/send failed")
 
     async def start(self) -> None:
         if not self.enabled:

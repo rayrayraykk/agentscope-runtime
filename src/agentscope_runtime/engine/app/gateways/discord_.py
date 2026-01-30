@@ -8,7 +8,7 @@ import asyncio
 from typing import Optional
 
 from .schema import Incoming
-from .base import BaseGateway, AsyncGenHandler
+from .base import BaseGateway, ProcessHandler
 
 logger = logging.getLogger(__name__)
 
@@ -18,14 +18,14 @@ class DiscordGateway(BaseGateway):
 
     def __init__(
         self,
-        handler: AsyncGenHandler,
+        process: ProcessHandler,
         enabled: bool,
         token: str,
         http_proxy: str,
         http_proxy_auth: str,
         bot_prefix: str,
     ):
-        super().__init__(handler)
+        super().__init__(process)
         self.enabled = enabled
         self.token = token
         self.http_proxy = http_proxy
@@ -79,18 +79,66 @@ class DiscordGateway(BaseGateway):
                 )
 
                 try:
-                    async for chunk in self._handler(msg):
-                        if not chunk:
-                            continue
-                        out = self.bot_prefix + chunk
-                        await message.channel.send(out)
+                    from ...schemas.agent_schemas import RunStatus
+
+                    request = self.to_agent_request(msg)
+                    last_response = None
+                    send_meta = {
+                        **(msg.meta or {}),
+                        "bot_prefix": self.bot_prefix,
+                    }
+                    event_count = 0
+                    async for event in self._process(request):
+                        event_count += 1
+                        obj = getattr(event, "object", None)
+                        status = getattr(event, "status", None)
+                        ev_type = getattr(event, "type", None)
+                        logger.debug(
+                            "discord event #%s: object=%s status=%s type=%s",
+                            event_count,
+                            obj,
+                            status,
+                            ev_type,
+                        )
+                        if obj == "message" and status == RunStatus.Completed:
+                            logger.info(
+                                "discord sending completed message: type=%s "
+                                "to=%s",
+                                ev_type,
+                                msg.sender,
+                            )
+                            await self.send_message_content(
+                                msg.sender,
+                                event,
+                                send_meta,
+                            )
+                        elif obj == "response":
+                            last_response = event
+                    logger.info(
+                        "discord stream done: event_count=%s "
+                        "has_response=%s has_error=%s",
+                        event_count,
+                        last_response is not None,
+                        getattr(last_response, "error", None) is not None
+                        if last_response
+                        else False,
+                    )
+                    if last_response and getattr(last_response, "error", None):
+                        err = getattr(
+                            last_response.error,
+                            "message",
+                            str(last_response.error),
+                        )
+                        await message.channel.send(
+                            self.bot_prefix + f"Error: {err}",
+                        )
                 except Exception:
-                    logger.exception("handler/send failed")
+                    logger.exception("process/send failed")
 
     @classmethod
-    def from_env(cls, handler: AsyncGenHandler) -> "DiscordGateway":
+    def from_env(cls, process: ProcessHandler) -> "DiscordGateway":
         return cls(
-            handler=handler,
+            process=process,
             enabled=os.getenv("DISCORD_ENABLED", "1") == "1",
             token=os.getenv("DISCORD_BOT_TOKEN", ""),
             http_proxy=os.getenv(

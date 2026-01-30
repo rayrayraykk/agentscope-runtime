@@ -6,7 +6,7 @@ import logging
 
 from typing import List
 
-from .base import BaseGateway, AsyncGenHandler
+from .base import BaseGateway, ProcessHandler
 from .imessage import IMessageGateway
 from .discord_ import DiscordGateway
 from .dingtalk import DingTalkGateway
@@ -19,11 +19,17 @@ class GatewayManager:
         self.gateways = gateways
 
     @classmethod
-    def from_env(cls, handler: AsyncGenHandler) -> "GatewayManager":
+    def from_env(cls, process: ProcessHandler) -> "GatewayManager":
+        """
+        Create gateways from env and inject unified process
+        (AgentRequest -> Event stream).
+        process is typically runner.stream_query, handled by AgentApp's
+        process endpoint.
+        """
         gateways: list[BaseGateway] = [
-            IMessageGateway.from_env(handler),
-            DiscordGateway.from_env(handler),
-            DingTalkGateway.from_env(handler),
+            IMessageGateway.from_env(process),
+            DiscordGateway.from_env(process),
+            DingTalkGateway.from_env(process),
         ]
         return cls(gateways)
 

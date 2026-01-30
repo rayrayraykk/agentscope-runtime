@@ -467,6 +467,7 @@ AgentContent = Annotated[
         ImageContent,
         DataContent,
         AudioContent,
+        VideoContent,
         FileContent,
         RefusalContent,
     ],
