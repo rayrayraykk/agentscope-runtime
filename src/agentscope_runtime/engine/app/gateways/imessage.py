@@ -237,6 +237,8 @@ ORDER BY m.ROWID ASC
             self._consumer_task.cancel()
             try:
                 await self._consumer_task
+            except asyncio.CancelledError:
+                pass
             except Exception:
                 pass
 

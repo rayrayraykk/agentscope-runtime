@@ -215,10 +215,11 @@ class DiscordGateway(BaseGateway):
     async def stop(self) -> None:
         if not self.enabled:
             return
-        if self._client:
-            await self._client.close()  # type: ignore
         if self._task:
+            self._task.cancel()
             try:
                 await asyncio.wait_for(self._task, timeout=5)
-            except Exception:
+            except (asyncio.CancelledError, Exception):
                 pass
+        if self._client:
+            await self._client.close()  # type: ignore

@@ -4,6 +4,7 @@
 import contextvars
 import inspect
 import json
+import logging
 import os
 import re
 import time
@@ -47,12 +48,12 @@ from .message_util import (
     merge_incremental_chunk,
     get_finish_reason,
 )
-
 from .base import Tracer, TracerHandler, EventContext
 from .tracing_metric import TraceType
 from .local_logging_handler import LocalLogHandler
 from .tracing_util import TracingUtil
 
+logger = logging.getLogger(__name__)
 T_co = TypeVar("T_co", covariant=True)
 
 
@@ -390,84 +391,95 @@ def trace(  # pylint: disable=too-many-statements
                 **common_attrs,
             }
 
-            with _get_ot_tracer().start_as_current_span(
-                final_trace_name,
-                context=parent_ctx,
-                attributes=span_attributes,
-            ) as span:
-                span.set_status(status=StatusCode.OK)
-                with _tracer.event(
-                    span,
+            try:
+                with _get_ot_tracer().start_as_current_span(
                     final_trace_name,
-                    payload=start_payload,
-                ) as event:
-                    _parent_span_context.set(
-                        ot_trace.set_span_in_context(span),
-                    )
-                    if _function_accepts_kwargs(func):
-                        func_kwargs = kwargs.copy() if kwargs else {}
-                        func_kwargs["trace_event"] = event
-                    else:
-                        func_kwargs = kwargs.copy() if kwargs else {}
+                    context=parent_ctx,
+                    attributes=span_attributes,
+                ) as span:
+                    span.set_status(status=StatusCode.OK)
+                    with _tracer.event(
+                        span,
+                        final_trace_name,
+                        payload=start_payload,
+                    ) as event:
+                        _parent_span_context.set(
+                            ot_trace.set_span_in_context(span),
+                        )
+                        if _function_accepts_kwargs(func):
+                            func_kwargs = kwargs.copy() if kwargs else {}
+                            func_kwargs["trace_event"] = event
+                        else:
+                            func_kwargs = kwargs.copy() if kwargs else {}
 
-                    cumulated = []
+                        cumulated = []
 
-                    async def iter_entry() -> AsyncGenerator[T_co, None]:
-                        """Internal async generator for processing items.
+                        async def iter_entry() -> AsyncGenerator[T_co, None]:
+                            """Internal async generator for processing items.
 
-                        Yields:
-                            T_co: Items from the original generator with
-                                tracing.
-                        """
-                        try:
-                            start_time = int(time.time() * 1000)
-                            async for i, resp in aenumerate(
-                                func(*args, **func_kwargs),
-                            ):  # type: ignore
-                                yield resp
-                                cumulated.append(resp)
+                            Yields:
+                                T_co: Items from the original generator with
+                                    tracing.
+                            """
+                            try:
+                                start_time = int(time.time() * 1000)
+                                async for i, resp in aenumerate(
+                                    func(*args, **func_kwargs),
+                                ):  # type: ignore
+                                    yield resp
+                                    cumulated.append(resp)
 
-                                if i == 0:
-                                    _trace_first_resp(
-                                        resp,
+                                    if i == 0:
+                                        _trace_first_resp(
+                                            resp,
+                                            event,
+                                            span,
+                                            start_time,
+                                        )
+
+                                    if get_finish_reason_func is not None:
+                                        _trace_last_resp(
+                                            resp,
+                                            get_finish_reason_func,
+                                            event,
+                                            span,
+                                        )
+
+                                if cumulated and merge_output_func is not None:
+                                    _trace_merged_resp(
+                                        cumulated,
+                                        merge_output_func,
                                         event,
                                         span,
-                                        start_time,
                                     )
 
-                                if get_finish_reason_func is not None:
-                                    _trace_last_resp(
-                                        resp,
-                                        get_finish_reason_func,
-                                        event,
-                                        span,
-                                    )
-
-                            if cumulated and merge_output_func is not None:
-                                _trace_merged_resp(
-                                    cumulated,
-                                    merge_output_func,
-                                    event,
-                                    span,
+                            except Exception as e:
+                                span.set_status(
+                                    status=StatusCode.ERROR,
+                                    description=f"exception={e}",
                                 )
+                                event.on_log(str(e))
+                                raise e
+                            finally:
+                                if not trace_context:
+                                    _parent_span_context.set(parent_ctx)
+
+                        try:
+                            async for resp in iter_entry():
+                                yield resp
 
                         except Exception as e:
-                            span.set_status(
-                                status=StatusCode.ERROR,
-                                description=f"exception={e}",
-                            )
-                            event.on_log(str(e))
                             raise e
-                        finally:
-                            if not trace_context:
-                                _parent_span_context.set(parent_ctx)
-
-                    try:
-                        async for resp in iter_entry():
-                            yield resp
-
-                    except Exception as e:
-                        raise e
+            except ValueError as e:
+                if "different Context" in str(
+                    e,
+                ) or "was created in a different" in str(e):
+                    logger.debug(
+                        "Suppress OTel context detach on generator close: %s",
+                        e,
+                    )
+                else:
+                    raise
 
         @wraps(func)
         def iter_task(*args: Any, **kwargs: Any) -> Iterable[T_co]:

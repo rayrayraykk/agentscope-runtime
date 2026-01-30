@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 
 from typing import List
@@ -46,5 +47,7 @@ class GatewayManager:
         for g in reversed(self.gateways):
             try:
                 await g.stop()
+            except asyncio.CancelledError:
+                pass
             except Exception:
                 logger.exception("failed to stop gateway=%s", g.channel)
