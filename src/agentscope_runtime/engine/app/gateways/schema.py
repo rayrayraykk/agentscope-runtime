@@ -22,7 +22,7 @@ from typing import (
 
 from pydantic import BaseModel, Field
 
-ChannelType = Literal["imessage", "discord", "dingtalk"]
+ChannelType = Literal["imessage", "discord", "dingtalk", "qq"]
 
 
 # -------- Incoming content item: text, image, video, audio, file --------

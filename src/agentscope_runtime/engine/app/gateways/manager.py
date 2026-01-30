@@ -11,6 +11,7 @@ from .base import BaseGateway, ProcessHandler
 from .imessage import IMessageGateway
 from .discord_ import DiscordGateway
 from .dingtalk import DingTalkGateway
+from .qq import QQGateway
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ class GatewayManager:
             IMessageGateway.from_env(process),
             DiscordGateway.from_env(process),
             DingTalkGateway.from_env(process),
+            QQGateway.from_env(process),
         ]
         return cls(gateways)
 
