@@ -47,8 +47,14 @@ MAX_RECONNECT_ATTEMPTS = 100
 QUICK_DISCONNECT_THRESHOLD = 5
 MAX_QUICK_DISCONNECT_COUNT = 3
 
-API_BASE = "https://api.sgroup.qq.com"
+DEFAULT_API_BASE = "https://api.sgroup.qq.com"
 TOKEN_URL = "https://bots.qq.com/app/getAppAccessToken"
+
+
+def _get_api_base() -> str:
+    """API 根地址，可通过 QQ_API_BASE 覆盖（如沙箱: https://sandbox.api.sgroup.qq.com）。"""
+    return os.getenv("QQ_API_BASE", DEFAULT_API_BASE).rstrip("/")
+
 
 _token_cache: Optional[Dict[str, Any]] = None
 _token_lock = threading.Lock()
@@ -81,6 +87,8 @@ def _get_access_token_sync(app_id: str, client_secret: str) -> str:
     if not token:
         raise RuntimeError(f"No access_token in response: {data}")
     expires_in = data.get("expires_in", 7200)
+    if isinstance(expires_in, str):
+        expires_in = int(expires_in)
     with _token_lock:
         _token_cache = {
             "token": token,
@@ -96,20 +104,31 @@ def clear_token_cache() -> None:
 
 
 def _get_gateway_url_sync(access_token: str) -> str:
-    try:
-        import urllib.request
+    import urllib.error
+    import urllib.request
 
-        url = f"{API_BASE}/gateway"
-        req = urllib.request.Request(
-            url,
-            headers={
-                "Authorization": f"QQBot {access_token}",
-                "Content-Type": "application/json",
-            },
-            method="GET",
-        )
+    url = f"{_get_api_base()}/gateway"
+    req = urllib.request.Request(
+        url,
+        headers={
+            "Authorization": f"QQBot {access_token}",
+            "Content-Type": "application/json",
+        },
+        method="GET",
+    )
+    try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e:
+        body = ""
+        try:
+            body = e.read().decode() if e.fp else ""
+        except Exception:
+            pass
+        msg = f"HTTP {e.code}: {e.reason}"
+        if body:
+            msg += f" | body: {body[:500]}"
+        raise RuntimeError(f"Failed to get gateway url: {msg}") from e
     except Exception as e:
         raise RuntimeError(f"Failed to get gateway url: {e}") from e
     gateway_url = data.get("url")
@@ -126,7 +145,7 @@ def _api_request_sync(
 ) -> Dict[str, Any]:
     import urllib.request
 
-    url = f"{API_BASE}{path}"
+    url = f"{_get_api_base()}{path}"
     data = None
     if body is not None:
         data = json.dumps(body).encode()
@@ -179,6 +198,8 @@ async def _get_access_token_async(app_id: str, client_secret: str) -> str:
     if not token:
         raise RuntimeError(f"No access_token: {data}")
     expires_in = data.get("expires_in", 7200)
+    if isinstance(expires_in, str):
+        expires_in = int(expires_in)
     with _token_lock:
         _token_cache = {
             "token": token,
@@ -193,7 +214,7 @@ async def _api_request_async(
     path: str,
     body: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    url = f"{API_BASE}{path}"
+    url = f"{_get_api_base()}{path}"
     async with aiohttp.ClientSession() as session:
         kwargs = {
             "headers": {
