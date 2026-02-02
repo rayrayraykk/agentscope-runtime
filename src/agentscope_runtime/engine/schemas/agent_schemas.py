@@ -470,6 +470,7 @@ AgentContent = Annotated[
         VideoContent,
         FileContent,
         RefusalContent,
+        VideoContent,
     ],
     Field(discriminator="type"),
 ]
