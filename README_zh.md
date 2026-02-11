@@ -90,6 +90,7 @@
 - **对开发者友好**：提供`AgentApp`方便部署并提供强大的自定义选项
 - **可观察性**：对运行时操作进行全面跟踪和监控
 - **沙盒工具执行**：隔离的沙盒确保安全工具执行，不会影响系统
+- **Sandbox FS**（v1.1.0）：通过 `sandbox.fs`（同步 SandboxFS / 异步 SandboxFSAsync）在宿主机直接读写沙箱 workspace 文件，无需经 tool 调用。需拉取 latest 镜像使用。
 - **开箱即用 & 一键适配**：提供种类丰富的开箱即用工具，适配器快速接入不同框架
 
 > [!NOTE]
@@ -280,6 +281,19 @@ data: {"sequence_number":6,"object":"response","status":"completed", ... }
 | `MobileSandbox`     | `MobileSandboxAsync`     |
 | `TrainingSandbox`   | \- （暂无异步版本）      |
 | `AgentbaySandbox`   | \- （暂无异步版本）      |
+
+#### Sandbox FS（v1.1.0）
+
+**Sandbox FS** 支持在宿主机代码中直接读写沙箱内的 workspace 文件。进入沙箱上下文后使用 `box.fs`（同步或异步）。使用前请拉取 **latest** 镜像。
+
+```python
+from agentscope_runtime.sandbox import BaseSandbox
+
+with BaseSandbox() as box:
+    fs = box.fs
+    fs.write("hello.txt", "Hello from host")
+    print(fs.read("hello.txt", fmt="text"))
+```
 
 #### 基础沙箱（Base Sandbox）
 

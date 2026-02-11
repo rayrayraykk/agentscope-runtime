@@ -89,6 +89,7 @@
 - **Developer-Friendly**: Offers `AgentApp` for easy deployment with powerful customization options
 - **Observability**: Comprehensive tracking and monitoring of runtime operations
 - **Sandboxed Tool Execution**: Isolated sandbox ensures safe tool execution without affecting the system
+- **Sandbox FS** (v1.1.0): Read and write sandbox workspace files from host code via `sandbox.fs` (sync `SandboxFS` / async `SandboxFSAsync`) without going through tool calls. Requires the latest sandbox images.
 - **Out-of-the-Box Tools & One-Click Adaptation**: Rich set of ready-to-use tools, with adapters enabling quick integration into different frameworks
 
 > [!NOTE]
@@ -278,6 +279,19 @@ These examples demonstrate how to create sandboxed environments and execute tool
 | `MobileSandbox`     | `MobileSandboxAsync`     |
 | `TrainingSandbox`   | -                        |
 | `AgentbaySandbox`   | -                        |
+
+#### Sandbox FS (v1.1.0)
+
+**Sandbox FS** lets you read/write files inside the sandbox workspace from your host code. After entering a sandbox context, use `box.fs` (sync or async). Pull the **latest** sandbox images to use this feature.
+
+```python
+from agentscope_runtime.sandbox import BaseSandbox
+
+with BaseSandbox() as box:
+    fs = box.fs
+    fs.write("hello.txt", "Hello from host")
+    print(fs.read("hello.txt", fmt="text"))
+```
 
 #### Base Sandbox
 
