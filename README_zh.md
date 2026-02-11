@@ -90,6 +90,7 @@
 - **对开发者友好**：提供`AgentApp`方便部署并提供强大的自定义选项
 - **可观察性**：对运行时操作进行全面跟踪和监控
 - **沙盒工具执行**：隔离的沙盒确保安全工具执行，不会影响系统
+- **Sandbox FS**（v1.1.0）：通过 `sandbox.fs`（同步 SandboxFS / 异步 SandboxFSAsync）在宿主机直接读写沙箱 workspace 文件，无需经 tool 调用。需拉取 latest 镜像使用。
 - **开箱即用 & 一键适配**：提供种类丰富的开箱即用工具，适配器快速接入不同框架
 
 > [!NOTE]
@@ -280,6 +281,19 @@ data: {"sequence_number":6,"object":"response","status":"completed", ... }
 | `MobileSandbox`     | `MobileSandboxAsync`     |
 | `TrainingSandbox`   | \- （暂无异步版本）      |
 | `AgentbaySandbox`   | \- （暂无异步版本）      |
+
+#### Sandbox FS（v1.1.0）
+
+**Sandbox FS** 支持在宿主机代码中直接读写沙箱内的 workspace 文件。进入沙箱上下文后使用 `box.fs`（同步或异步）。使用前请拉取 **latest** 镜像。
+
+```python
+from agentscope_runtime.sandbox import BaseSandbox
+
+with BaseSandbox() as box:
+    fs = box.fs
+    fs.write("hello.txt", "Hello from host")
+    print(fs.read("hello.txt", fmt="text"))
+```
 
 #### 基础沙箱（Base Sandbox）
 
@@ -675,7 +689,7 @@ limitations under the License.
 
 ## ✨ 贡献者
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-34-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-36-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 
@@ -729,6 +743,10 @@ limitations under the License.
       <td align="center" valign="top" width="14.28%"><a href="http://dorianzheng.github.io"><img src="https://avatars.githubusercontent.com/u/8065637?v=4?s=100" width="100px;" alt="dorianzheng"/><br /><sub><b>dorianzheng</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/pulls?q=is%3Apr+reviewed-by%3ADorianZheng" title="Reviewed Pull Requests">👀</a> <a href="#platform-DorianZheng" title="Packaging/porting to new platform">📦</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/cainiao1992"><img src="https://avatars.githubusercontent.com/u/18435004?v=4?s=100" width="100px;" alt="Xiangfang Chen"/><br /><sub><b>Xiangfang Chen</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/commits?author=cainiao1992" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Eggiverse"><img src="https://avatars.githubusercontent.com/u/36877740?v=4?s=100" width="100px;" alt="Zhang Shitian"/><br /><sub><b>Zhang Shitian</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/issues?q=author%3AEggiverse" title="Bug reports">🐛</a> <a href="https://github.com/agentscope-ai/agentscope-runtime/commits?author=Eggiverse" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Shun-Chu"><img src="https://avatars.githubusercontent.com/u/73324318?v=4?s=100" width="100px;" alt="Chuss"/><br /><sub><b>Chuss</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/issues?q=author%3AShun-Chu" title="Bug reports">🐛</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bcfre"><img src="https://avatars.githubusercontent.com/u/209150938?v=4?s=100" width="100px;" alt="bcfre"/><br /><sub><b>bcfre</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/commits?author=bcfre" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>

@@ -89,6 +89,7 @@
 - **Developer-Friendly**: Offers `AgentApp` for easy deployment with powerful customization options
 - **Observability**: Comprehensive tracking and monitoring of runtime operations
 - **Sandboxed Tool Execution**: Isolated sandbox ensures safe tool execution without affecting the system
+- **Sandbox FS** (v1.1.0): Read and write sandbox workspace files from host code via `sandbox.fs` (sync `SandboxFS` / async `SandboxFSAsync`) without going through tool calls. Requires the latest sandbox images.
 - **Out-of-the-Box Tools & One-Click Adaptation**: Rich set of ready-to-use tools, with adapters enabling quick integration into different frameworks
 
 > [!NOTE]
@@ -278,6 +279,19 @@ These examples demonstrate how to create sandboxed environments and execute tool
 | `MobileSandbox`     | `MobileSandboxAsync`     |
 | `TrainingSandbox`   | -                        |
 | `AgentbaySandbox`   | -                        |
+
+#### Sandbox FS (v1.1.0)
+
+**Sandbox FS** lets you read/write files inside the sandbox workspace from your host code. After entering a sandbox context, use `box.fs` (sync or async). Pull the **latest** sandbox images to use this feature.
+
+```python
+from agentscope_runtime.sandbox import BaseSandbox
+
+with BaseSandbox() as box:
+    fs = box.fs
+    fs.write("hello.txt", "Hello from host")
+    print(fs.read("hello.txt", fmt="text"))
+```
 
 #### Base Sandbox
 
@@ -668,7 +682,7 @@ limitations under the License.
 
 ## ✨ Contributors
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-34-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-36-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/emoji-key/)):
@@ -721,6 +735,10 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/e
       <td align="center" valign="top" width="14.28%"><a href="http://dorianzheng.github.io"><img src="https://avatars.githubusercontent.com/u/8065637?v=4?s=100" width="100px;" alt="dorianzheng"/><br /><sub><b>dorianzheng</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/pulls?q=is%3Apr+reviewed-by%3ADorianZheng" title="Reviewed Pull Requests">👀</a> <a href="#platform-DorianZheng" title="Packaging/porting to new platform">📦</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/cainiao1992"><img src="https://avatars.githubusercontent.com/u/18435004?v=4?s=100" width="100px;" alt="Xiangfang Chen"/><br /><sub><b>Xiangfang Chen</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/commits?author=cainiao1992" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Eggiverse"><img src="https://avatars.githubusercontent.com/u/36877740?v=4?s=100" width="100px;" alt="Zhang Shitian"/><br /><sub><b>Zhang Shitian</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/issues?q=author%3AEggiverse" title="Bug reports">🐛</a> <a href="https://github.com/agentscope-ai/agentscope-runtime/commits?author=Eggiverse" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Shun-Chu"><img src="https://avatars.githubusercontent.com/u/73324318?v=4?s=100" width="100px;" alt="Chuss"/><br /><sub><b>Chuss</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/issues?q=author%3AShun-Chu" title="Bug reports">🐛</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bcfre"><img src="https://avatars.githubusercontent.com/u/209150938?v=4?s=100" width="100px;" alt="bcfre"/><br /><sub><b>bcfre</b></sub></a><br /><a href="https://github.com/agentscope-ai/agentscope-runtime/commits?author=bcfre" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>
